@@ -1,0 +1,181 @@
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Marketing Dashboard</title>
+    <link rel="icon" href="{{ url_for('static', filename='logo.png') }}" type="image/png">
+    <link href="{{ url_for('static', filename='style.css') }}" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='marketing.css') }}">
+    <link href="{{ url_for('static', filename='message_alert.css') }}" rel="stylesheet">
+</head>
+<body>
+    {% include 'nav_v2.html' %}
+    {% include 'messages_alert.html' %}
+
+    <h1 class="section-title">Playlist</h1>
+    {% if role == 'commercial' or role == 'admin' %}
+        <div style="margin: 15px 0; text-align: center;">
+            <a href="{{ url_for('voir_planning') }}" style="padding: 10px 20px; cursor: pointer; background-color: #4CAF50; color: white; text-decoration: none; border-radius: 4px; display: inline-block;">Planning</a>
+        </div>
+    {% endif %}
+    <div class="main-content"> <!-- ajout class sombre -->
+
+        
+
+        <!-- creer playlist -->
+        <section class="card">
+            <h3>{{t.h3_1}}</h3>
+            <form id="create-playlist-form" action="/playlist/create" method="POST" class="form-inline">
+                <input
+                    type="text"
+                    name="title"
+                    placeholder="{{t.nom}}"
+                    required
+                >
+                <button type="submit" class="btn btn-primary">{{t.creer}}</button>
+            </form>
+
+            <form method="post" action="{{ url_for('delete_playlist') }}">
+                <label for="playlist-delete">{{ t.select }}</label>
+                <select id="playlist-delete" name="playlist_id">
+                    <option value="">{{ t.select_value }}</option>
+                    {% for p in playlists %}
+                        <option value="{{ p.id }}" {% if selected_playlist_id == p.id|string %}selected{% endif %}>
+                            {{ p.title }}
+                        </option>
+                    {% endfor %}
+                </select>
+                <button type="submit" class="btn btn-primary" style="margin-top: 10px;">{{t.supp}}</button>
+            </form>
+
+
+        </section>
+
+        <!-- select playlist -->
+        <section class="card card_1">
+            <form method="post">
+                <label for="playlist-select">{{ t.select }}</label>
+                <select id="playlist-select" name="playlist_id" onchange="this.form.submit()">
+                    <option value="">{{ t.select_value }}</option>
+                    {% for p in playlists %}
+                        <option value="{{ p.id }}" {% if selected_playlist_id == p.id|string %}selected{% endif %}>
+                            {{ p.title }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </form>
+
+            {% if musics %}
+                <ul>
+                    {% for title in musics %}
+                        <li>{{ title }}</li>
+                    {% endfor %}
+                </ul>
+            {% elif selected_playlist_id %}
+                <p>No musics in this playlist</p>
+            {% endif %}
+        </section>
+
+
+
+
+
+        <!-- upload mp3 -->
+        <section class="card card_1">
+            <form action="/upload" method="POST" enctype="multipart/form-data" id="upload-form">
+                <input type="hidden" name="playlist_id" id="playlist-id">
+
+                <div class="upload-zone disabled" id="upload-zone">
+                    <p class="upload-text">{{t.upload}}</p>
+                    <input
+                        type="file"
+                        name="audio"
+                        id="audio-input"
+                        accept=".mp3"
+                        required
+                        hidden
+                    >
+                </div>
+
+                <div class="boutons">
+                    <button type="submit" id="btn-upload" class="btn btn-secondary" disabled>
+                        {{t.submit}}
+                    </button>
+                    <button><a href="https://notube.lol/fr" target="_blank">{{t.convertir}}</a></button>
+                </div>
+            </form>
+        </section>
+
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+    <script src="{{ url_for('static', filename='message_alert.js') }}"></script>
+    <script>
+
+    const playlistSelect = document.getElementById('playlist-select');
+    const uploadZone = document.getElementById('upload-zone');
+    const fileInput = document.getElementById('audio-input');
+    const uploadBtn = document.getElementById('btn-upload');
+    const hiddenPlaylist = document.getElementById('playlist-id');
+
+    // activer upload zone aussi si une playlist est deja selectionné
+    const playlistValue = playlistSelect.value;
+    if (playlistValue) {
+        uploadZone.classList.remove('disabled');
+        uploadBtn.disabled = false;
+        hiddenPlaylist.value = playlistValue;
+        uploadZone.querySelector('p').innerText = "{{t.h3}}";
+
+        // clic sur zone pour ouvrir le file picker
+        uploadZone.onclick = () => fileInput.click();
+    } else {
+        uploadZone.classList.add('disabled');
+        uploadBtn.disabled = true;
+        hiddenPlaylist.value = "";
+        uploadZone.querySelector('p').innerText = "{{t.upload}}";
+    }
+
+    // ctiver upload quand une playlist est choisie
+    playlistSelect.addEventListener('change', () => {
+        if (playlistSelect.value) {
+            uploadZone.classList.remove('disabled');
+            uploadBtn.disabled = false;
+            hiddenPlaylist.value = playlistSelect.value;
+            uploadZone.querySelector('p').innerText = "{{t.h3}}";
+
+            // clic sur zone pour ouvrir le file picker
+            uploadZone.onclick = () => fileInput.click();
+        } else {
+            uploadZone.classList.add('disabled');
+            uploadBtn.disabled = true;
+            hiddenPlaylist.value = "";
+            uploadZone.querySelector('p').innerText = "{{t.upload}}";
+        }
+    });
+
+    // Dragon drop
+    uploadZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        uploadZone.classList.add('dragover');
+    });
+
+    uploadZone.addEventListener('dragleave', (e) => {
+        e.preventDefault();
+        uploadZone.classList.remove('dragover');
+    });
+
+    uploadZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        uploadZone.classList.remove('dragover');
+
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+            fileInput.files = files;
+        }
+    });
+
+
+    </script>
+
+    {% include 'fin_nav.html' %}
+</body>
+</html>

@@ -1,0 +1,42 @@
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>Site</title>
+        <link rel="icon" href="../static/logo.png" type="image/png">
+        <link href="{{ url_for('static', filename='style.css') }}" rel="stylesheet">
+        <link href="{{ url_for('static', filename='message_alert.css') }}" rel="stylesheet">
+    </head>
+    <body class=""> <!-- ajout class sombre ici -->
+        <div class="nav"> <!-- ajout class sombre ici -->
+            <div class="page" id="index">{{t.index}}</div>
+            <div class="logo">Musi-quali <img src="{{ url_for('static', filename='logo.png') }}" alt="logo"/></div>
+            <div class="b">
+                <input class="mode-sombre btn-mode" type="button" value="🌒" id="bouton" style="background-color: rgba(0, 0, 0, 0);border:none;font-size:20px;"/>
+                <select name="langue" id="select-langue">
+                    <option value="fr" {% if current_lang == 'fr' %}selected{% endif %}>Français</option>
+                    <option value="en" {% if current_lang == 'en' %}selected{% endif %}>English</option>
+                </select>
+            </div>
+        </div>
+        {% include 'messages_alert.html' %}
+        <div class="h1">
+            <form action="/login" method="POST" id="form">
+                <h1>{{t.h1}} : <input name="username" type="text" required/></h1>
+                <h1>{{t.password}} : <input name="password" type="password" required/></h1>
+                <input class="seconnecte" type="submit" value="{{t.connexion}}"/>
+            </form>
+            {% if msg_error %}
+		        <h4 class="text-danger" style="color:#de2929; "> {{ msg_error }} </h4>
+	        {% endif %}
+        </div>        
+        <script src="{{ url_for('static', filename='script.js') }}"></script>
+        <script src="{{ url_for('static', filename='message_alert.js') }}"></script>
+        <script>
+            document.getElementById('index').addEventListener('click', function(){
+                window.location.href = "http://localhost:8000";
+            })
+        </script>
+
+        {% include 'fin_nav.html' %}
+    </body>
+</html>

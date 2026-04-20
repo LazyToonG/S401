@@ -1,0 +1,42 @@
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>Site</title>
+        <link rel="icon" href="../static/logo.png" type="image/png">
+        <link href="{{ url_for('static', filename='style.css') }}" rel="stylesheet">
+    </head>
+    <body class=""> <!-- ajout class sombre ici -->
+        <div class="nav"> <!-- ajout class sombre ici -->
+            <div class="page" id="admin">{{t.admin}}</div>
+            <div class="logo">Musi-quali <img src="{{ url_for('static', filename='logo.png') }}" alt="logo"/></div>
+            <div class="b">
+                <input class="mode-sombre btn-mode" type="button" value="🌒" id="bouton"/>
+                <select name="langue" id="select-langue">
+                    <option value="fr" {% if current_lang == 'fr' %}selected{% endif %}>Français</option>
+                    <option value="en" {% if current_lang == 'en' %}selected{% endif %}>English</option>
+                </select>
+            </div>
+        </div>
+        <div>
+			<form id="form" action="/signin" method="POST" class="form-inline">
+            	<h1>{{t.h1}} : <input name="username" type="text"/></h1>
+            	<h1>{{t.password}} : <input name="password" type="text"/></h1>
+				<h1><label for="role-select">{{t.role}} :</label>
+					<select name="role" id="role-select" class="form-control">
+    					<option value="commercial">{{t.commercial}}</option>
+    					<option value="marketing">{{t.marketing}}</option>
+    					<option value="admin">{{t.admin}}</option>
+					</select>
+				</h1>
+            	<input class="seconnecte" type="submit" value="{{t.create}}"/>
+			</form>
+        </div>        
+        <script src="{{ url_for('static', filename='script.js') }}"></script>
+        <script>
+            document.getElementById('admin').addEventListener('click', function(){
+            window.location.href = "/admin";
+        });
+        </script>
+		{% include 'fin_nav.html' %}
+    </body>
+</html>

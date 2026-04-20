@@ -1,0 +1,13 @@
+
+
+
+
+
+#client vers serveur
+ssh -N -R 900x:localhost:8080 user@serveur_ip
+scp -P <port_du_tunnel> /chemin/fichier user@localhost:/destination
+
+
+#le client doit ouvrir le port avant
+# Du serveur vers le client
+scp -P <port_du_tunnel> user@localhost:/chemin/fichier /destination

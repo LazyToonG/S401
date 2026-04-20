@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>{{metadata['title']}}</title>
+		<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+		<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
+	</head>
+
+	<body>
+		{% include 'nav.html' %}
+		{% block content %}{% endblock %}
+
+		<div style="background-color:rgb(197, 117, 235); border: solid;">
+			<h4>Contact :</h4>
+			<div style="display:flex; flex-direction:row; gap: 10px; flex: 1; ">
+				<img src="https://imgur.com/4vRulr5.png" alt="image mail" style="height:25px;">
+				<p>exempleAdress@gmail.com</p>
+			</div>
+			<div>
+				<h4>Responsable :</h4>
+				<ul>
+					<li>MASTOURI Ambrine</li>
+					<li>TALBI Anas</li>
+					<li>SHISHKOVSKIY-RYSCHENKOW Arthur</li>
+					<li>BOYLAN Darragh</li>
+					<li>CHEBLAL Djibril</li>
+					<li>HOARAU Lucas</li>
+				</ul>	
+			</div>
+		</div>	
+	</body>
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
+
+
+</html>
+

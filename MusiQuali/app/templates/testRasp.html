@@ -1,0 +1,48 @@
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>Site</title>
+        <link rel="icon" href="../static/logo.png" type="image/png">
+        <link href="{{ url_for('static', filename='style_accueil.css') }}" rel="stylesheet">
+    </head>
+    <body class=""> <!-- ajout class sombre ici -->
+        <div class="nav"> <!-- ajout class sombre ici -->
+            <div class="page" id="login">Login</div>
+            <div class="logo">Musi-quali <img src="{{ url_for('static', filename='logo.png') }}" alt="logo"/></div>
+            <div class="b">
+                <input class="mode_sombre" type="button" value="🌒" id="bouton"/> <!-- modif class input entre mode_clair quand mode de la page est sombre, mode_sombre quand le mode de la page est clair -->
+                <select name="langue" id="select-langue">
+                    <option value="fr" {% if current_lang == 'fr' %}selected{% endif %}>Français</option>
+                    <option value="en" {% if current_lang == 'en' %}selected{% endif %}>English</option>
+                </select>
+            </div>
+        </div>
+        <br>
+        <br>
+        <br>
+        <form action="/testRasp" method="POST">
+            <div class="mb-3 mt-3">
+                <label for="nom" class="form-label">Quel est l'identifiant de la nouvelle Raspberry que vous voulez insérer ?</label>
+                <input type="text" class="form-control" id="nom" placeholder="Entrez l'identifiant de la Raspberry" name="nom">
+                <br>
+                <label for="ipRasp" class="form-label">Quel est l'adresse IP de cette nouvelle Raspberry que vous voulez insérer ?</label>
+                <input type="text" class="form-control" id="ipRasp" placeholder="Entrez l'adresse IP de la Raspberry" name="ipRasp">
+            </div>
+            <button type="submit">Envoyer</button>
+        </form>
+        {% if msg_error %}
+            <p class="text-danger" style = "color:red;"> {{ msg_error }}</p>
+        {% endif %}
+        <!-- <ul>
+        {% for k in data %}
+            <li>{{ k.nom }} {{ k.ipRasp }}</li><br>
+        {% endfor %}
+        </ul> -->
+        <select id="raspberry-select">
+            {% for k in data %}
+                <option value="{{ k.nom }}">{{ k.nom }} {{ k.ipRasp }}</option>
+            {% endfor %}
+        </select>
+        <script src="{{ url_for('static', filename='script.js') }}"></script>
+    </body>
+</html>

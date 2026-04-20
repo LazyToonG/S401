@@ -1,0 +1,42 @@
+/* RESET MINIMAL */ 
+* { box-sizing: border-box; } 
+
+/* LAYOUT PRINCIPAL */ 
+.main { flex : 1; width: 100%; display: grid; grid-template-columns: 2fr 1fr; grid-template-rows: auto 1fr; gap: 20px; padding: 20px; /* height: calc(100vh - 60px); */ } 
+
+/* PANELS */ 
+.panel { background: #ffffff; border-radius: 10px; padding: 20px; box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08); } 
+
+/* GAUCHE = TOUTE LA HAUTEUR */ 
+.left-panel { grid-row: 1 / 3; } 
+
+/* TITRES */ 
+h2 { margin-top: 0; margin-bottom: 15px; font-size: 20px; border-bottom: 1px solid #ddd; padding-bottom: 8px; } 
+h3 { margin-top: 20px; font-size: 16px; } 
+
+/* FORMULAIRES */ 
+.user-form, .user-search-form { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; } 
+input, select { padding: 10px; border-radius: 6px; border: 1px solid #ccc; font-size: 14px; } 
+input:focus, select:focus { outline: none; border-color: #2c6bed; } 
+
+/* BOUTONS */ 
+button, .nav-btn { padding: 10px; border-radius: 6px; border: none; background: #d02424; color: white; font-size: 14px; cursor: pointer; text-align: center; text-decoration: none; } 
+button:hover, .nav-btn:hover { background: #a81c1c; } 
+
+/* NAVIGATION */ 
+.top-right-panel .nav-btn { margin-bottom: 10px; } 
+
+/* TERMINAL */ 
+.terminal { margin-top: 20px; } 
+.terminal-screen { height: 320px; background: #0d0d0d; color: #00ff88; font-family: monospace; padding: 12px; border-radius: 8px; overflow-y: auto; font-size: 13px; } 
+
+/* UTILISATEURS */ 
+.users { display: flex; flex-direction: row; gap: 20px; } 
+.users-info { display: flex; flex-direction: column; gap: 5px; text-align: left; } 
+.user-action { display: flex; flex-direction: row; gap: 10px; } 
+.user-action button{ margin-top: 5px; padding: 5px 10px; } 
+.user-action-confirm { display: none; flex-direction: row; gap: 5px; } 
+.user-action-confirm button:hover{ background-color: #ccc; } 
+
+/* SELECT RASPBERRY */ 
+#raspberry-select { width: 100%; margin-bottom: 10px; }

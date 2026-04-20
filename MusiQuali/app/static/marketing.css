@@ -1,0 +1,125 @@
+/* layout */
+.main-content {
+    width: auto;
+    margin: 0;
+    padding: 2rem;
+    display: flex;
+    flex-grow: 1;
+    gap: 20px
+}
+
+a{
+    color: #267ac9;
+}
+a:hover{
+    color : #f33b3bb1;
+}
+
+.card.sombre {
+    color : white;
+    background-color: #1a2b3c;
+}
+.card.sombre input, 
+.card.sombre select {
+    background-color: #0e1a25;
+    color: white;
+    border: 1px solid #555;
+}
+
+.section-title {
+    display: flex;
+    justify-content: center;
+}
+
+/* container card*/
+.card {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 1.25rem;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
+    flex : 1;
+    width: 0;
+}
+
+/* forms */
+.form-inline {
+    display: flex;
+    gap: 0.75rem;
+}
+
+input[type="text"],
+select {
+    width: 100%;
+    padding: 0.6rem 0.75rem;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    font-size: 0.95rem;
+}
+
+label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+}
+
+/* upload*/
+.upload-zone {
+    border: 2px dashed #4a90e2;
+    border-radius: 12px;
+    padding: 1.5rem;
+    text-align: center;
+    cursor: pointer;
+    margin-bottom: 1rem;
+    transition: background 0.2s, border-color 0.2s;
+}
+
+.upload-zone:hover {
+    background: #f3f8ff;
+}
+
+.upload-zone.disabled {
+    border-color: #bbb;
+    background: #f6f6f6;
+    cursor: not-allowed;
+}
+
+.upload-text {
+    margin: 0;
+    color: #555;
+}
+
+
+.btn {
+    padding: 0.6rem 1.2rem;
+    border-radius: 8px;
+    border: none;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 0.95rem;
+}
+.btn:hover {
+    background-color: #af8585;
+}
+
+.btn-primary {
+    background: #4a90e2;
+    color: #fff;
+}
+
+.btn-secondary {
+    background: #2ecc71;
+    color: #fff;
+    width: 100%;
+}
+
+.btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.boutons {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}

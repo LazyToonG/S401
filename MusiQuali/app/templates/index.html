@@ -1,0 +1,54 @@
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>Site</title>
+        <link rel="icon" href="../static/logo.png" type="image/png">
+        <link href="{{ url_for('static', filename='style_accueil.css') }}" rel="stylesheet">
+    </head>
+    <body class=""> <!-- ajout class sombre ici -->
+        <div class="nav"> <!-- ajout class sombre ici -->
+            <div class="page" id="login">{{t.login}}</div>
+            <div class="logo">Musi-quali <img src="{{ url_for('static', filename='logo.png') }}" alt="logo"/></div>
+            <div class="b">
+                <input class="mode-sombre btn-mode" type="button" value="🌒" id="bouton" style="background-color: rgba(0, 0, 0, 0);border:none;font-size:20px;"/> <!-- modif class input entre mode_clair quand mode de la page est sombre, mode_sombre quand le mode de la page est clair -->
+                <select name="langue" id="select-langue">
+                    <option value="fr" {% if current_lang == 'fr' %}selected{% endif %}>Français</option>
+                    <option value="en" {% if current_lang == 'en' %}selected{% endif %}>English</option>
+                </select>
+            </div>
+        </div>
+        <br>
+        <br>
+        <br>
+        <div class="h1">
+            <h1>{{ t.titre }}</h1>
+        </div>
+        <div class="presentation"> <!-- ajout class sombre ici -->
+            <p>{{ t.desc_1 }}</p>
+            <br>
+            <h3>{{ t.desc_2 }}</h3>
+        </div>
+
+        <div class="equipe"> <!-- ajout class sombre ici -->
+            <p>{{ t.equipe_intro }}</p>
+            <p>{{ t.equipe_liste }}</p>
+                <ul>
+                    <li>Darragh BOYLAN</li>
+                    <li>Djibril CHEBLAL</li>
+                    <li>Lucas HOARAU</li>
+                    <li>Ambrine MASTOURI</li>
+                    <li>Arthur SHISHKOVSKIY-RYSCHENKOW</li>
+                    <li>Anas TALBI</li>
+                </ul>
+        </div>
+
+        <script src="{{ url_for('static', filename='script.js') }}"></script>
+        <script>
+            document.getElementById('login').addEventListener('click', function(){
+                window.location.href = "/login";
+            })
+        </script>
+
+        {% include 'fin_nav.html' %}
+    </body>
+</html>

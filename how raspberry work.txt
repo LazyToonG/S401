@@ -1,0 +1,5 @@
+1. Initialisation : Création du fichier de log et test de la connexion internet.
+2. Mise à jour: Si connecté, la Raspberry se met à l'heure, télécharge la nouvelle playlist et efface les anciennes. Sinon, elle se sert de la playlist du jour précédent.
+3. Elle joue les musiques sur le canal 0 aux heures prévues.
+4. Quand un message est prévu, Le canal 0 est silencieux le temps que le message soit joué sur le canal 1. Remarque : le fichier contenant les messages doit pouvoir etre mis a jour n’importe quand, pas juste en début de journée.
+5. À la fin de la journée, le fichier de logs est envoyé à la base de données.

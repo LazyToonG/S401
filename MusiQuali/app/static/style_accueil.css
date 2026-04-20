@@ -1,0 +1,130 @@
+body {
+    background-color: #b5d3f0;
+    font-family: Times, "Times New Roman", Georgia, serif;
+    position: relative; 
+    min-height: 100vh;
+    margin: 0;
+}
+
+body.sombre {
+    background-color: #0e1a25;
+    font-family: Times, "Times New Roman", Georgia, serif;
+    position: relative; 
+    min-height: 100vh;
+    margin: 0;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.logo img {
+    height: 60px;
+    width: auto;
+}
+
+.h1 {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    justify-content: center;
+    height: 50vh;
+    position: relative;
+    z-index: 1;
+}
+
+.h1::after {
+    content: "";
+    background-image: url('logo.png');
+    position: absolute;
+    top: 50%; 
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 500px;
+    height: 500px;
+    background-repeat: no-repeat;
+    background-size: contain;
+    background-position: center center;
+    opacity: 0.2;
+    z-index: -1; 
+}
+
+.nav {
+    display : flex;
+    flex-direction: row;
+    background-color: #267ac9;
+    color : white;
+    font-size: 24px;
+    padding: 17px;
+    align-items: center;
+    justify-content: space-between;
+}
+
+
+.nav div {
+    color : white;
+    background-color: #ffffff4c;
+    margin: 5px;
+    padding: 10px;
+    border-radius: 10px;
+}
+
+.presentation {
+    display : flex;
+    flex-direction:  column;
+    align-items: center;
+    text-align: justify;
+    margin : 20px;
+    color : white;
+    background-color: #267ac9;
+    size: 20px;
+    border-radius: 10px;
+    padding: 10px;
+}
+
+#login:hover {
+    color: red;
+}
+
+p {
+    font-size: 20px;
+}
+ul {
+    font-size: 20px;
+}
+
+select, input {
+    padding : 5px;
+    border-radius: 5px;
+}
+
+.equipe {
+    display : flex;
+    flex-direction:  column;
+    align-items: left;
+    margin : 20px;
+    color : white;
+    background-color: #267ac9;
+    size: 20px;
+    border-radius: 10px;
+    padding: 10px;
+}
+
+
+#langue {
+    border-radius: 7px;
+}
+
+.btn-mode {
+    background-color: rgba(0, 0, 0, 0);
+    border:none;
+    font-size:20px;
+}
+
+.sombre {
+    color : white;
+    background-color: #083967;
+}

@@ -1,0 +1,302 @@
+
+h1 {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.main-container {
+    width: 100%;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+#saveToFileBtn:hover {
+    background-color: #a81c1c;
+}
+
+/* Barre de contrôles (Zoom, Sauvegarde) */
+.controls-bar {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background-color: #b5d3f0;
+    padding: 10px 0;
+    margin-bottom: 10px;
+}
+.controls-bar.sombre {
+    color : white;
+    background-color: #0e1a25;
+}
+
+
+/* Conteneur principal du planning (flexbox pour les colonnes jours) */
+.planning-container {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    gap: 10px;
+    overflow-x: auto;
+    padding-bottom: 20px;
+}
+.planning-container.sombre {
+    background-color: #0e1a25;
+}
+
+/* Colonne représentant un jour */
+.day-column {
+    flex: 1;
+    min-width: 180px;
+    background: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    /* position: relative; Retiré ici, géré par drop-zone */
+    border: 1px solid #e0e0e0;
+    display: flex;
+    flex-direction: column;
+}
+
+.day-column.sombre {
+    background-color: #1a2b3c;
+}
+
+.day-header {
+    background-color: #4CAF50;
+    color: white;
+    padding: 10px;
+    text-align: center;
+    border-radius: 8px 8px 0 0;
+    font-weight: bold;
+    text-transform: capitalize;
+    user-select: none;
+}
+
+.day-header.sombre {
+    background-color: #3c8d3f;
+}
+
+.start-time-input {
+    display: block;
+    margin: 5px auto 0;
+    padding: 2px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+    font-size: 0.9em;
+}
+
+/* Colonne des heures */
+.time-scale {
+    display: flex;
+    flex-direction: column;
+    margin-right: 10px;
+}
+
+.hour-marker {
+    border-top: 1px solid #ccc;
+    box-sizing: border-box;
+    text-align: right;
+    padding-right: 5px;
+    font-size: 0.8em;
+    color: #666;
+}
+
+/* Zone contenant les tâches */
+.drop-zone {
+    position: relative;
+    flex-grow: 1;
+    width: 100%;
+    min-height: 150px; /* Assure une zone de drop même vide */
+    background-image: linear-gradient(to bottom, #f9f9f9 1px, transparent 1px);
+}
+.drop-zone.sombre {
+    background-image: linear-gradient(to bottom, black 1px, transparent 1px);
+}
+
+/* Bloc représentant une musique */
+.music-task {
+    background-color: #e3f2fd;
+    border-left: 4px solid #2196F3;
+    padding: 4px 8px;
+    font-size: 0.85em;
+    border-radius: 4px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    cursor: grab;
+    overflow: hidden;
+    
+    /* Positionnement */
+    position: relative;
+    width: 95%;
+    margin: 4px auto;
+    user-select: none;
+}
+
+.music-task:hover {
+    background-color: #bbdefb;
+    z-index: 10; /* Met en avant au survol */
+    min-height: 45px !important; /* Agrandit les petits éléments au survol pour lire le contenu */
+}
+
+/* --- Styles pour la fenêtre Modale (Pop-up) --- */
+.modal {
+    display: none; /* Caché par défaut */
+    position: fixed; 
+    z-index: 1000; 
+    left: 0;
+    top: 0;
+    width: 100%; 
+    height: 100%; 
+    overflow: auto; 
+    background-color: rgba(0,0,0,0.5); /* Fond semi-transparent */
+    backdrop-filter: blur(2px);
+}
+
+.modal-content.sombre {
+    background-color: #1a2b3c;
+}
+.modal-content.sombre h3, .modal-content.sombre label {
+    color: white;
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: 5% auto; /* Centré verticalement */
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%; 
+    max-width: 400px;
+    border-radius: 8px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    font-family: 'Segoe UI', sans-serif;
+}
+
+.modal-content h3 {
+    margin-top: 0;
+    color: #333;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 15px;
+    margin-bottom: 20px;
+}
+
+.modal-content .form-group {
+    margin-bottom: 15px;
+}
+
+.modal-content label {
+    display: block;
+    margin-bottom: 5px;
+    color: #555;
+    font-weight: 600;
+    font-size: 0.9em;
+}
+
+.modal-content input[type="text"],
+.modal-content input[type="number"],
+.modal-content input[type="time"],
+.modal-content select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    box-sizing: border-box;
+    font-size: 14px;
+    transition: border-color 0.3s;
+}
+
+.modal-content input:focus,
+.modal-content select:focus {
+    border-color: #4CAF50;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.1);
+}
+
+.close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.close:hover,
+.close:focus {
+    color: black;
+    text-decoration: none;
+}
+
+#saveMusicBtn { 
+    background-color: #4CAF50; 
+    color: white; 
+    border: none; 
+    padding: 12px 20px; 
+    border-radius: 6px; 
+    cursor: pointer; 
+    margin-top: 10px; 
+    width: 100%;
+    font-size: 16px;
+    font-weight: bold;
+}
+#saveMusicBtn:hover { background-color: #45a049; }
+
+#deleteMusicBtn { background-color: #f44336; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; margin-top: 10px; float: right; font-size: 0.9em; }
+#deleteMusicBtn:hover { background-color: #d32f2f; }
+
+/* Bouton d'ajout en bas de colonne */
+.add-music-btn {
+    display: block;
+    width: 100%;
+    padding: 10px;
+    background: #eee;
+    border: none;
+    border-top: 1px solid #ccc;
+    cursor: pointer;
+    font-weight: bold;
+    color: #555;
+}
+.add-music-btn:hover {
+    background: #e0e0e0;
+}
+
+.add-music-btn.sombre {
+    background-color: #0b4a85;
+    color : white;
+}
+.add-music-btn.sombre:hover{
+    background-color: #083967;
+}
+
+/* Bouton d'insertion rapide au survol */
+.insert-task-btn {
+    position: absolute;
+    bottom: 2px;
+    right: 5px;
+    width: 20px;
+    height: 20px;
+    background-color: #4CAF50;
+    color: white;
+    border-radius: 50%;
+    text-align: center;
+    line-height: 20px;
+    font-weight: bold;
+    cursor: pointer;
+    display: none;
+    z-index: 50;
+    font-size: 14px;
+}
+
+.music-task:hover .insert-task-btn {
+    display: block;
+}
+
+.insert-task-btn:hover {
+    background-color: #45a049;
+}
+
+/* Styles pour les selects de la modale */
+.modal-select {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 15px;
+    display: inline-block;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    box-sizing: border-box;
+}

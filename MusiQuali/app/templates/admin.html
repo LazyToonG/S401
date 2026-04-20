@@ -1,0 +1,161 @@
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Admin Dashboard</title>
+    <link rel="icon" href="../static/logo.png" type="image/png">
+    <link href="{{ url_for('static', filename='style.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='admin.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='message_alert.css') }}" rel="stylesheet">
+</head>
+<body class="">
+    {% include 'nav_v2.html' %}
+    {% include 'messages_alert.html' %}
+    <div class="main">
+        <!-- moitié gauche -->
+        <div class="left-panel panel card">
+            <h2>Raspberry</h2>
+       
+            <label for="raspberry-select">{{t.select_rasp}} :</label>
+            <!-- <select id="raspberry-select">
+                <option value="">-- {{t.select}} --</option>
+                <option value="raspi1">Raspberry 1</option>
+                <option value="raspi2">Raspberry 2</option>
+            </select> truc d'avant, probabalent à supprimer-->
+            <form method="POST" action="/admin/action_rasp">
+                <select id="raspberry-select" name="raspberry-select">
+                    {% for r in raspberry %}
+                        <option value="{{ r.idRasp }}">{{ r.nom }} {{ r.ipRasp }}</option>
+                    {% endfor %}
+                </select>
+                <div class="user-action">
+                    <button type="submit" name="action" value="delete-rasp">{{t.supp}} &times;</button>
+                
+                <button type="submit" name="action" value="envoie-ping">Ping</button>
+                <button type="submit" name="action" value="test">{{t.fichier}}</button>
+                </div>
+            </form>
+
+            <h2>{{t.titreRasp}}</h2> 
+            <form action="/admin/add_rasp" method="POST">
+                <div class="mb-3 mt-3">
+                    <label for="nom" class="form-label">{{t.nomRasp}}</label>
+                    <input type="text" class="form-control" id="nom" placeholder="{{t.form_nomRasp}}" name="nom">
+                    <br>
+                    <label for="ipRasp" class="form-label">{{t.ipRasp}}</label>
+                    <input type="text" class="form-control" id="ipRasp" placeholder="{{t.form_ipRasp}}" name="ipRasp">
+                </div>
+                <br>
+                <button type="submit">{{t.bouton_ajoutRasp}}</button>
+            </form>
+    
+            <div class="terminal">
+                <h3>Terminal</h3>
+
+                <div class="terminal-screen">
+                    <!-- terminal ici -->
+                </div>
+                
+            </div>
+
+            <button id="download-logs">
+                {{t.download}}
+            </button>
+        </div>
+
+        <!-- en haut a droite -->
+        <div class="top-right-panel panel card">
+            <h2>Navigation</h2>
+            <a href="/marketing" class="nav-btn">Marketing</a>
+            <a href="/commercial" class="nav-btn">Commercial</a>
+        </div>
+
+        <!-- en bas a droite -->
+        <div class="bottom-right-panel panel card">
+            <h2>{{t.users}}</h2>
+            <div class="user-panel">
+
+                <h2>{{t.create_user}}</h2>
+
+                <form method="post" action="/admin/create" class="user-form">
+                    <input
+                        type="text"
+                        name="username"
+                        placeholder="{{t.name_user}}"
+                        required
+                    >
+
+                    <input
+                        type="password"
+                        name="password"
+                        placeholder="{{t.password}}"
+                        required
+                    >
+
+                    <select name="role" required>
+                        <option value="">-- {{t.choix_role}} --</option>
+                        <option value="marketing">Marketing</option>
+                        <option value="commercial">Commercial</option>
+                        <option value="admin">{{t.admin}}</option>
+                    </select>
+
+                    <button type="submit">{{t.create}}</button>
+                </form>
+                <h2>{{t.recherche}}</h2>
+
+                <form method="post" action="/admin/search" class="user-search-form">
+                    <input
+                        type="text"
+                        name="username"
+                        placeholder="{{t.recherche_user}}"
+                        required
+                    >
+                    <button type="submit">{{t.search}}</button>
+                </form>
+                {% if searched_users %}
+                <h3>{{t.result}}</h3>
+                <ul>
+                    {% for user in searched_users %}
+                        <li>
+                            <form method="post" action="/admin/delete" class="users">
+                                <input type="hidden" name="username" value="{{ user.username }}">
+                                <div class="users-info">
+                                    <div name="username" class="info-line">
+                                        {{ t.name }} : <strong>{{ user.username }}</strong>
+                                    </div>
+                                    <div class="info-line">
+                                        {{ t.role }} : <strong>{{ user.role }}</strong>
+                                    </div>
+                                </div>
+                                <div class="user-action">
+                                    <button type="button" id="delete-user">{{t.supp}}</button>
+                                    <div class="user-action-confirm">
+                                        <button type="submit" name="decision" value="confirm" class="alert-success">{{t.confirm}} ✓</button>
+                                        <button type="submit" name="decision" value="cancel" class="alert-error">{{t.cancel}} &times;</button>
+                                    </div>
+                                </div>
+                            </form>
+                        </li>
+                    {% endfor %}
+                </ul>
+                {% endif %}
+
+            </div>
+        </div>
+    </div>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+    <script src="{{ url_for('static', filename='message_alert.js') }}"></script>
+    <script>
+        if(document.querySelector('.role_nav').textContent==='admin'){
+            document.querySelector('.role_nav').addEventListener('click',function(){
+                window.location.href = "/admin";
+            });
+        };
+        
+        document.getElementById("delete-user").addEventListener('click', function(){
+            document.querySelector(".user-action-confirm").style.display='flex';
+        });
+    </script>
+    
+    {% include 'fin_nav.html' %}
+</body>
+</html>

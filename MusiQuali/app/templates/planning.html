@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Planning Adaptatif</title>
+    <link rel="icon" href="../static/logo.png" type="image/png">
+    <link href="{{ url_for('static', filename='style.css') }}" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='planning_style.css') }}">
+    <link href="{{ url_for('static', filename='message_alert.css') }}" rel="stylesheet">
+</head>
+<body>
+    {% include 'nav_v2.html' %}
+    {% include 'messages_alert.html' %}
+    <div class="main-container">
+        <div class="controls-bar">
+            <label>Zoom : <input type="range" min="1" max="10" value="2" step="0.5" id="zoomRange"></label>
+            <button id="saveToFileBtn" style="padding: 5px 15px; cursor: pointer; background-color: #d02424;" class="btn">{{t.save_planning}}</button>
+            {% if role == 'commercial' or role == 'admin' %}
+                <a href="{{ url_for('marketing') }}" style="padding: 5px 15px; cursor: pointer; background-color: #4CAF50; color: white; text-decoration: none; border-radius: 4px; display: inline-block;">Message</a>
+            {% endif %}
+        </div>
+        <div class="planning-container">
+            <div class="time-scale">
+                <div style="height: 40px;"></div> <!-- Alignement avec header -->
+                {% for h in range(24) %}
+                    <div class="hour-marker">{{ "%02d:00"|format(h) }}</div>
+                {% endfor %}
+            </div>
+            {% for day in ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'] %}
+            {% set data = planning.get_day_data(day) %}
+            <div class="day-column" data-start-time="{{ data.start_offset_min * 60 }}">
+                <div class="day-header">{{ day|capitalize }}</div>
+                <div class="drop-zone" id="list-{{ day }}" data-day="{{ day }}" style="height: 2880px;">
+                    {% for m in data.musics %}
+                        <div class="music-task" data-duration="{{ m.duration }}" data-start-sec="{{ m.start_sec }}" data-title="{{ m.obj.titre }}" data-artist="{{ m.obj.artiste }}" data-path="{{ m.obj.path }}" style="height: {{ (m.duration / 60) * 2 }}px; top: {{ (m.start_sec / 60) * 2 }}px;">
+                            <strong>{{ m.time }}</strong><br>
+                            {{ m.obj.titre }} - {{ m.obj.artiste }}
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Fenêtre Modale -->
+        <div id="addMusicModal" class="modal">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <h3>{{t.ajout_music}}</h3>
+            
+                <div class="form-group">
+                    <label for="mStartTime">{{t.heure_début}} :</label>
+                    <input type="time" id="mStartTime" readonly>
+                </div>
+                <div class="form-group">
+                    <label for="mTitle">{{t.titre}} :</label>
+                    <input type="text" id="mTitle">
+                </div>
+                <div class="form-group">
+                    <label for="mArtist">{{t.artist}} :</label>
+                    <input type="text" id="mArtist">
+                </div>
+                <div class="form-group">
+                    <label for="mDuration">{{t.duree}} :</label>
+                    <input type="number" id="mDuration">
+                </div>
+            
+                <button id="saveMusicBtn">{{t.ajout}}</button>
+                <button id="deleteMusicBtn" class="btn-danger" style="display:none;">{{t.supp}}</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='planning_script.js') }}"></script>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+    <script src="{{ url_for('static', filename='message_alert.js') }}"></script>
+    {% include 'fin_nav.html' %}
+</body>
+</html>
