@@ -18,11 +18,14 @@ class RaspberrySqliteDAO():
 	def _initTable(self):
 		conn = self._getDbConnection()
 		conn.execute('''
-			CREATE TABLE IF NOT EXISTS raspberry (
-			    idRasp INTEGER PRIMARY KEY AUTOINCREMENT,
-				nom TEXT NOT NULL DEFAULT 'raspberry',
-				ipRasp TEXT NOT NULL
-			)
+			CREATE TABLE IF NOT EXISTS Lecteur(
+				idLecteur INTEGER PRIMARY KEY AUTOINCREMENT,
+				ip VARCHAR(50) NOT NULL,
+				nomLecteur VARCHAR(50) NOT NULL,
+				idEntreprise INT NOT NULL DEFAULT 1,
+				UNIQUE(ip),
+				FOREIGN KEY(idEntreprise) REFERENCES Entreprise(idEntreprise)
+				);
 		''')
 		conn.commit()
 		conn.close()
@@ -30,23 +33,23 @@ class RaspberrySqliteDAO():
 	def findAll(self):
 		""" trouve tous les raspberry """
 		conn = self._getDbConnection()
-		raspberry = conn.execute('SELECT * FROM raspberry').fetchall()
+		raspberry = conn.execute('SELECT * FROM Lecteur').fetchall()
 		raspberry_instances = list()
 		for r in raspberry:
 			# Ici on crée l'objet Raspberry avec les colonnes de la DB
 			raspberry_instances.append(
-				Raspberry(r["idRasp"], r["nom"], r["ipRasp"])
+				Raspberry(r["idLecteur"], r["nomLecteur"], r["ip"])
 			)
 		conn.close()
 		return raspberry_instances
 	
-	def createRasp(self, nom, ipRasp):
+	def createRasp(self, nom, ip):
 		"""Rajoute un raspberry dans la base de données"""
 		conn = self._getDbConnection()
 		try:
 			conn.execute(
-				"INSERT INTO raspberry (nom, ipRasp) VALUES (?, ?)",
-				(nom, ipRasp)
+				"INSERT INTO Lecteur (nomLecteur, ip, idEntreprise) VALUES (?, ?, ?)",
+				(nom, ip, 1)
 			)
 			conn.commit()
 			return True
@@ -57,13 +60,13 @@ class RaspberrySqliteDAO():
 		finally:
 			conn.close()
 
-	def deleteRasp(self, idRasp):
+	def deleteRasp(self, idLecteur):
 		"""Supprime un raspberry de la base dedonnées"""
 		conn = self._getDbConnection()
 		try:
 			conn.execute(
-				"DELETE FROM raspberry WHERE idRasp = :idRasp",
-				{"idRasp":idRasp}
+				"DELETE FROM Lecteur WHERE idLecteur = :idLecteur",
+				{"idLecteur":idLecteur}
 			)
 			conn.commit()
 			return True
@@ -72,31 +75,45 @@ class RaspberrySqliteDAO():
 		finally:
 			conn.close() 
 
-	def findByIp(self, idRasp):
-		"""Trouve une raspberry par son ip"""
+	def findById(self, idLecteur):
+		"""Trouve une raspberry par son id"""
 		conn = self._getDbConnection()
 		r = conn.execute(
-			"SELECT * FROM raspberry WHERE idRasp = ?",
-			(idRasp,)
+			"SELECT * FROM Lecteur WHERE idLecteur = ?",
+			(idLecteur,)
 		).fetchone()
 		conn.close()
 		print("rrrrrrr_dao :",r)
 		if r:
-			return r["ipRasp"]
+			return r
+		else:
+			return None
+
+	def findByIp(self, ip):
+		"""Trouve une raspberry par son ip"""
+		conn = self._getDbConnection()
+		r = conn.execute(
+			"SELECT * FROM Lecteur WHERE ip = ?",
+			(ip,)
+		).fetchone()
+		conn.close()
+		print("rrrrrrr_dao :",r)
+		if r:
+			return r["ip"]
 		else:
 			return None
 	
-	def findByNom(self, idRasp):
+	def findByNom(self, nomLecteur):
 		"""Trouve une raspberry par son nom"""
 		conn = self._getDbConnection()
 		r = conn.execute(
-			"SELECT * FROM raspberry WHERE idRasp = ?",
-			(idRasp,)
+			"SELECT * FROM Lecteur WHERE nomLecteur = ?",
+			(nomLecteur,)
 		).fetchone()
 		conn.close()
 		print("rrrrrrr_dao_nom :",r)
 		if r:
-			return r["nom"]
+			return r["nomLecteur"]
 		else:
 			return None
 
