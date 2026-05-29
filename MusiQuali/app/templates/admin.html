@@ -14,6 +14,63 @@
         <!-- moitié gauche -->
         <div class="left-panel panel card">
             <h2>Raspberry</h2>
+
+            <!-- Pop up ajout rasp-->
+            <button type="button" onclick="openModal()">
+                {{t.titreRasp}}
+            </button>
+            <div id="raspModal" class="modal">
+                <div class="modal-content">
+                    <span class="close" onclick="closeModal()">&times;</span>
+                    <h2>{{t.titreRasp}}</h2>
+                    <form action="/admin/add_rasp" method="POST">
+                        <div class="mb-3 mt-3">
+                            <label for="nom" class="form-label">{{t.nomRasp}}</label>
+                            <input type="text"
+                                class="form-control"
+                                id="nom"
+                                placeholder="{{t.form_nomRasp}}"
+                                name="nom">
+                            <br>
+                            <label for="ipRasp" class="form-label">
+                                {{t.ipRasp}}
+                            </label>
+                            <input type="text"
+                                class="form-control"
+                                id="ipRasp"
+                                placeholder="{{t.form_ipRasp}}"
+                                name="ipRasp">
+                            <br>
+                            <label for="mdpRasp" class="form-label">
+                                {{t.mdpRasp}}
+                            </label>
+                            <input type="text"
+                                class="form-control"
+                                id="mdpRasp"
+                                placeholder="{{t.form_mdpRasp}}"
+                                name="mdpRasp">
+                        </div>
+                        <br>
+                        <button type="submit" class="btn btn-success">{{t.confirm}}</button>
+                    </form>
+                </div>
+            </div>
+            <!--Info pour la procédure pour mettre son Raspberry-->
+            <div class="tooltip">
+                <img src="../static/aide.png" alt="aide">
+                <span class="tooltip-text">
+                    <h3>Pour pouvoir connecter la Raspberry il y a 3 informations nécéssaire qui nécéssite de chercher directement dans la Raspberry :</h3>
+                    <ul>
+                        <li><strong>Utilisateur :</strong> il faut taper la commande <code>whoami</code></li>
+                        <li><strong>IP :</strong> il faut taper la commande <code>ip a</code> et chercher à la ligne 
+                            <br><code>inet <strong>IPSETROUVEICI</strong> brd ADRESSERESEAU scope global dynamic noprefixroute wlp4s0</code>
+                            <br> ou la première valeur avec la commande <code>hostname -I</code></li>
+                        <li><strong>Mot de passe :</strong> Il est défini lors de la création du Raspberry</li>
+                    </ul>
+                </span>
+            </div>
+            <br>
+            <hr>
        
             <label for="raspberry-select">{{t.select_rasp}} :</label>
             <!-- <select id="raspberry-select">
@@ -33,19 +90,6 @@
                 <button type="submit" name="action" value="envoie-ping">Ping</button>
                 <button type="submit" name="action" value="test">{{t.fichier}}</button>
                 </div>
-            </form>
-
-            <h2>{{t.titreRasp}}</h2> 
-            <form action="/admin/add_rasp" method="POST">
-                <div class="mb-3 mt-3">
-                    <label for="nom" class="form-label">{{t.nomRasp}}</label>
-                    <input type="text" class="form-control" id="nom" placeholder="{{t.form_nomRasp}}" name="nom">
-                    <br>
-                    <label for="ipRasp" class="form-label">{{t.ipRasp}}</label>
-                    <input type="text" class="form-control" id="ipRasp" placeholder="{{t.form_ipRasp}}" name="ipRasp">
-                </div>
-                <br>
-                <button type="submit">{{t.bouton_ajoutRasp}}</button>
             </form>
     
             <div class="terminal">
@@ -154,6 +198,24 @@
         document.getElementById("delete-user").addEventListener('click', function(){
             document.querySelector(".user-action-confirm").style.display='flex';
         });
+
+        //ajout de Raspberry
+        function openModal() {
+            document.getElementById("raspModal").style.display = "block";
+        }
+
+        function closeModal() {
+            document.getElementById("raspModal").style.display = "none";
+        }
+
+        /* Fermer si clic à l'extérieur */
+        window.onclick = function(event) {
+            const modal = document.getElementById("raspModal");
+
+            if (event.target === modal) {
+                closeModal();
+            }
+        }
     </script>
     
     {% include 'fin_nav.html' %}
