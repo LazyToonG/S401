@@ -40,3 +40,32 @@ button:hover, .nav-btn:hover { background: #a81c1c; }
 
 /* SELECT RASPBERRY */ 
 #raspberry-select { width: 100%; margin-bottom: 10px; }
+
+/* POP UP RASP */
+.modal {
+    display: none; /* caché par défaut */
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.5);
+}
+
+.modal-content {
+    background: white;
+    width: 800px;
+    padding: 20px;
+    border-radius: 10px;
+    margin: 10% auto;
+    position: relative;
+}
+
+.close {
+    position: absolute;
+    right: 15px;
+    top: 10px;
+    cursor: pointer;
+    font-size: 24px;
+}
