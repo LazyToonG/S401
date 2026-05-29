@@ -57,13 +57,15 @@
             </div>
             <!--Info pour la procédure pour mettre son Raspberry-->
             <div class="tooltip">
-                Aide
+                <img src="../static/aide.png" alt="aide">
                 <span class="tooltip-text">
-                    <h3>Les étapes pour configurer votre Raspberry :</h3>
+                    <h3>Pour pouvoir connecter la Raspberry il y a 3 informations nécéssaire qui nécéssite de chercher directement dans la Raspberry :</h3>
                     <ul>
-                        <li><strong>Utilisateur :</strong> <code>whoami</code></li>
-                        <li><strong>IP :</strong> <code>ip a</code></li>
-                        <li><strong>Mot de passe :</strong> défini lors de la création du Raspberry</li>
+                        <li><strong>Utilisateur :</strong> il faut taper la commande <code>whoami</code></li>
+                        <li><strong>IP :</strong> il faut taper la commande <code>ip a</code> et chercher à la ligne 
+                            <br><code>inet <strong>IPSETROUVEICI</strong> brd ADRESSERESEAU scope global dynamic noprefixroute wlp4s0</code>
+                            <br> ou la première valeur avec la commande <code>hostname -I</code></li>
+                        <li><strong>Mot de passe :</strong> Il est défini lors de la création du Raspberry</li>
                     </ul>
                 </span>
             </div>

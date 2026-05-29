@@ -79,17 +79,74 @@ button:hover, .nav-btn:hover { background: #a81c1c; }
 
 .tooltip-text {
     visibility: hidden;
-    background: black;
-    color: white;
-    padding: 5px;
-    border-radius: 5px;
+    opacity: 0;
+
     position: absolute;
-    bottom: 100%;
-    left: 50%;
-    transform: translateX(-50%);
-    white-space: nowrap;
+
+    /* Affichage SOUS le texte au lieu d'au-dessus */
+    top: 120%;
+
+    background: #1e1e1e;
+    color: white;
+
+    padding: 16px;
+    border-radius: 10px;
+
+    /* Largeur plus grande */
+    width: 1050px;
+    max-width: 90vw;
+
+    white-space: normal;
+    overflow-wrap: break-word;
+
+    box-shadow: 0 6px 18px rgba(0,0,0,0.35);
+
+    z-index: 1000;
+
+    transition: opacity 0.2s ease;
 }
 
+/* Affichage */
 .tooltip:hover .tooltip-text {
     visibility: visible;
+    opacity: 1;
+}
+
+/* Styles internes */
+
+.tooltip {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.tooltip-text h3 {
+    margin-top: 0;
+    font-size: 18px;
+    margin-bottom: 12px;
+}
+
+.tooltip-text ul {
+    padding-left: 20px;
+    margin: 0;
+}
+
+.tooltip-text li {
+    margin-bottom: 10px;
+    line-height: 1.4;
+}
+
+.tooltip-text code {
+    background: #333;
+    color: #00ff99;
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+.tooltip img {
+    width: 20px;
+    height: 20px;
+    object-fit: contain;
+    cursor: pointer;
 }
