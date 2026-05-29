@@ -14,9 +14,10 @@ ts = Traductionservice()
 
 @app.route("/admin/add_rasp", methods=["POST"])
 @reqrole('admin')
-def addRaspberry():
+def addRaspberry():#manque trad pour les flash
     ip = request.form.get("ipRasp")
     nom = request.form.get("nom")
+    mdp = request.form.get("mdpRasp")
     
 
     rasps = rs.montreToutRasp()
@@ -26,14 +27,28 @@ def addRaspberry():
         return redirect(url_for("admin_dashboard"))
     
     try:
-        ipaddress.IPv4Address(ip)
-        rs.ajoutR(nom, ip)
-        subprocess.run(["scp", "-r", "./app/static/rasdata/*", f"{nom}@{ip}:/home/{nom}/musiquali/"])
+        try:
+            ipaddress.IPv4Address(ip)
+        except ipaddress.AddressValueError:
+            flash("IP invalide", "error")
+            return redirect(url_for("admin_dashboard"))
+        # subprocess.run(["scp", "-r", "./app/static/rasdata/*", f"{nom}@{ip}:/home/{nom}/musiquali/"])
+        subprocess.run(["sshpass", "-p", mdp, "ssh-copy-id", "-o", "StrictHostKeyChecking=no", f"{nom}@{ip}"], check=True, timeout=8)
+    except subprocess.CalledProcessError as e:
+        error = (e.stderr or "").lower()
 
-    except ipaddress.AddressValueError:
-        flash("IP invalid", "error")
+        if "permission denied" in error:
+            flash("Mot de passe SSH incorrect", "error")
+        elif "connection refused" in error:
+            flash("Connexion refusée (SSH off ?)", "error")
+        elif "no route to host" in error:
+            flash("Raspberry inaccessible", "error")
+        else:
+            flash("Erreur SSH inconnue", "error")
+        return redirect(url_for("admin_dashboard")) 
 
-    
+    rs.ajoutR(nom, ip)#mettre mdp <----------------------
+    flash("Raspberry ajouté avec succès", "success")
     return redirect(url_for("admin_dashboard"))
 
 @app.route("/admin/action_rasp", methods=["POST"])
