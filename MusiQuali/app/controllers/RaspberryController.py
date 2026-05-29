@@ -54,20 +54,25 @@ def addRaspberry():#manque trad pour les flash
 @app.route("/admin/action_rasp", methods=["POST"])
 @reqrole('admin')
 def action_rasp():
-    button=request.form.get("action")
+    button = request.form.get("action")
     rasp_id = request.form.get("raspberry-select")
-    nom = rs.selectRNom(rasp_id)
-    ip = rs.selectRIp(rasp_id)
 
-    if rasp_id==None:
-        message=ts.message_langue("Pas de Raspberry trouvé","No Raspberry found")
-        flash(message, "error")
+    if rasp_id is None:
+        flash("Aucun Raspberry sélectionné", "error")
         return redirect(url_for("admin_dashboard"))
-    else : 
-        rasp_id = int(rasp_id)
-    print("rasp_id :",rasp_id)
 
-    if not rasp_id:
+    rasp = rs.getRasp(rasp_id)
+
+    if not rasp:
+        flash("Raspberry introuvable", "error")
+        return redirect(url_for("admin_dashboard"))
+
+    nom = rasp["nomLecteur"]
+    ip = rasp["ip"]
+    print("rasp_ip :",ip)
+    rasp_id = int(rasp_id)
+
+    if not ip:
         message=ts.message_langue("Aucun Raspberry sélectionné","No Raspberry selected")
         flash(message, "error")
         return redirect(url_for("admin_dashboard"))
@@ -88,7 +93,7 @@ def action_rasp():
             flash(message, "error")
     #tmp
     elif button=="test":
-        if rasp_id==None:
+        if ip==None:
             flash("Pas de Raspberry trouvé", "error")
             return redirect(url_for("admin_dashboard"))
         flash("En cours d'envoi...", "warning") #warning parceque c'est jaune, neutre
