@@ -6,8 +6,7 @@ from app import app
 from app.controllers.LoginController import reqrole
 from app.services.TraductionService import Traductionservice
 import os
-import json
-
+import json#lalalles schtrouphms lala
 ts = Traductionservice()
 rs = RaspberryService()
 
