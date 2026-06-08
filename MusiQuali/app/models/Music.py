@@ -1,17 +1,23 @@
-class Music:
-    def __init__(self, id, title, path, duration):
-        self.id = id
-        self.title = title
-        self.path = path
-        self.duration = int(duration)
-        self.artist = ""  # Initialiser artist par défaut
+# class Music:
+#     def __init__(self, id, title, path, duration):
+#         self.id = id
+#         self.title = title
+#         self.path = path
+#         self.duration = int(duration)
+#         self.artist = ""  # Initialiser artist par défaut
     
-    # Propriétés pour compatibilité avec le template (qui utilise titre et artiste en français)
-    @property
-    def titre(self):
-        return self.title
+#     # Propriétés pour compatibilité avec le template (qui utilise titre et artiste en français)
+#     @property
+#     def titre(self):
+#         return self.title
     
-    @property
-    def artiste(self):
-        return self.artist
+#     @property
+#     def artiste(self):
+#         return self.artist
 
+class Music:
+    def __init__(self, idMusique, nomMusique, duree, idEntreprise):
+        self.idMusique = idMusique
+        self.nomMusique = nomMusique
+        self.duree = duree
+        self.idEntreprise = idEntreprise

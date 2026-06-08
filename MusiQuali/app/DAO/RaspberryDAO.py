@@ -30,6 +30,18 @@ class RaspberrySqliteDAO():
 		conn.commit()
 		conn.close()
 
+	#tentative supp table inutile dans la db
+	# def _initTable(self):
+	# 	conn = self._getDbConnection()
+
+	# 	conn.execute("DROP TABLE IF EXISTS playlist;")
+	# 	conn.execute("DROP TABLE IF EXISTS music;")
+	# 	conn.execute("DROP TABLE IF EXISTS raspberry;")
+	# 	conn.execute("DROP TABLE IF EXISTS users;")
+
+	# 	conn.commit()
+	# 	conn.close()
+
 	def findAll(self):
 		""" trouve tous les raspberry """
 		conn = self._getDbConnection()

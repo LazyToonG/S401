@@ -1,5 +1,5 @@
 from app.DAO.PlaylistDAO import PlaylisteDAO
-from app.models.Playliste import Playliste
+from app.models.Playlist import Playlist
 from app.DAO.MusicDAO import MusicDAO
 
 class PlaylistService:
@@ -7,7 +7,7 @@ class PlaylistService:
         self.dao = PlaylisteDAO()
 
     def create_playlist(self, title):
-        p = Playliste(title=title)
+        p = Playlist(title=title)
         self.dao.insert(p)
         return p
 
