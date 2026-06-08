@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Dropdown Tabs Example</title>
+</head>
+<body>
+
+    <label for="tabSelect">Choose a section:</label>
+    <select id="tabSelect" onchange="switchTab()">
+        <option value="tab1">Section 1</option>
+        <option value="tab2">Section 2</option>
+        <option value="tab3">Section 3</option>
+    </select>
+
+    <hr>
+
+    <div id="tab1" class="tab-content">
+        <h3>Content Section 1</h3>
+        <p>This is the first piece of content. Only visible when Section 1 is selected.</p>
+    </div>
+
+    <div id="tab2" class="tab-content">
+        <h3>Content Section 2</h3>
+        <p>You've switched to the second section! The others are now hidden.</p>
+    </div>
+
+    <div id="tab3" class="tab-content">
+        <h3>Content Section 3</h3>
+        <p>And this is the final section. No CSS required for the logic to work.</p>
+    </div>
+
+
+
+
+
+
+
+    <script>
+        function switchTab() { // handle the tabs.
+            // choper val du dropdown
+            const selectedValue = document.getElementById("tabSelect").value;
+            
+            // grab the right 'tab-content'
+            const tabs = document.getElementsByClassName("tab-content");
+           
+            // montrer le bon, cacher le reste
+            for (let i = 0; i < tabs.length; i++) {
+                if (tabs[i].id === selectedValue) {
+                    tabs[i].style.display = "block";  // Show
+                } else {
+                    tabs[i].style.display = "none";   // Hide
+                }
+            }
+        }
+
+
+        switchTab();
+    </script>
+
+</body>
+</html>

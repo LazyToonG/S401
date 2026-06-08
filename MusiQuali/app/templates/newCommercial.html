@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Weekly Calendar (Drag and Drop)</title>
+</head>
+<body>
+
+    <h1>Weekly Calendar</h1>
+    
+    <button id="add-box-btn">+ add playlist</button>
+    <p><small>Click "+" to create a box, then drag and drop it into any day.</small></p>
+    
+    <br>
+
+    <table border="1" cellpadding="10" cellspacing="0" width="100%">
+        <thead>
+            <tr bgcolor="#f2f2f2">
+                <th width="14.28%">Monday</th>
+                <th width="14.28%">Tuesday</th>
+                <th width="14.28%">Wednesday</th>
+                <th width="14.28%">Thursday</th>
+                <th width="14.28%">Friday</th>
+                <th width="14.28%">Saturday</th>
+                <th width="14.28%">Sunday</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr height="300" valign="top">
+                <td class="dropzone" id="mon"></td>
+                <td class="dropzone" id="tue"></td>
+                <td class="dropzone" id="wed"></td>
+                <td class="dropzone" id="thu"></td>
+                <td class="dropzone" id="fri"></td>
+                <td class="dropzone" id="sat"></td>
+                <td class="dropzone" id="sun"></td>
+            </tr>
+        </tbody>
+    </table>
+
+
+
+
+    <script>//crée des boites pour faire bouger les playlistes
+        
+        // #TODO 
+        // faire remplir les characteristiques avant de créer la boite
+        // l'heure de start et de fin + titre de la playliste + liste des musiques dedans.
+        //automatiquement créer des boites selon ce qu'il y a dans la bd.
+
+
+        // compteur de boites
+        let boxCounter = 0;
+
+        // ne peut etre laché que dans les zone désignés c-a-d les jours
+        const addBoxBtn = document.getElementById('add-box-btn');
+        const dropzones = document.querySelectorAll('.dropzone');
+
+        // -------------------- logique des boites
+        addBoxBtn.addEventListener('click', () => {
+            boxCounter++;
+            
+            // create box
+            const newBox = document.createElement('div');
+            newBox.id = `box-${boxCounter}`;
+            newBox.draggable = true;
+            
+            // nom des boites
+            newBox.innerHTML = `<b>Box ${boxCounter}</b><br><small>Drag me</small>`; //modifier nom selon playliste choisie
+            
+            // Using basic JS inline styles *only* to simulate basic HTML box borders/padding 
+            // so you can actually see and grab the empty boxes.
+            newBox.style.border = "2px dashed #333";
+            newBox.style.padding = "10px";
+            newBox.style.margin = "5px 0";
+            newBox.style.backgroundColor = "#e0e0e0";
+            newBox.style.cursor = "move";
+
+            // Attach drag start event to the new box
+            newBox.addEventListener('dragstart', (e) => {
+                e.dataTransfer.setData('text/plain', e.target.id);
+            });
+
+            // Automatically place the newly created box into Monday to start
+            document.getElementById('mon').appendChild(newBox);
+        });
+
+        // --- 2. Drag and Drop Logic ---
+        dropzones.forEach(zone => {
+            // Necessary to allow dropping (default behavior prevents it)
+            zone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+            });
+
+            // Handle the drop event
+            zone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                const boxId = e.dataTransfer.getData('text/plain');
+                const draggedBox = document.getElementById(boxId);
+                
+                // Ensure we are appending to the column (TD), not inside another box
+                if (e.target.classList.contains('dropzone')) {
+                    e.target.appendChild(draggedBox);
+                } else {
+                    // If dropped onto an existing box, append to its parent column instead
+                    e.target.closest('.dropzone').appendChild(draggedBox);
+                }
+            });
+        });
+    </script>
+
+</body>
+</html>
