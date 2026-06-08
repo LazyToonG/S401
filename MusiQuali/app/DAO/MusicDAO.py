@@ -3,7 +3,7 @@ from app import app
 from app.models.Music import Music
 import os
 
-class MusicDAO:
+class MusicDAO():
 
     def __init__(self):
         
