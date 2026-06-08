@@ -2,7 +2,7 @@ import sqlite3
 from datetime import datetime
 from app.models.Logs import Logs
 
-class Logs:
+class LogsSqliteDAO():
     def __init__(self, idLogs, idLecteur, nomFichierLog):
         self.idLogs = idLogs
         self.idLecteur = idLecteur
