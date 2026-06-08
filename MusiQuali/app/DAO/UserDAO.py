@@ -23,18 +23,22 @@ class UserSqliteDAO(UserDAOInterface):
         cursor.execute("""
             SELECT 1
             FROM sqlite_master
-            WHERE type='table' AND name='users';
+            WHERE type='table' AND name='Users';
             """)
         table_exists = cursor.fetchone() is not None
 
-            
+            # rajouter not null a mail et trouver une soluce
         cursor.execute("""
-            CREATE TABLE IF NOT EXISTS users (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                username TEXT UNIQUE,
-                password TEXT NOT NULL,
-                role TEXT NOT NULL
-            );
+            CREATE TABLE IF NOT EXISTS Users(
+                idUtilisateur INTEGER PRIMARY KEY AUTOINCREMENT,
+                username VARCHAR(50) NOT NULL,
+                password VARCHAR(100) NOT NULL,
+                role VARCHAR(15) NOT NULL,
+                mail VARCHAR(50),
+                idEntreprise INT NOT NULL DEFAULT 1,
+                UNIQUE(mail),
+                FOREIGN KEY(idEntreprise) REFERENCES Entreprise(idEntreprise)
+                );
             """)
 
             # insert admin si table vient d'etre crée
@@ -51,7 +55,7 @@ class UserSqliteDAO(UserDAOInterface):
         hashed = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
         try:
             conn.execute(
-                "INSERT INTO users(username, password, role) VALUES (?,?,?)",
+                "INSERT INTO Users(username, password, role) VALUES (?,?,?)",
                 (username, hashed, role)
             )
             conn.commit()
@@ -64,7 +68,7 @@ class UserSqliteDAO(UserDAOInterface):
     def findByUsername(self, username):
         conn = self._getDbConnection()
         user = conn.execute(
-            "SELECT * FROM users WHERE username = ?", (username,)
+            "SELECT * FROM Users WHERE username = ?", (username,)
         ).fetchone()
         conn.close()
         return User(dict(user)) if user else None
@@ -72,7 +76,7 @@ class UserSqliteDAO(UserDAOInterface):
     def verifyUser(self, username, password):
         conn = self._getDbConnection()
         user = conn.execute(
-            "SELECT * FROM users WHERE username = ?", (username,)
+            "SELECT * FROM Users WHERE username = ?", (username,)
         ).fetchone()
         conn.close()
 
@@ -86,13 +90,13 @@ class UserSqliteDAO(UserDAOInterface):
 
     def findAll(self):
         conn = self._getDbConnection()
-        users = conn.execute('SELECT * FROM users').fetchall()
+        users = conn.execute('SELECT * FROM Users').fetchall()
         conn.close()
         return [User(dict(u)) for u in users]
 
     def deleteByUsername(self, username):
         conn = self._getDbConnection()
-        conn.execute("DELETE FROM users WHERE username = ?", (username,))
+        conn.execute("DELETE FROM Users WHERE username = ?", (username,))
         conn.commit()
         conn.close()
         return True
