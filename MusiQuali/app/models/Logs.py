@@ -1,6 +1,5 @@
 class Logs:
-    def __init__(self, id, idRaspberry, date, path):
-        self.id=id
-        self.path=path
-        self.idRaspberry=idRaspberry
-        self.date=date
+    def __init__(self, idLogs, nomFichierLog, idLecteur):
+        self.idLogs = idLogs
+        self.nomFichierLog = nomFichierLog
+        self.idLecteur = idLecteur

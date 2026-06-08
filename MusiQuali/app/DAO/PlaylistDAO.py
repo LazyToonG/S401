@@ -1,8 +1,9 @@
 import sqlite3
-from app.models.Playliste import Playliste
+from app.models.Playlist import Playlist
 import os
 from app.models.db import get_db
 from app import app
+
 class PlaylisteDAO:
 
     def __init__(self):
@@ -38,11 +39,11 @@ class PlaylisteDAO:
 
         exists = cursor.fetchone() is not None
 
-        if not exists:
-            conn.execute("""
-                INSERT INTO Playlist (title)
-                VALUES ('annonces');
-            """)
+        # if not exists:
+        #     conn.execute("""
+        #         INSERT INTO Playlist (title)
+        #         VALUES ('annonces');
+        #     """)
 
         conn.commit()
         conn.close()
@@ -54,7 +55,7 @@ class PlaylisteDAO:
     def _str_to_ids(self, data):
         return [int(i) for i in data.split("|")] if data else []
 
-    def insert(self, playlist: Playliste):
+    def insert(self, playlist: Playlist):
         conn = self._getDbConnection()
         cur = conn.cursor()
 
@@ -85,7 +86,7 @@ class PlaylisteDAO:
         if not row:
             return None
 
-        return Playliste(
+        return Playlist(
             id=row[0],
             title=row[1],
         )
@@ -96,7 +97,7 @@ class PlaylisteDAO:
         conn.close()
 
         return [
-            Playliste(
+            Playlist(
                 id=row[0],
                 title=row[1],
             )

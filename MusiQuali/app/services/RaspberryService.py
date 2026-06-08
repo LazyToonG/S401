@@ -51,8 +51,3 @@ class RaspberryService():
         toutRasp = self.montreToutRasp()
         for chaque in toutRasp:
                 subprocess.run(["ping", "-c", "1", chaque["ipRasp"]])
-
-            
-        
-    
-        
