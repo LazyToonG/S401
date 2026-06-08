@@ -1,3 +1,3 @@
-from app.services.EntrepriseService import EntrepriseService
+from app.services.LogsService import LogsService
 
-ls = EntrepriseService()
+ls = LogsService()

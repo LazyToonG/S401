@@ -14,10 +14,6 @@ class EntrepriseSqliteDAO():
         return conn
 
     def _initTable(self):
-        print("INIT ENTREPRISE TABLE")
-        print("DB =", os.path.abspath(self.databasename))
-        print("ABS PATH DB =", os.path.abspath(self.databasename))
-
         conn = self._getDbConnection()
         conn.execute("""
             CREATE TABLE IF NOT EXISTS Entreprise(
