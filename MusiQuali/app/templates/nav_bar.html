@@ -1,0 +1,21 @@
+<header class="header">
+    <div class="logo">
+        <img src="{{ url_for('static', filename='img/logo.png') }}" alt="Logo" class="logo-img">
+        <span class="logo-text">Musiquali</span>
+    </div>
+    
+    <nav class="main-nav">
+        <a href="#" class="nav-link" id="commercial">Commercial</a>
+        <a href="#" class="nav-link active" id="admin">Admin</a>
+        <a href="#" class="nav-link" id="marketing">Marketing</a>
+    </nav>
+
+    <div class="user-profile" id="userProfileBtn">
+        <span class="user-role">Admin</span>
+        <div class="user-icon">
+            <img src="{{ url_for('static', filename='img/logo_profil.png') }}" alt="Logo" class="logo-img" style="height: auto; width: 40px;">
+        </div>
+
+        {% include 'profile_menu.html' %}
+    </div>
+</header>

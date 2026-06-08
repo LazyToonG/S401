@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Musiquali - Profil</title>
+    <link href="{{ url_for('static', filename='style.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='style_admin.css') }}" rel="stylesheet">
+    <style>
+        .profile-container {
+            max-width: 600px;
+            margin: 40px auto;
+            background: #fff;
+            color: #333;
+            padding: 30px;
+            border-radius: 20px;
+            border: 1px solid #b3c6d6;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+        .profile-header {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 20px;
+            margin-bottom: 25px;
+        }
+        .profile-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: #f0f2f5;
+            padding: 10px;
+        }
+        .info-group {
+            margin-bottom: 20px;
+        }
+        .info-label {
+            font-weight: bold;
+            color: #651b1b;
+            font-size: 14px;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+            display: block;
+        }
+        /* Style des inputs calqué sur l'ancien design des valeurs fixes */
+        .info-input {
+            width: 100%;
+            font-size: 18px;
+            padding: 10px;
+            background: #f9f9f9;
+            border-radius: 8px;
+            border: 1px solid #e0e0e0;
+            font-family: inherit;
+            box-sizing: border-box;
+            transition: all 0.3s ease;
+        }
+        /* Style quand le champ est verrouillé (lecture seule) */
+        .info-input:disabled {
+            background: #f9f9f9;
+            border-color: #e0e0e0;
+            color: #333;
+            cursor: not-allowed;
+        }
+        /* Style quand le champ devient éditable */
+        .info-input:not(:disabled) {
+            background: #ffffff;
+            border-color: #a71e23;
+            box-shadow: 0 0 5px rgba(167, 30, 35, 0.2);
+            outline: none;
+        }
+        .action-buttons {
+            margin-top: 30px;
+            display: flex;
+            justify-content: space-between;
+            gap: 15px;
+        }
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+    {% include 'nav_bar.html' %}
+
+    <main class="content-area">
+        <div class="profile-container">
+            <div class="profile-header">
+                <img src="{{ url_for('static', filename='img/logo_profil.png') }}" alt="Avatar" class="profile-avatar">
+                <div>
+                    <h2>Mon Profil</h2>
+                    <p style="color: #666; margin: 5px 0 0 0;">Gérez vos informations personnelles</p>
+                </div>
+            </div>
+
+            <form action="/update_profile" method="POST" id="profileForm">
+                
+                <div class="info-group">
+                    <label class="info-label" for="username">Nom d'utilisateur</label>
+                    <input type="text" id="username" name="username" class="info-input" value="Admin_Musiquali" disabled required>
+                </div>
+
+                <div class="info-group">
+                    <label class="info-label" for="email">Adresse Email</label>
+                    <input type="email" id="email" name="email" class="info-input" value="admin@musiquali.fr" disabled required>
+                </div>
+
+                <div class="info-group">
+                    <span class="info-label">Rôle Système</span>
+                    <input type="text" class="info-input" value="Administrateur" style="font-weight: bold; color: #a71e23;" disabled>
+                </div>
+
+                <div class="action-buttons">
+                    <button type="button" class="tab-btn" style="border-radius: 8px;">Modifier le mot de passe</button>
+                    
+                    <div>
+                        <button type="button" id="btnEdit" class="tab-btn active" style="border-radius: 8px;">Modifier les infos</button>
+                        <button type="button" id="btnCancel" class="tab-btn hidden" style="border-radius: 8px; background-color: #666; border-color: #666;">Annuler</button>
+                        <button type="submit" id="btnSave" class="tab-btn active hidden" style="border-radius: 8px; background-color: #a71e23; border-color: #a71e23;">Enregistrer</button>
+                    </div>
+                </div>
+
+            </form>
+        </div>
+    </main>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const btnEdit = document.getElementById('btnEdit');
+            const btnCancel = document.getElementById('btnCancel');
+            const btnSave = document.getElementById('btnSave');
+            
+            const usernameInput = document.getElementById('username');
+            const emailInput = document.getElementById('email');
+
+            // Sauvegarde des valeurs initiales en cas d'annulation
+            let initialUsername = usernameInput.value;
+            let initialEmail = emailInput.value;
+
+            // Clic sur "Modifier les infos"
+            btnEdit.addEventListener('click', () => {
+                // Activer les champs de saisie
+                usernameInput.disabled = false;
+                emailInput.disabled = false;
+                usernameInput.focus();
+
+                // Basculer l'affichage des boutons
+                btnEdit.classList.add('hidden');
+                btnCancel.classList.remove('hidden');
+                btnSave.classList.remove('hidden');
+            });
+
+            // Clic sur "Annuler"
+            btnCancel.addEventListener('click', () => {
+                // Restaurer les valeurs d'origine
+                usernameInput.value = initialUsername;
+                emailInput.value = initialEmail;
+
+                // Désactiver à nouveau les champs
+                usernameInput.disabled = true;
+                emailInput.disabled = true;
+
+                // Basculer l'affichage des boutons
+                btnEdit.classList.remove('hidden');
+                btnCancel.classList.add('hidden');
+                btnSave.classList.add('hidden');
+            });
+        });
+    </script>
+</body>
+</html>

@@ -64,7 +64,7 @@ class LoginController:
                     return redirect(url_for("index"))
             else:
                 msg_error = ts.message_langue('Identifiants non valides','Invalid Credentials')
-        return render_template('login_v2.html', msg_error=msg_error, t=textes, current_lang=langue_choisie)
+        return render_template('login.html', msg_error=msg_error, t=textes, current_lang=langue_choisie)
 
     @app.route("/admin/create_user", methods=['GET', 'POST'])
     def signin():

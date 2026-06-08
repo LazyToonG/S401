@@ -4,39 +4,189 @@
         <title>Site</title>
         <link rel="icon" href="../static/logo.png" type="image/png">
         <link href="{{ url_for('static', filename='style.css') }}" rel="stylesheet">
+        <link href="{{ url_for('static', filename='style_accueil.css') }}" rel="stylesheet">
+
+        <style>
+
+        
+        /* Conteneur global qui prend tout l'espace sous la navbar */
+        .main-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: calc(100vh - 93px); 
+            width: 100%;
+            box-sizing: border-box;
+            padding: 20px;
+        }
+
+        /* Conteneur principal de la carte */
+        .signup-card {
+            background-color: #ffffff;
+            color: #5d1b1b;
+            width: 100%;
+            max-width: 600px;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.193);
+            position: relative;
+            z-index: 1; 
+            box-sizing: border-box;
+        }
+
+        /* Titre */
+        .title {
+            font-size: 28px;
+            font-weight: normal;
+            margin-bottom: 30px;
+        }
+
+        /* Groupes de champs de saisie */
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        .input-group input[type="text"],
+        .input-group input[type="email"],
+        .input-group input[type="password"] {
+            width: 100%;
+            padding: 12px;
+            border: 0.5px solid #5d1b1b5a;
+            border-radius: 6px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.3s ease;
+        }
+
+        .input-group input:focus {
+            border-color: #5d1b1b;
+        }
+
+        /* Section Rôle (boutons radio stylisés) */
+        .role-options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .role-label {
+            display: block;
+            cursor: pointer;
+        }
+
+        .role-label input[type="radio"] {
+            display: none; /* Cache le bouton radio par défaut */
+        }
+
+        .role-btn {
+            display: block;
+            background-color: #EBE3E3;
+            padding: 12px 15px;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: background-color 0.2s ease;
+        }
+
+        /* Effet de survol et de sélection pour les rôles */
+        .role-label:hover .role-btn {
+            background-color: #dbc2c2;
+        }
+        
+        .role-label input[type="radio"]:checked + .role-btn {
+            background-color: #dbc2c2;
+            font-weight: bold;
+        }
+
+        /* Bouton d'inscription final */
+        .submit-btn {
+            width: 100%;
+            background-color: #CE5956;
+            color: #5d1b1b;
+            border: none;
+            padding: 14px;
+            font-size: 16px;
+            font-family: inherit;
+            border-radius: 25px; /* Bords plus arrondis comme sur l'image */
+            cursor: pointer;
+            margin-top: 0px;
+            margin-bottom: 5px;
+            transition: background-color 0.3s ease;
+        }
+
+        .submit-btn:hover {
+            background-color: #91191d;
+            color: white;
+        }
+    </style>
     </head>
-    <body class=""> <!-- ajout class sombre ici -->
-        <div class="nav"> <!-- ajout class sombre ici -->
-            <div class="page" id="admin">{{t.admin}}</div>
-            <div class="logo">Musi-quali <img src="{{ url_for('static', filename='logo.png') }}" alt="logo"/></div>
-            <div class="b">
-                <input class="mode-sombre btn-mode" type="button" value="🌒" id="bouton"/>
-                <select name="langue" id="select-langue">
-                    <option value="fr" {% if current_lang == 'fr' %}selected{% endif %}>Français</option>
-                    <option value="en" {% if current_lang == 'en' %}selected{% endif %}>English</option>
-                </select>
-            </div>
+    <div class="nav">
+        <div class="logo"><img src="{{ url_for('static', filename='img/logo.png') }}" alt="logo"/><p>Musi-quali</p></div>
+        <div class="b">
+            <div class="page" id="login">{{t.login}}</div>
+            <div class="page" id="index">Retour à l'accueil</div>
         </div>
-        <div>
-			<form id="form" action="/signin" method="POST" class="form-inline">
-            	<h1>{{t.h1}} : <input name="username" type="text"/></h1>
-            	<h1>{{t.password}} : <input name="password" type="text"/></h1>
-				<h1><label for="role-select">{{t.role}} :</label>
-					<select name="role" id="role-select" class="form-control">
-    					<option value="commercial">{{t.commercial}}</option>
-    					<option value="marketing">{{t.marketing}}</option>
-    					<option value="admin">{{t.admin}}</option>
-					</select>
-				</h1>
-            	<input class="seconnecte" type="submit" value="{{t.create}}"/>
-			</form>
-        </div>        
+    </div>
+    
+    <div class="auth-container">
+        <div class="auth-card">
+            <h1 class="title">S'inscrire</h1>
+            <form action="#" method="POST">
+                
+                <div class="input-group">
+                    <label for="username">Nom d'utilisateur</label>
+                    <input type="text" id="username" name="username" required>
+                </div>
+
+                <div class="input-group">
+                    <label for="email">Adresse Email</label>
+                    <input type="email" id="email" name="email" required style="width: 100%; padding: 12px; border: 1px solid #5d1b1b5a; border-radius: 6px; font-size: 14px; outline: none;">
+                </div>
+
+                <div class="input-group">
+                    <label for="password">Mot de passe</label>
+                    <input type="password" id="password" name="password" required>
+                </div>
+
+                <div class="input-group">
+                    <label for="confirm_password">Confirmer le mot de passe</label>
+                    <input type="password" id="confirm_password" name="confirm_password" required style="width: 100%; padding: 12px; border: 1px solid #5d1b1b5a; border-radius: 6px; font-size: 14px; outline: none;">
+                </div>
+                
+                <div class="input-group">
+                    <label>Rôle</label>
+                    <div class="role-options" style="display: flex; flex-direction: row; gap: 15px;">
+                        <label class="role-label" style="flex: 1; text-align: center;">
+                            <input type="radio" name="role" value="commercial" required>
+                            <span class="role-btn">Commercial</span>
+                        </label>
+                        <label class="role-label" style="flex: 1; text-align: center;">
+                            <input type="radio" name="role" value="marketing">
+                            <span class="role-btn">Marketing</span>
+                        </label>
+                    </div>
+                </div>
+                
+                <button type="submit" class="auth-submit-btn">S'inscrire</button>
+            </form>
+        </div>
+    </div>
+
         <script src="{{ url_for('static', filename='script.js') }}"></script>
         <script>
-            document.getElementById('admin').addEventListener('click', function(){
-            window.location.href = "/admin";
-        });
+            document.getElementById('login').addEventListener('click', function(){
+                window.location.href = "/login";
+            })
+
+            document.getElementById('index').addEventListener('click', function(){
+                window.location.href = "/";
+            })
         </script>
-		{% include 'fin_nav.html' %}
+
     </body>
 </html>

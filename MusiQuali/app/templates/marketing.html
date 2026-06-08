@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Musiquali - Marketing</title>
+    <link href="{{ url_for('static', filename='style.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='style_marketing.css') }}" rel="stylesheet">
+</head>
+<body class="no-scroll"> 
+    {% include 'nav_bar.html' %}
+
+    <div class="tabs-container">
+        <button class="tab-pill active" data-target="tab-playlists">Playlists</button>
+        <button class="tab-pill" data-target="tab-all-music">Toutes les musiques</button>
+    </div>
+
+    <main class="marketing-layout">
+
+        <div class="left-panel">
+            
+            <div id="tab-playlists" class="panel-view active">
+                <div class="list-header flex-between" style="padding: 0 10px;">
+                    <div style="display: flex; align-items: center;">
+                        <input type="checkbox" id="select-all-playlists" class="custom-checkbox">
+                        <span class="item-name">Tout sélectionner</span>
+                    </div>
+
+                    <a href="#" class="action-link hidden" id="delete-selection">
+                        Supprimer la sélection 
+                        <img src="{{ url_for('static', filename='img/delete.png') }}" alt="Delete" class="delete-img">
+                    </a>
+                </div>
+
+                <div class="split-container">
+                    <div class="list-column">
+                        <div class="list-item">
+                            <input type="checkbox" class="custom-checkbox">
+                            <span class="item-name">Playlist 1</span>
+                            <div class="item-actions">
+                                <span class="icon"><img src="{{ url_for('static', filename='img/modif.png') }}" alt="Modification" class="modif-img" ></span>
+                                <span class="icon"><img src="{{ url_for('static', filename='img/delete.png') }}" alt="Delete" class="delete-img" ></span>
+                            </div>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" class="custom-checkbox">
+                            <span class="item-name">Playlist 2</span>
+                            <div class="item-actions">
+                                <span class="icon"><img src="{{ url_for('static', filename='img/modif.png') }}" alt="Modification" class="modif-img" ></span>
+                                <span class="icon"><img src="{{ url_for('static', filename='img/delete.png') }}" alt="Delete" class="delete-img" ></span>
+                            </div>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" class="custom-checkbox">
+                            <span class="item-name">Playlist 3</span>
+                            <div class="item-actions">
+                                <span class="icon"><img src="{{ url_for('static', filename='img/modif.png') }}" alt="Modification" class="modif-img" ></span>
+                                <span class="icon"><img src="{{ url_for('static', filename='img/delete.png') }}" alt="Delete" class="delete-img" ></span>
+                            </div>
+                        </div>
+                        <div class="list-item">
+                            <input type="checkbox" class="custom-checkbox">
+                            <span class="item-name">Playlist 4</span>
+                            <div class="item-actions">
+                                <span class="icon"><img src="{{ url_for('static', filename='img/modif.png') }}" alt="Modification" class="modif-img" ></span>
+                                <span class="icon"><img src="{{ url_for('static', filename='img/delete.png') }}" alt="Delete" class="delete-img" ></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="list-column hidden" id="playlist-details"></div>
+                </div>
+
+                <div class="panel-footer">
+                    <button class="btn-action-blue" id="btn-add-playlist">+ Ajouter</button>
+                    <button class="btn-action-blue hidden" id="btn-edit-playlist" onclick="openModal()">Modifier la composition de la playlist</button>
+                </div>
+            </div>
+
+            <div id="tab-all-music" class="panel-view">
+                <div class="list-header flex-between" style="padding: 0 10px;">
+                    <div style="display: flex; align-items: center;">
+                        <input type="checkbox" id="select-all-music-tab" class="custom-checkbox">
+                        <span class="item-name">Tout sélectionner</span>
+                    </div>
+
+                    <a href="#" class="action-link hidden" id="delete-selection-music">
+                        Supprimer la sélection 
+                        <img src="{{ url_for('static', filename='img/delete.png') }}" alt="Delete" class="delete-img">
+                    </a>
+                </div>
+
+                <div class="list-column">
+                    <div class="list-item" style="align-items: center;">
+                        <input type="checkbox" class="custom-checkbox">
+                        <span class="item-name">Musique 1</span>
+                        <div class="item-actions">
+                            <span class="icon"><img src="{{ url_for('static', filename='img/modif.png') }}" alt="Modification" class="modif-img"></span>
+                            <span class="icon"><img src="{{ url_for('static', filename='img/delete.png') }}" alt="Delete" class="delete-img"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="right-panel">
+            <div class="upload-area">
+                <p>Glisser-déposer ou cliquer pour sélectionner un fichier</p>
+            </div>
+
+            <div class="upload-actions">
+                <button class="btn-action-blue full-width">Ajouter la nouvelle musique à la base de données</button>
+                <button class="btn-outline-blue">Convertir en MP3</button>
+            </div>
+        </div>
+
+    </main>
+
+    <div id="modal-overlay" class="modal-overlay hidden" onclick="if(event.target === this) closeModal()">
+        <div class="modal-box">
+            <h3>Composer la playlist</h3>
+            
+            <div class="modal-items-container">
+                <div class="list-item modal-item">
+                    <input type="checkbox" checked class="custom-checkbox"> 
+                    <span class="item-name">Musique 1</span>
+                </div>
+                <div class="list-item modal-item">
+                    <input type="checkbox" checked class="custom-checkbox"> 
+                    <span class="item-name">Musique 2</span>
+                </div>
+                <div class="list-item modal-item">
+                    <input type="checkbox" class="custom-checkbox"> 
+                    <span class="item-name">Musique 3</span>
+                </div>
+                <div class="list-item modal-item">
+                    <input type="checkbox" class="custom-checkbox"> 
+                    <span class="item-name">Musique 4</span>
+                </div>
+                <div class="list-item modal-item">
+                    <input type="checkbox" class="custom-checkbox"> 
+                    <span class="item-name">Musique 5</span>
+                </div>
+                <div class="list-item modal-item">
+                    <input type="checkbox" class="custom-checkbox"> 
+                    <span class="item-name">Musique 6</span>
+                </div>
+            </div>
+            
+            <button class="btn-action-blue full-width modal-btn" onclick="closeModal()">
+                Valider la sélection
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // --- ÉLÉMENTS DU DOM ---
+        const selectAllCheckbox = document.getElementById('select-all-playlists');
+        const playlistCheckboxes = document.querySelectorAll('#tab-playlists .list-column:first-child .custom-checkbox:not(#select-all-playlists)');
+        const playlistDetails = document.getElementById('playlist-details');
+        const deleteSelection = document.getElementById('delete-selection');
+        const btnAddPlaylist = document.getElementById('btn-add-playlist');
+        const btnEditPlaylist = document.getElementById('btn-edit-playlist');
+        const modalOverlay = document.getElementById('modal-overlay');
+
+        // --- DONNÉES SIMULÉES ---
+        const mockPlaylistsTracks = {
+            "Playlist 1": ["Musique 1", "Musique 2", "Musique 3"],
+            "Playlist 2": ["Musique A", "Musique B"],
+            "Playlist 3": ["Musique X", "Musique Y", "Musique Z", "Musique W"],
+            "Playlist 4": ["Chanson Solo"]
+        };
+
+        const modifImgUrl = "{{ url_for('static', filename='img/modif.png') }}";
+        const deleteImgUrl = "{{ url_for('static', filename='img/delete.png') }}";
+
+        // --- FONCTIONS DE GESTION ---
+
+        function handleCheckboxChange() {
+            const checkedBoxes = Array.from(playlistCheckboxes).filter(cb => cb.checked);
+            const checkedCount = checkedBoxes.length;
+
+            const allChecked = Array.from(playlistCheckboxes).every(cb => cb.checked);
+            selectAllCheckbox.checked = playlistCheckboxes.length > 0 && allChecked;
+
+            if (checkedCount === 1) {
+                deleteSelection.classList.add('hidden');
+                playlistDetails.classList.remove('hidden');
+                btnAddPlaylist.classList.add('hidden');
+                btnEditPlaylist.classList.remove('hidden');
+
+                const playlistName = checkedBoxes[0].closest('.list-item').querySelector('.item-name').textContent.trim();
+                const tracks = mockPlaylistsTracks[playlistName] || [];
+
+                let htmlContent = '';
+                tracks.forEach(track => {
+                    htmlContent += `
+                        <div class="list-item">
+                            <input type="checkbox" class="custom-checkbox">
+                            <span class="item-name">${track}</span>
+                            <div class="item-actions">
+                                <span class="icon"><img src="${modifImgUrl}" alt="Modif" class="modif-img"></span>
+                                <span class="icon"><img src="${deleteImgUrl}" alt="Del" class="delete-img"></span>
+                            </div>
+                        </div>
+                    `;
+                });
+                playlistDetails.innerHTML = htmlContent;
+
+            } else if (checkedCount > 1) {
+                deleteSelection.classList.remove('hidden');
+                playlistDetails.classList.add('hidden');
+                btnAddPlaylist.classList.remove('hidden');
+                btnEditPlaylist.classList.add('hidden');
+            } else {
+                deleteSelection.classList.add('hidden');
+                playlistDetails.classList.add('hidden');
+                btnAddPlaylist.classList.remove('hidden');
+                btnEditPlaylist.classList.add('hidden');
+            }
+        }
+
+        // --- ÉCOUTEURS D'ÉVÉNEMENTS ---
+
+        selectAllCheckbox.addEventListener('change', function() {
+            playlistCheckboxes.forEach(cb => cb.checked = selectAllCheckbox.checked);
+            handleCheckboxChange();
+        });
+
+        playlistCheckboxes.forEach(cb => {
+            cb.addEventListener('change', handleCheckboxChange);
+        });
+
+        // Onglets Playlists / Toutes les musiques
+        document.querySelectorAll('.tab-pill').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.tab-pill').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.panel-view').forEach(v => v.classList.remove('active'));
+                btn.classList.add('active');
+                const targetId = btn.getAttribute('data-target');
+                document.getElementById(targetId).classList.add('active');
+            });
+        });
+
+        // --- LOGIQUE TOUT SÉLECTIONNER POUR "TOUTES LES MUSIQUES" ---
+        const selectAllMusicTab = document.getElementById('select-all-music-tab');
+        const allMusicCheckboxes = document.querySelectorAll('#tab-all-music .list-column .custom-checkbox:not(#select-all-music-tab)');
+
+        if (selectAllMusicTab) {
+            selectAllMusicTab.addEventListener('change', function() {
+                allMusicCheckboxes.forEach(cb => {
+                    cb.checked = selectAllMusicTab.checked;
+                });
+            });
+
+            allMusicCheckboxes.forEach(cb => {
+                cb.addEventListener('change', function() {
+                    const allChecked = Array.from(allMusicCheckboxes).every(mCb => mCb.checked);
+                    selectAllMusicTab.checked = allMusicCheckboxes.length > 0 && allChecked;
+                });
+            });
+        }
+
+        // Fonctions Modale
+        function openModal() { modalOverlay.classList.remove('hidden'); }
+        function closeModal() { modalOverlay.classList.add('hidden'); }
+    </script>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
