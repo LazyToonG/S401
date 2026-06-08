@@ -14,13 +14,16 @@ class MusicDAO:
         conn = self.get_connection()
 
         conn.execute("""
-            CREATE TABLE IF NOT EXISTS music (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                title TEXT NOT NULL,
-                duration INTEGER, 
-                path TEXT NOT NULL
-            );
+            CREATE TABLE IF NOT EXISTS Musique(
+                idMusique INTEGER PRIMARY KEY AUTOINCREMENT,
+                nomMusique VARCHAR(50) NOT NULL,
+                duree INT NOT NULL,
+                idEntreprise INT NOT NULL default 1,
+                FOREIGN KEY(idEntreprise) REFERENCES Entreprise(idEntreprise)
+                );
         """)
+        conn.commit()
+        conn.close()
 
     def get_connection(self):
         conn = sqlite3.connect(os.path.join(app.static_folder, "data", "database.db"))
@@ -30,51 +33,51 @@ class MusicDAO:
     def get_all(self):
         conn = self.get_connection()
         rows = conn.execute(
-            "SELECT id, title, path, duration FROM music"
+            "SELECT idMusique, nomMusique, duree, idEntreprise FROM Musique"
         ).fetchall()
         conn.close()
-        return [Music(row["id"], row["title"], row["path"], row["duration"]) for row in rows]
+        return [Music(row["idMusique"], row["nomMusique"], row["duree"], row["idEntreprise"]) for row in rows]
 
-    def get_by_id(self, music_id):
+    def get_by_id(self, idMusique):
         conn = self.get_connection()
         row = conn.execute(
-            "SELECT id, title, path, duration FROM music WHERE id = ?",
-            (music_id,)
+            "SELECT idMusique, nomMusique, duree, idEntreprise FROM Musique WHERE idMusique = ?",
+            (idMusique,)
         ).fetchone()
         conn.close()
-        return Music(row["id"], row["title"], row["path"], row["duration"]) if row else None
+        return Music(row["idMusique"], row["nomMusique"], row["duree"], row["idEntreprise"]) if row else None
 
-    def create(self, title, path, duration):
+    def create(self, nomMusique, duree, idEntreprise):
         conn = self.get_connection()
         cur = conn.cursor()
         cur.execute(
-            "INSERT INTO music (title, path, duration) VALUES (?, ?, ?)",
-            (title, path, duration)
+            "INSERT INTO Musique (nomMusique, duree, idEntreprise) VALUES (?, ?, ?)",
+            (nomMusique, duree, idEntreprise)
         )
         conn.commit()
-        music_id = cur.lastrowid
+        idMusique = cur.lastrowid
         conn.close()
 
-        return Music(music_id, title, path, duration)
+        return Music(idMusique, nomMusique, duree, idEntreprise)
 
-    def delete(self, music_id):
+    def delete(self, idMusique):
         conn = self.get_connection()
-        conn.execute("DELETE FROM music WHERE id = ?", (music_id,))
+        conn.execute("DELETE FROM Musique WHERE idMusique = ?", (idMusique,))
         conn.commit()
         conn.close()
 
-    def get_musiques(self, order_by="title"):
+    def get_musiques(self, order_by="nomMusique"):
         allowed = {
-            "title": "title",
-            "duration": "duration"
+            "nomMusique": "nomMusique",
+            "duree": "duree"
         }
 
-        order_column = allowed.get(order_by, "title")
+        order_column = allowed.get(order_by, "nomMusique")
 
         conn = self.get_connection()
         rows = conn.execute(
-            f"SELECT id, title, path, duration FROM music ORDER BY {order_column}"
+            f"SELECT idMusique, nomMusique, duree, idEntreprise FROM Musique ORDER BY {order_column}"
         ).fetchall()
         conn.close()
 
-        return [Music(row["id"], row["title"], row["path"], row["duration"]) for row in rows]
+        return [Music(row["idMusique"], row["nomMusique"], row["duree"], row["idEntreprise"]) for row in rows]

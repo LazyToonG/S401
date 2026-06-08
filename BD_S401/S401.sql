@@ -29,11 +29,13 @@ CREATE TABLE Lecteur(
 
 CREATE TABLE Planning(
    idPlanning INT,
-   ajouterPar VARCHAR(50) NOT NULL,
    heureDiffusion TIME NOT NULL,
    jour VARCHAR(10) NOT NULL,
    intervalle VARCHAR(50),
-   PRIMARY KEY(idPlanning)
+   idUtilisateur INT NOT NULL,
+   PRIMARY KEY(idPlanning),
+   UNIQUE(idUtilisateur),
+   FOREIGN KEY(idUtilisateur) REFERENCES Utilisateur(idUtilisateur)
 );
 
 CREATE TABLE Musique(
@@ -70,9 +72,10 @@ CREATE TABLE Message(
 
 CREATE TABLE Playlist(
    idPlaylist INT,
-   creerPar VARCHAR(50) NOT NULL,
+   idUtilisateur INT NOT NULL,
    idPlanning INT,
    PRIMARY KEY(idPlaylist),
+   FOREIGN KEY(idUtilisateur) REFERENCES Utilisateur(idUtilisateur),
    FOREIGN KEY(idPlanning) REFERENCES Planning(idPlanning)
 );
 

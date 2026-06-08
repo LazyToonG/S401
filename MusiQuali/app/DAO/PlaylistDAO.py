@@ -18,28 +18,30 @@ class PlaylisteDAO:
     def _init_db(self):
         conn = self._getDbConnection()
         cursor = conn.cursor()
-        
-        table_exists = cursor.fetchone() is not None
-        conn.execute("""
-            CREATE TABLE IF NOT EXISTS playlist (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                title TEXT NOT NULL,
-                music_ids TEXT
-            )
+
+        # Création table
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS Playlist(
+                idPlaylist INTEGER PRIMARY KEY AUTOINCREMENT,
+                idUtilisateur INT NOT NULL DEFAULT 1,
+                idPlanning INT,
+                title VARCHAR(100) NOT NULL DEFAULT "test",
+                FOREIGN KEY(idUtilisateur) REFERENCES Utilisateur(idUtilisateur),
+                FOREIGN KEY(idPlanning) REFERENCES Planning(idPlanning)
+            );
         """)
-        conn.commit()
 
-# verif si table exist
-        cursor.execute(
-            "SELECT 1 FROM playlist WHERE title = ?", ("annonces",)
-            )
+        # Ajout playlist "annonces" uniquement si elle n'existe pas
+        cursor.execute("""
+            SELECT 1 FROM Playlist WHERE title = ?
+        """, ("annonces",))
 
-        if not table_exists:
+        exists = cursor.fetchone() is not None
+
+        if not exists:
             conn.execute("""
-
-            INSERT INTO playlist (title, music_ids)
-            VALUES ('annonces', NULL);
-
+                INSERT INTO Playlist (title)
+                VALUES ('annonces');
             """)
 
         conn.commit()
@@ -56,18 +58,17 @@ class PlaylisteDAO:
         conn = self._getDbConnection()
         cur = conn.cursor()
 
-        music_ids_str = self._ids_to_str(playlist.music_ids)
 
         if playlist.id is None:
             cur.execute(
-                "INSERT INTO playlist (title, music_ids) VALUES (?, ?)",
-                (playlist.title, music_ids_str)
+                "INSERT INTO Playlist (title) VALUES (?)",
+                (playlist.title,)
             )
             playlist.id = cur.lastrowid
         else:
             cur.execute(
-                "UPDATE playlist SET title=?, music_ids=? WHERE id=?",
-                (playlist.title, music_ids_str, playlist.id)
+                "UPDATE Playlist SET title=? WHERE idPlaylist=?",
+                (playlist.title,  playlist.id)
             )
 
         conn.commit()
@@ -76,7 +77,7 @@ class PlaylisteDAO:
     def get(self, playlist_id):
         conn = self._getDbConnection()
         row = conn.execute(
-            "SELECT id, title, music_ids FROM playlist WHERE id=?",
+            "SELECT idPlaylist, title FROM Playlist WHERE idPlaylist=?",
             (playlist_id,)
         ).fetchone()
         conn.close()
@@ -87,25 +88,23 @@ class PlaylisteDAO:
         return Playliste(
             id=row[0],
             title=row[1],
-            music_ids=self._str_to_ids(row[2])
         )
 
     def get_all(self):
         conn = self._getDbConnection()
-        rows = conn.execute("SELECT * FROM playlist").fetchall()
+        rows = conn.execute("SELECT * FROM Playlist").fetchall()
         conn.close()
 
         return [
             Playliste(
                 id=row[0],
                 title=row[1],
-                music_ids=self._str_to_ids(row[2])
             )
             for row in rows
         ]
 
     def delete(self, playlist_id): #appeler seulement apres avoir effacé les musiques
         conn = self._getDbConnection()
-        conn.execute("DELETE FROM playlist WHERE id = ?", (playlist_id,))
+        conn.execute("DELETE FROM Playlist WHERE idPlaylist = ?", (playlist_id,))
         conn.commit()
         conn.close()
