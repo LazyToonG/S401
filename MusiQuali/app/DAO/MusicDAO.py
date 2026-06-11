@@ -19,6 +19,7 @@ class MusicDAO():
                 nomMusique VARCHAR(50) NOT NULL,
                 duree INT NOT NULL,
                 idEntreprise INT NOT NULL default 1,
+                UNIQUE(nomMusique, idEntreprise),
                 FOREIGN KEY(idEntreprise) REFERENCES Entreprise(idEntreprise)
                 );
         """)
@@ -47,7 +48,7 @@ class MusicDAO():
         conn.close()
         return Music(row["idMusique"], row["nomMusique"], row["duree"], row["idEntreprise"]) if row else None
 
-    def create(self, nomMusique, duree, idEntreprise):
+    def create(self, nomMusique, duree, idEntreprise=1):
         conn = self.get_connection()
         cur = conn.cursor()
         cur.execute(

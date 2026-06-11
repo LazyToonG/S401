@@ -1,8 +1,8 @@
 class User:
-    def __init__(self, idUtilisateur, nom, mdp, role, mail, idEntreprise):
+    def __init__(self, idUtilisateur, username, password, role, mail, idEntreprise):
         self.idUtilisateur = idUtilisateur
-        self.nom = nom
-        self.mdp = mdp
+        self.username = username
+        self.password = password
         self.role = role
         self.mail = mail
         self.idEntreprise = idEntreprise

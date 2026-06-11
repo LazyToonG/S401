@@ -14,7 +14,8 @@
 
 
 class Playlist:
-    def __init__(self, idPlaylist, idUtilisateur, idPlanning):
+    def __init__(self, idPlaylist=None, idUtilisateur=None, idPlanning=None, title=None):
         self.idPlaylist = idPlaylist
         self.idUtilisateur = idUtilisateur
         self.idPlanning = idPlanning
+        self.title = title

@@ -40,7 +40,7 @@ class MusiqueService:
         duration = int(audio.info.length)
 
         # DAO retourne un objet Music
-        return self.dao.create(title=title, path=filepath, duration=duration)
+        return self.dao.create(nomMusique=title, duree=duration, idEntreprise=1)
 
     def delete_musique(self, music):
         self.dao.delete(music.id)

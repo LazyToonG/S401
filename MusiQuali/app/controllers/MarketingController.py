@@ -54,7 +54,7 @@ def marketing():
             selected_playlist_id = str(playlist_id_raw)  
             a = playlist_service.musics_in_playlist(selected_playlist_id)
             for music in a:
-                musics.append(music.title)
+                musics.append(music.nomMusique)
 
     return render_template(
         "marketing_v2.html",
@@ -120,7 +120,7 @@ def delete_playlist():
     a=playlist_service.musics_in_playlist(playlist_id)
     for music in a:
         if music is not None:
-            service.delete_musique(music)
+            service.delete_musique(music.id)
     playlist_service.delete_playlist(playlist_id)
     # for music in a:
     #     delSql.append(music.id)
@@ -154,7 +154,7 @@ def upload():
         return redirect(url_for("marketing"))
 
     music = service.save_file(file)
-    playlist_service.add_music_to_playlist(playlist.id, music.id)
+    playlist_service.add_music_to_playlist(playlist.idPlaylist, music.idMusique)
 
     message=ts.message_langue("Playlist enregistrée avec succès","Playlist successfully saved")
     flash(message,"success")

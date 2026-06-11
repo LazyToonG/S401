@@ -39,7 +39,7 @@
                 <select id="playlist-delete" name="playlist_id">
                     <option value="">{{ t.select_value }}</option>
                     {% for p in playlists %}
-                        <option value="{{ p.id }}" {% if selected_playlist_id == p.id|string %}selected{% endif %}>
+                        <option value="{{ p.idPlaylist }}" {% if selected_playlist_id == p.idPlaylist|string %}selected{% endif %}>
                             {{ p.title }}
                         </option>
                     {% endfor %}
@@ -57,7 +57,7 @@
                 <select id="playlist-select" name="playlist_id" onchange="this.form.submit()">
                     <option value="">{{ t.select_value }}</option>
                     {% for p in playlists %}
-                        <option value="{{ p.id }}" {% if selected_playlist_id == p.id|string %}selected{% endif %}>
+                        <option value="{{ p.idPlaylist }}" {% if selected_playlist_id == p.idPlaylist|string %}selected{% endif %}>
                             {{ p.title }}
                         </option>
                     {% endfor %}
