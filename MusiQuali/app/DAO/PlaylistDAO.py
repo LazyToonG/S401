@@ -25,8 +25,8 @@ class PlaylisteDAO:
             CREATE TABLE IF NOT EXISTS Playlist(
                 idPlaylist INTEGER PRIMARY KEY AUTOINCREMENT,
                 idUtilisateur INT NOT NULL DEFAULT 1,
-                idPlanning INT,
-                title VARCHAR(100) NOT NULL DEFAULT "test",
+                idPlanning INT default 1,
+                title VARCHAR(100) NOT NULL,
                 FOREIGN KEY(idUtilisateur) REFERENCES Utilisateur(idUtilisateur),
                 FOREIGN KEY(idPlanning) REFERENCES Planning(idPlanning)
             );
@@ -60,16 +60,16 @@ class PlaylisteDAO:
         cur = conn.cursor()
 
 
-        if playlist.id is None:
+        if playlist.idPlaylist is None:
             cur.execute(
-                "INSERT INTO Playlist (title) VALUES (?)",
-                (playlist.title,)
+                "INSERT INTO Playlist (title, idUtilisateur, idPlanning) VALUES (?, ?, ?)",
+                (playlist.title, playlist.idUtilisateur, playlist.idPlanning)
             )
-            playlist.id = cur.lastrowid
+            playlist.idPlaylist = cur.lastrowid
         else:
             cur.execute(
                 "UPDATE Playlist SET title=? WHERE idPlaylist=?",
-                (playlist.title,  playlist.id)
+                (playlist.title,  playlist.idPlaylist)
             )
 
         conn.commit()
@@ -77,18 +77,22 @@ class PlaylisteDAO:
 
     def get(self, playlist_id):
         conn = self._getDbConnection()
+
         row = conn.execute(
-            "SELECT idPlaylist, title FROM Playlist WHERE idPlaylist=?",
+            "SELECT * FROM Playlist WHERE idPlaylist=?",
             (playlist_id,)
         ).fetchone()
+
         conn.close()
 
         if not row:
             return None
 
         return Playlist(
-            id=row[0],
-            title=row[1],
+            idPlaylist=row["idPlaylist"],
+            title=row["title"],
+            idUtilisateur=row["idUtilisateur"],
+            idPlanning=row["idPlanning"]
         )
 
     def get_all(self):
@@ -98,14 +102,19 @@ class PlaylisteDAO:
 
         return [
             Playlist(
-                id=row[0],
-                title=row[1],
+                idPlaylist=row["idPlaylist"],
+                title=row["title"],
+                idUtilisateur=row["idUtilisateur"],
+                idPlanning=row["idPlanning"]
             )
             for row in rows
         ]
 
     def delete(self, playlist_id): #appeler seulement apres avoir effacé les musiques
         conn = self._getDbConnection()
-        conn.execute("DELETE FROM Playlist WHERE idPlaylist = ?", (playlist_id,))
+        conn.execute(
+                "DELETE FROM Playlist WHERE idPlaylist = ?",
+                (int(playlist_id),)
+            )
         conn.commit()
         conn.close()

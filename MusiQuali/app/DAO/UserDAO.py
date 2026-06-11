@@ -35,7 +35,7 @@ class UserSqliteDAO(UserDAOInterface):
                 password VARCHAR(100) NOT NULL,
                 role VARCHAR(15) NOT NULL,
                 mail VARCHAR(50),
-                idEntreprise INT NOT NULL DEFAULT 1,
+                idEntreprise INT NOT NULL default 1,
                 UNIQUE(mail),
                 FOREIGN KEY(idEntreprise) REFERENCES Entreprise(idEntreprise)
                 );
@@ -71,7 +71,7 @@ class UserSqliteDAO(UserDAOInterface):
             "SELECT * FROM Users WHERE username = ?", (username,)
         ).fetchone()
         conn.close()
-        return User(dict(user)) if user else None
+        return User(**dict(user)) if user else None
 
     def verifyUser(self, username, password):
         conn = self._getDbConnection()
@@ -85,14 +85,14 @@ class UserSqliteDAO(UserDAOInterface):
         
         hashed = user["password"]
         if bcrypt.checkpw(password.encode('utf-8'), hashed):
-            return User(dict(user))
+            return User(**dict(user))
         return None
 
     def findAll(self):
         conn = self._getDbConnection()
         users = conn.execute('SELECT * FROM Users').fetchall()
         conn.close()
-        return [User(dict(u)) for u in users]
+        return [User(**dict(u)) for u in users]
 
     def deleteByUsername(self, username):
         conn = self._getDbConnection()
