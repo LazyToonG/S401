@@ -104,8 +104,8 @@
     <div class="nav">
         <div class="logo"><img src="{{ url_for('static', filename='img/logo.png') }}" alt="logo"/><p>Musi-quali</p></div>
         <div class="b">
-            <div class="page" id="signin">S'inscrire</div>
-            <div class="page" id="index">Retour à l'accueil</div>
+            <div class="page" id="signin" onclick="window.location.href='{{ url_for('signin') }}';">S'inscrire</div>
+            <div class="page" id="index" onclick="window.location.href='{{ url_for('index') }}';">Retour à l'accueil</div>
         </div>
     </div>
     <div class="auth-container">
@@ -125,16 +125,6 @@
         </div>
     </div>
 
-        <script src="{{ url_for('static', filename='script.js') }}"></script>
-        <script>
-            document.getElementById('signin').addEventListener('click', function(){
-                window.location.href = "/signin";
-            })
-
-            document.getElementById('index').addEventListener('click', function(){
-                window.location.href = "/";
-            })
-        </script>
         <script src="{{ url_for('static', filename='script.js') }}"></script>
 
     </body>
