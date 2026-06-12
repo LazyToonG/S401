@@ -1,77 +1,241 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Planning Adaptatif</title>
-    <link rel="icon" href="../static/logo.png" type="image/png">
-    <link href="{{ url_for('static', filename='style.css') }}" rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='planning_style.css') }}">
-    <link href="{{ url_for('static', filename='message_alert.css') }}" rel="stylesheet">
+    <meta charset="UTF-8">
+    <title>Weekly Calendar (Drag and Drop)</title>
 </head>
 <body>
-    {% include 'nav_bar.html' %}
-    {% include 'messages_alert.html' %}
-    <div class="main-container">
-        <div class="controls-bar">
-            <label>Zoom : <input type="range" min="1" max="10" value="2" step="0.5" id="zoomRange"></label>
-            <button id="saveToFileBtn" style="padding: 5px 15px; cursor: pointer; background-color: #d02424;" class="btn">{{t.save_planning}}</button>
-            {% if role == 'commercial' or role == 'admin' %}
-                <a href="{{ url_for('marketing') }}" style="padding: 5px 15px; cursor: pointer; background-color: #4CAF50; color: white; text-decoration: none; border-radius: 4px; display: inline-block;">Message</a>
-            {% endif %}
-        </div>
-        <div class="planning-container">
-            <div class="time-scale">
-                <div style="height: 40px;"></div> <!-- Alignement avec header -->
-                {% for h in range(24) %}
-                    <div class="hour-marker">{{ "%02d:00"|format(h) }}</div>
-                {% endfor %}
-            </div>
-            {% for day in ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'] %}
-            {% set data = planning.get_day_data(day) %}
-            <div class="day-column" data-start-time="{{ data.start_offset_min * 60 }}">
-                <div class="day-header">{{ day|capitalize }}</div>
-                <div class="drop-zone" id="list-{{ day }}" data-day="{{ day }}" style="height: 2880px;">
-                    {% for m in data.musics %}
-                        <div class="music-task" data-duration="{{ m.duration }}" data-start-sec="{{ m.start_sec }}" data-title="{{ m.obj.titre }}" data-artist="{{ m.obj.artiste }}" data-path="{{ m.obj.path }}" style="height: {{ (m.duration / 60) * 2 }}px; top: {{ (m.start_sec / 60) * 2 }}px;">
-                            <strong>{{ m.time }}</strong><br>
-                            {{ m.obj.titre }} - {{ m.obj.artiste }}
-                        </div>
-                    {% endfor %}
-                </div>
-            </div>
-            {% endfor %}
-        </div>
 
-        <!-- Fenêtre Modale -->
-        <div id="addMusicModal" class="modal">
-            <div class="modal-content">
-                <span class="close">&times;</span>
-                <h3>{{t.ajout_music}}</h3>
-            
-                <div class="form-group">
-                    <label for="mStartTime">{{t.heure_début}} :</label>
-                    <input type="time" id="mStartTime" readonly>
-                </div>
-                <div class="form-group">
-                    <label for="mTitle">{{t.titre}} :</label>
-                    <input type="text" id="mTitle">
-                </div>
-                <div class="form-group">
-                    <label for="mArtist">{{t.artist}} :</label>
-                    <input type="text" id="mArtist">
-                </div>
-                <div class="form-group">
-                    <label for="mDuration">{{t.duree}} :</label>
-                    <input type="number" id="mDuration">
-                </div>
-            
-                <button id="saveMusicBtn">{{t.ajout}}</button>
-                <button id="deleteMusicBtn" class="btn-danger" style="display:none;">{{t.supp}}</button>
-            </div>
-        </div>
-    </div>
 
-    <script src="{{ url_for('static', filename='planning_script.js') }}"></script>
-    <script src="{{ url_for('static', filename='script.js') }}"></script>
-    <script src="{{ url_for('static', filename='message_alert.js') }}"></script>
+    <select id="tabSelect" onchange="switchTab()">
+        <option value="tab1">Gestion des playlistes</option>
+        <option value="tab2">Gestion des messages</option>
+    </select>
+
+<div id="tab1" class="tab-content">
+    <h1>Calendrier des playlistes</h1>
+    
+    <button id="add-box-btn">+ add playlist</button>
+   
+    <br>
+
+    <table border="1" cellpadding="10" cellspacing="0" width="100%">
+        <thead>
+            <tr bgcolor="#f2f2f2">
+                <th width="14.28%">Monday</th>
+                <th width="14.28%">Tuesday</th>
+                <th width="14.28%">Wednesday</th>
+                <th width="14.28%">Thursday</th>
+                <th width="14.28%">Friday</th>
+                <th width="14.28%">Saturday</th>
+                <th width="14.28%">Sunday</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr height="300" valign="top">
+                <td class="dropzone" id="mon-tab1"></td>
+                <td class="dropzone" id="tue-tab1"></td>
+                <td class="dropzone" id="wed-tab1"></td>
+                <td class="dropzone" id="thu-tab1"></td>
+                <td class="dropzone" id="fri-tab1"></td>
+                <td class="dropzone" id="sat-tab1"></td>
+                <td class="dropzone" id="sun-tab1"></td>
+            </tr>
+        </tbody>
+    </table>
+
+</div>
+
+
+<div id="tab2" class="tab-content">
+    <h1>Calendrier des messages</h1>
+    
+    <button id="add-message-btn">+ add playlist</button>
+    
+    
+    <br>
+
+    <table border="1" cellpadding="10" cellspacing="0" width="100%">
+        <thead>
+            <tr bgcolor="#f2f2f2">
+                <th width="14.28%">Monday</th>
+                <th width="14.28%">Tuesday</th>
+                <th width="14.28%">Wednesday</th>
+                <th width="14.28%">Thursday</th>
+                <th width="14.28%">Friday</th>
+                <th width="14.28%">Saturday</th>
+                <th width="14.28%">Sunday</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr height="300" valign="top">
+                <td class="messageszone" id="mon-tab2"></td>
+                <td class="messageszone" id="tue-tab2"></td>
+                <td class="messageszone" id="wed-tab2"></td>
+                <td class="messageszone" id="thu-tab2"></td>
+                <td class="messageszone" id="fri-tab2"></td>
+                <td class="messageszone" id="sat-tab2"></td>
+                <td class="messageszone" id="sun-tab2"></td>
+            </tr>
+        </tbody>
+    </table>
+
+</div>
+
+
+
+    <script>//crée des boites pour faire bouger les playlistes
+        
+        // #TODO 
+        // faire remplir les characteristiques avant de créer la boite
+        // l'heure de start et de fin + titre de la playliste + liste des musiques dedans.
+        //automatiquement créer des boites selon ce qu'il y a dans la bd.
+
+
+        // compteur de boites
+        let boxCounter = 0;
+
+        // ne peut etre laché que dans les zone désignés c-a-d les jours
+        const addBoxBtn = document.getElementById('add-box-btn');
+        const dropzones = document.querySelectorAll('.dropzone');
+
+        // -------------------- logique des boites
+        addBoxBtn.addEventListener('click', () => {
+            boxCounter++;
+            
+            // create box
+            const newBox = document.createElement('div');
+            newBox.id = `box-${boxCounter}`;
+            newBox.draggable = true;
+            
+            // nom des boites
+            newBox.innerHTML = `<b>Box ${boxCounter}</b><br><small>Drag me</small>`; //modifier nom selon playliste choisie
+            
+            // Using basic JS inline styles *only* to simulate basic HTML box borders/padding 
+            // so you can actually see and grab the empty boxes.
+            newBox.style.border = "2px dashed #333";
+            newBox.style.padding = "10px";
+            newBox.style.margin = "5px 0";
+            newBox.style.backgroundColor = "#e0e0e0";
+            newBox.style.cursor = "move";
+
+            // Attach drag start event to the new box
+            newBox.addEventListener('dragstart', (e) => {
+                e.dataTransfer.setData('text/plain', e.target.id);
+            });
+
+            // Automatically place the newly created box into Monday to start
+            document.getElementById('mon-tab1').appendChild(newBox);
+        });
+
+        // --- DragonDrop
+        dropzones.forEach(zone => {
+            // Necessary to allow dropping (default behavior prevents it)
+            zone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+            });
+
+            // Handle the drop event
+            zone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                const boxId = e.dataTransfer.getData('text/plain');
+                const draggedBox = document.getElementById(boxId);
+                
+                // Ensure we are appending to the column (TD), not inside another box
+                if (e.target.classList.contains('dropzone')) {
+                    e.target.appendChild(draggedBox);
+                } else {
+                    // If dropped onto an existing box, append to its parent column instead
+                    e.target.closest('.dropzone').appendChild(draggedBox);
+                }
+            });
+        });
+
+
+    
+        //pour le 2e tab
+
+
+        let MessageCounter = 0;
+
+        // ne peut etre laché que dans les zone désignés c-a-d les jours
+        const messageBoxBtn = document.getElementById('add-message-btn');
+        const messageszones = document.querySelectorAll('.messageszone');
+
+        // -------------------- logique des boites
+        messageBoxBtn.addEventListener('click', () => {
+            MessageCounter++;
+            
+            // create box
+            const newBox = document.createElement('div');
+            newBox.id = `msgbox-${MessageCounter}`;
+            newBox.draggable = true;
+            
+            // nom des boites
+            newBox.innerHTML = `<b>Box ${MessageCounter}</b><br><small>Drag me</small>`; //modifier nom selon playliste choisie
+            
+            // Using basic JS inline styles *only* to simulate basic HTML box borders/padding 
+            // so you can actually see and grab the empty boxes.
+            newBox.style.border = "2px dashed #333";
+            newBox.style.padding = "10px";
+            newBox.style.margin = "5px 0";
+            newBox.style.backgroundColor = "#e0e0e0";
+            newBox.style.cursor = "move";
+
+            // Attach drag start event to the new box
+            newBox.addEventListener('dragstart', (e) => {
+                e.dataTransfer.setData('text/plain', e.target.id);
+            });
+
+            // Automatically place the newly created box into Monday to start
+            document.getElementById('mon-tab2').appendChild(newBox);
+        });
+
+        // --- DragonDrop
+        messageszones.forEach(zone => {
+            // Necessary to allow dropping (default behavior prevents it)
+            zone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+            });
+
+            // Handle the drop event
+            zone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                const boxId = e.dataTransfer.getData('text/plain');
+                const draggedBox = document.getElementById(boxId);
+                
+                // Ensure we are appending to the column (TD), not inside another box
+                if (e.target.classList.contains('messageszone')) {
+                    e.target.appendChild(draggedBox);
+                } else {
+                    // If dropped onto an existing box, append to its parent column instead
+                    e.target.closest('.messageszone').appendChild(draggedBox);
+                }
+            });
+        });
+
+
+
+        function switchTab() { // handle the tabs.
+            // choper val du dropdown
+            const selectedValue = document.getElementById("tabSelect").value;
+            
+            // grab the right 'tab-content'
+            const tabs = document.getElementsByClassName("tab-content");
+           
+            // montrer le bon, cacher le reste
+            for (let i = 0; i < tabs.length; i++) {
+                if (tabs[i].id === selectedValue) {
+                    tabs[i].style.display = "block";  // Show
+                } else {
+                    tabs[i].style.display = "none";   // Hide
+                }
+            }
+        }
+
+
+        switchTab();
+    </script>
+
 </body>
 </html>
