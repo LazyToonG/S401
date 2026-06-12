@@ -6,6 +6,7 @@
     <title>Musiquali - Administration</title>
     <link href="{{ url_for('static', filename='style.css') }}" rel="stylesheet">
     <link href="{{ url_for('static', filename='style_admin.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='message_alert.css') }}" rel="stylesheet">
 </head>
 <body>
 
@@ -20,14 +21,167 @@
 
     <main class="content-area">
         
-        <div id="raspberry" class="tab-content full-box">
+        <div id="raspberry" class="tab-content split-layout">            
+            <div class="admin-panel">
+                <div class="users-header">
+                    <div class="search-sort-bar">
+                        <div class="search-bar admin-search">
+                            <span class="search-icon"><img src="{{ url_for('static', filename='img/loupe.png') }}" alt="Recherche" class="recherche-img"></span>
+                            <input type="text" placeholder="Recherche...">
+                        </div>
+                        <div class="sort-dropdown" style="cursor: pointer; color: #651b1b;">Trier ▼</div>
+                    </div>
+                    
+                    <div class="actions-bar">
+                        <a href="#" class="action-link hidden" id="delete-users-selection">
+                            Supprimer la sélection 
+                            <img src="{{ url_for('static', filename='img/delete.png') }}" alt="Delete" class="delete-img">
+                        </a>
+                    </div>
+                </div>
+
+                <div class="users-list">
+                    {% for r in raspberry %}
+                    <div class="user-list-item">
+                        <input type="checkbox" class="custom-round-checkbox">
+                        <span class="item-name">{{ r.nom }}</span>
+                        <span class="item-name">{{ r.ipRasp }}</span>
+                        <span class="user-role-text">Etat</span>
+                        <div class="item-actions">
+                            <span class="icon"><img src="{{ url_for('static', filename='img/delete.png') }}" alt="Delete" class="delete-img"></span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
             </div>
+
+            <div class="admin-panel">
+                <h3 class="panel-title">Ajouter une raspberry</h3>
+                
+                <form class="create-user-form" action="/admin/add_rasp" method="POST">
+                    <div class="form-columns">
+                        
+                        <div class="form-col-left">
+                            <div class="input-group">
+                                <label>Nom de la raspberry</label>
+                                <input type="text" class="transparent-input" required name="nom">
+                            </div>
+                            <div class="input-group">
+                                <label>Adresse IP</label>
+                                <input type="email" class="transparent-input" required name="ipRasp">
+                            </div>
+                            <div class="input-group">
+                                <label>Mot de passe</label>
+                                <input type="password" class="transparent-input" required name="mdp">
+                            </div>
+                        </div>
+
+                    </div>
+                    
+                    <div style="text-align: center; margin-top: 30px;">
+                        <button type="submit" class="btn-action-red">Ajouter</button>
+                    </div>
+                </form>
+            </div>
+        </div>
 
         <div id="terminal" class="tab-content full-box">
+        </div>
+
+        <div id="users" class="tab-content split-layout">
+            
+            <div class="admin-panel">
+                <div class="users-header">
+                    <div class="search-sort-bar">
+                        <div class="search-bar admin-search">
+                            <span class="search-icon"><img src="{{ url_for('static', filename='img/loupe.png') }}" alt="Recherche" class="recherche-img"></span>
+                            <input type="text" placeholder="Recherche...">
+                        </div>
+                        <div class="sort-dropdown" style="cursor: pointer; color: #651b1b;">Trier ▼</div>
+                    </div>
+                    
+                    <div class="actions-bar">
+                        <a href="#" class="action-link hidden" id="delete-users-selection">
+                            Supprimer la sélection 
+                            <img src="{{ url_for('static', filename='img/delete.png') }}" alt="Delete" class="delete-img">
+                        </a>
+                    </div>
+                </div>
+
+
+                <div class="users-list">
+
+                    <div class="user-list-item">
+                        <span class="item-name">Nom</span>
+                        <span class="user-role-text">E-mail</span>
+                        <span class="user-role-text">Rôle</span>
+                        <div class="item-actions">
+                            
+                        </div>
+                    </div>
+
+                    {% for u in users %}
+                    <div class="user-list-item">
+                        <input type="checkbox" class="custom-round-checkbox">
+                        <span class="item-name">{{u.username}}</span>
+                        <span class="user-role-text">{{u.mail}}</span>
+                        <span class="user-role-text">{{u.role}}</span>
+                        <div class="item-actions">
+                            <span class="icon"><img src="{{ url_for('static', filename='img/modif.png') }}" alt="Edit" class="modif-img" onclick="openUserModal('{{u.username}}', '{{u.mail}}', '{{u.password}}')"></span>
+                            <span class="icon"><img src="{{ url_for('static', filename='img/delete.png') }}" alt="Delete" class="delete-img" onclick="openDeleteModal('{{u.username}}')"></span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
             </div>
 
-        <div id="users" class="tab-content full-box">
+            <div class="admin-panel">
+                <h3 class="panel-title">Créer un utilisateur</h3>
+                
+                <form class="create-user-form" action="/admin/create" method="POST">
+                    <div class="form-columns">
+                        
+                        <div class="form-col-left">
+                            <div class="input-group">
+                                <label>Nom d'utilisateur</label>
+                                <input type="text" class="transparent-input" required name="username">
+                            </div>
+                            <div class="input-group">
+                                <label>E-mail</label>
+                                <input type="email" class="transparent-input" required name="email">
+                            </div>
+                            <div class="input-group">
+                                <label>Mot de passe</label>
+                                <input type="password" class="transparent-input" required name="password">
+                            </div>
+                        </div>
+
+                        <div class="form-col-right">
+                            <label>Rôle</label>
+                            <div class="role-options">
+                                <label class="role-label">
+                                    <input type="radio" name="role" value="commercial" required>
+                                    <span class="role-btn">Commercial</span>
+                                </label>
+                                <label class="role-label">
+                                    <input type="radio" name="role" value="marketing">
+                                    <span class="role-btn">Marketing</span>
+                                </label>
+                                <label class="role-label">
+                                    <input type="radio" name="role" value="admin">
+                                    <span class="role-btn">Admin</span>
+                                </label>
+                            </div>
+                        </div>
+
+                    </div>
+                    
+                    <div style="text-align: center; margin-top: 30px;">
+                        <button type="submit" class="btn-action-red">Créer</button>
+                    </div>
+                </form>
             </div>
+        </div>
 
         <div id="requests" class="tab-content split-layout">
             
@@ -72,6 +226,50 @@
 
     </main>
 
+    <div id="user-modal-overlay" class="modal-overlay hidden" onclick="if(event.target === this) closeUserModal()">
+        <div class="modal-box admin-modal-box">
+            <h3 class="modal-title">Modifier</h3>
+            <form action="#" method="POST">
+                <div class="input-group">
+                    <label style="color: #651b1b;">Nom d'utilisateur</label>
+                    <input type="text" id="edit_username" name="edit_username" class="transparent-input">
+                </div>
+                <div class="input-group">
+                    <label style="color: #651b1b;">E-mail</label>
+                    <input type="email" id="edit_email" name="edit_email" class="transparent-input">
+                </div>
+                <div class="input-group">
+                    <label style="color: #651b1b;">Mot de passe</label>
+                    <input type="text" id="edit_password" name="edit_password" class="transparent-input">
+                </div>
+                
+                <div class="modal-actions-row">
+                    <button type="submit" class="btn-action-red">Enregistrer</button>
+                    <button type="button" class="btn-outline-red" onclick="closeUserModal()">Annuler</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="delete-modal-overlay" class="modal-overlay hidden" onclick="if(event.target === this) closeDeleteModal()">
+        <div class="modal-box admin-modal-box" style="background-color: #fff; text-align: center;">
+            <h3 class="modal-title" style="color: #651b1b; margin-bottom: 15px;">Confirmer la suppression</h3>
+            
+            <p style="color: #333; margin-bottom: 25px; font-size: 16px;">
+                Voulez-vous vraiment supprimer l'utilisateur <strong id="delete-username-display" style="color: #a71e23;"></strong> ?
+            </p>
+            
+            <form action="/admin/delete" method="POST">
+                <input type="hidden" id="delete_username_input" name="username" value="">
+                
+                <div class="modal-actions-row" style="justify-content: center; gap: 20px; margin-top: 20px;">
+                    <button type="submit" name="decision" value="cancel" class="btn-outline-red">Annuler</button>
+                    <button type="submit" name="decision" value="confirm" class="btn-action-red">Confirmer</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script>
         function updateTabs() {
             // Récupère le hash dans l'URL (ex: #users), ou utilise 'raspberry' par défaut
@@ -112,26 +310,56 @@
                 window.location.href = "/marketing";
         })
 
-        document.addEventListener('DOMContentLoaded', () => {
-            const profileBtn = document.getElementById('userProfileBtn');
-            const profileMenu = document.getElementById('profileMenu');
 
-            // Ouvre/Ferme le menu quand on clique sur la zone de profil
-            if (profileBtn && profileMenu) {
-                profileBtn.addEventListener('click', (event) => {
-                    profileMenu.classList.toggle('show');
-                    // Empêche le clic de se propager au document (ce qui fermerait le menu tout de suite)
-                    event.stopPropagation(); 
-                });
 
-                // Ferme le menu si on clique n'importe où ailleurs sur la page
-                document.addEventListener('click', (event) => {
-                    if (!profileBtn.contains(event.target)) {
-                        profileMenu.classList.remove('show');
+        // --- GESTION DES CHECKBOXES (Utilisateurs) ---
+        const userCheckboxes = document.querySelectorAll('#users .custom-round-checkbox');
+        const deleteSelectionUser = document.getElementById('delete-users-selection');
+
+        if (userCheckboxes.length > 0) {
+            userCheckboxes.forEach(cb => {
+                cb.addEventListener('change', () => {
+                    // Vérifie si au moins une case est cochée
+                    const anyChecked = Array.from(userCheckboxes).some(c => c.checked);
+                    if(anyChecked) {
+                        deleteSelectionUser.classList.remove('hidden');
+                    } else {
+                        deleteSelectionUser.classList.add('hidden');
                     }
                 });
-            }
-        });
+            });
+        }
+
+        
+        // --- FONCTIONS MODALE (Modification Utilisateur) ---
+        function openUserModal(username, email, password) {
+            document.getElementById('edit_username').value = username;
+            document.getElementById('edit_email').value = email;
+            document.getElementById('edit_password').value = password;
+            
+            document.getElementById('user-modal-overlay').classList.remove('hidden');
+        }
+
+        function closeUserModal() {
+            document.getElementById('user-modal-overlay').classList.add('hidden');
+        }
+
+        // --- FONCTIONS MODALE (Suppression Utilisateur) ---
+        function openDeleteModal(username) {
+            // Affiche le nom de l'utilisateur dans le texte de confirmation
+            document.getElementById('delete-username-display').innerText = username;
+            
+            // Met le nom de l'utilisateur dans l'input caché pour le formulaire Flask
+            document.getElementById('delete_username_input').value = username;
+            
+            // Affiche la fenêtre
+            document.getElementById('delete-modal-overlay').classList.remove('hidden');
+        }
+
+        function closeDeleteModal() {
+            // Cache la fenêtre
+            document.getElementById('delete-modal-overlay').classList.add('hidden');
+        }
     </script>
     <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>

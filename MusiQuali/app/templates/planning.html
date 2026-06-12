@@ -8,7 +8,7 @@
     <link href="{{ url_for('static', filename='message_alert.css') }}" rel="stylesheet">
 </head>
 <body>
-    {% include 'nav_v2.html' %}
+    {% include 'nav_bar.html' %}
     {% include 'messages_alert.html' %}
     <div class="main-container">
         <div class="controls-bar">
@@ -73,6 +73,5 @@
     <script src="{{ url_for('static', filename='planning_script.js') }}"></script>
     <script src="{{ url_for('static', filename='script.js') }}"></script>
     <script src="{{ url_for('static', filename='message_alert.js') }}"></script>
-    {% include 'fin_nav.html' %}
 </body>
 </html>

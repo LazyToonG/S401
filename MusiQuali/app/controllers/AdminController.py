@@ -24,7 +24,9 @@ def admin_dashboard():
 
     rasp = rs.montreToutRasp()
 
-    return render_template("admin.html",  raspberry=rasp, t=textes, current_lang=langue_choisie, user=user, role=role)
+    users = user_service.getUsers()
+
+    return render_template("admin.html",  raspberry=rasp, users=users, t=textes, current_lang=langue_choisie, user=user, role=role)
 
 
 # Création utilisateur
@@ -53,7 +55,7 @@ def create_user():
 
     message=ts.message_langue("Utilisateur créé avec succès","User successfully created")
     flash(message, "success")
-    return redirect(url_for("admin_dashboard"))
+    return redirect(url_for("admin_dashboard", _anchor="users"))
 
 #suppression utilisateur
 @app.route("/admin/delete", methods=["POST"])
@@ -63,22 +65,16 @@ def delete_user():
 
     decision=request.form.get("decision")
     if decision=="cancel" :
-        message=ts.message_langue("Suppression annulée", "Deletion cancelled")
-        flash(message, "error")
-        return redirect(url_for("admin_dashboard"))
+        return redirect(url_for("admin_dashboard", _anchor="users"))
     
     username = request.form.get("username")
 
     if username==user:
-        message=ts.message_langue("Utilisateur ne peut pas être supprimé (actuellement connecté)","User cannot be deleted (currently logged)")
-        flash(message, "error")
-        return redirect(url_for("admin_dashboard"))
+        return redirect(url_for("admin_dashboard", _anchor="users"))
     
     user_service.deleteUser(username)
 
-    message=ts.message_langue("Utilisateur supprimé avec succès","User successfully deleted")
-    flash(message, "success")
-    return redirect(url_for("admin_dashboard"))
+    return redirect(url_for("admin_dashboard", _anchor="users"))
 
 @app.route("/admin/search", methods=["POST", "GET"])
 @reqrole('admin')
@@ -93,7 +89,7 @@ def admin_search_user():
     username = request.form.get("username")
 
     if not username:
-        return redirect(url_for("admin_dashboard"))
+        return redirect(url_for("admin_dashboard", _anchor="users"))
 
     searched_users = user_service.getUserByUsername(username)
     for users in searched_users:
