@@ -1,8 +1,8 @@
 from flask import render_template, request, session
 from app import app
 from app.services.TraductionService import Traductionservice
-#from app.controllers.LoginController import reqlogged
-from app.services.service_schedule import service_schedule
+from app.controllers.LoginController import reqlogged
+#from app.services.service_schedule import service_schedule
 
 ts = Traductionservice()
 
