@@ -58,29 +58,41 @@
             <div class="admin-panel">
                 <h3 class="panel-title">Ajouter une raspberry</h3>
                 
-                <form class="create-user-form" action="/admin/add_rasp" method="POST">
-                    <div class="form-columns">
-                        
-                        <div class="form-col-left">
-                            <div class="input-group">
-                                <label>Nom de la raspberry</label>
-                                <input type="text" class="transparent-input" required name="nom">
-                            </div>
-                            <div class="input-group">
-                                <label>Adresse IP</label>
-                                <input type="email" class="transparent-input" required name="ipRasp">
-                            </div>
-                            <div class="input-group">
-                                <label>Mot de passe</label>
-                                <input type="password" class="transparent-input" required name="mdp">
-                            </div>
+                <div class="modal-content">
+                    <span class="close" onclick="closeModal()">&times;</span>
+                    <h2>{{t.titreRasp}}</h2>
+                    <form action="/admin/add_rasp" method="POST">
+                        <div class="mb-3 mt-3">
+                            <label for="nom" class="form-label">{{t.nomRasp}}</label>
+                            <input type="text"
+                                class="form-control"
+                                id="nom"
+                                placeholder="{{t.form_nomRasp}}"
+                                name="nom">
+                            <br>
+                            <label for="ipRasp" class="form-label">
+                                {{t.ipRasp}}
+                            </label>
+                            <input type="text"
+                                class="form-control"
+                                id="ipRasp"
+                                placeholder="{{t.form_ipRasp}}"
+                                name="ipRasp">
+                            <br>
+                            <label for="mdpRasp" class="form-label">
+                                {{t.mdpRasp}}
+                            </label>
+                            <input type="password"
+                                class="form-control"
+                                id="mdpRasp"
+                                placeholder="{{t.form_mdpRasp}}"
+                                name="mdpRasp">
                         </div>
+                        <br>
+                        <button type="submit" class="btn-action-red" style="text-align: center; margin-top: 30px;">{{t.confirm}}</button>
+                    </form>
+                </div>
 
-                    </div>
-                    
-                    <div style="text-align: center; margin-top: 30px;">
-                        <button type="submit" class="btn-action-red">Ajouter</button>
-                    </div>
                 </form>
             </div>
         </div>

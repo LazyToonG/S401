@@ -33,7 +33,7 @@ def addRaspberry():#manque trad pour les flash
             flash("IP invalide", "error")
             return redirect(url_for("admin_dashboard"))
         # subprocess.run(["scp", "-r", "./app/static/rasdata/*", f"{nom}@{ip}:/home/{nom}/musiquali/"])
-        subprocess.run(["sshpass", "-p", mdp, "ssh-copy-id", "-o", "StrictHostKeyChecking=no", f"{nom}@{ip}"], check=True, timeout=8)
+        subprocess.run(["sshpass", "-p", mdp, "ssh-copy-id", "-o", "StrictHostKeyChecking=no", f"{nom}@{ip}"], shell=True, check=True, timeout=8)
 
     except subprocess.TimeoutExpired:
         flash("Délai dépassé : le Raspberry ne répond pas", "error")
