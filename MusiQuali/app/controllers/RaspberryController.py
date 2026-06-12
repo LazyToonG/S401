@@ -116,6 +116,8 @@ def pingRasp(ip):
     return result.returncode == 0
         
 
+
+dernierOk = {}
 def pingLoop():
     while True:
         raspberrys = rs.montreToutRasp()
@@ -125,11 +127,11 @@ def pingLoop():
             ok = pingRasp(r.ipRasp)
             if ok : 
                 print(f"ok pour {r.nom} ({r.ipRasp})")
-                dernierOk = f"{r.nom} a été effectué à {time.strftime('%Y-%m-%d %H:%M:%S')}"
+                dernierOk[r.nom] = time.strftime('%Y-%m-%d %H:%M:%S')
             else:
-                print(f"pas ok pour {r.nom} ({r.ipRasp})")
-                dernierOk = ""        
-            print(f"Dernier ping : {dernierOk}")
+                print(f"pas ok pour {r.nom} ({r.ipRasp})")   
+            dernier = dernierOk.get(r.nom, "Jamais")   
+            print(f"Dernier ping : {dernier}")
         time.sleep(30) # 5min
 
 import threading
