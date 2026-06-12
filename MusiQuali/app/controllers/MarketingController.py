@@ -132,32 +132,37 @@ def delete_playlist():
 
 @app.route("/upload", methods=["POST"])
 def upload():
-    file = request.files.get("audio")
+    # 1. On utilise getlist() pour récupérer la liste de tous les fichiers envoyés
+    fichiers = request.files.getlist("audio")
     playlist_id = request.form.get("playlist_id")
     role = session.get('role')
 
-    if not file or not playlist_id:
-        message=ts.message_langue("Fichier ou playlist manquant","File or playlist missing")
-        flash(message,"error")
+    # 2. On vérifie s'il y a bien des fichiers (les navigateurs envoient parfois un fichier vide par défaut)
+    if not fichiers or fichiers[0].filename == '' or not playlist_id:
+        message = ts.message_langue("Fichier(s) ou playlist manquant(s)", "File(s) or playlist missing")
+        flash(message, "error")
         return redirect(url_for("marketing"))
 
     playlist = playlist_service.get_by_id(int(playlist_id))
     if not playlist:
-        message=ts.message_langue("Playlist invalide","Invalid playlist")
-        flash(message,"error")
+        message = ts.message_langue("Playlist invalide", "Invalid playlist")
+        flash(message, "error")
         return redirect(url_for("marketing"))
     
     # Verify commercial users can only upload to "message" playlist
     if role == "commercial" and playlist.title.lower() != "message":
-        message=ts.message_langue("Accès refusé: vous ne pouvez modifier que la playlist 'message'","Access denied: you can only edit the 'message' playlist.")
+        message = ts.message_langue("Accès refusé: vous ne pouvez modifier que la playlist 'message'", "Access denied: you can only edit the 'message' playlist.")
         flash(message, "error")
         return redirect(url_for("marketing"))
 
-    music = service.save_file(file)
-    playlist_service.add_music_to_playlist(playlist.idPlaylist, music.idMusique)
+    # 3. On boucle sur chaque fichier récupéré pour les enregistrer un par un
+    for file in fichiers:
+        if file and file.filename != '':
+            music = service.save_file(file)
+            playlist_service.add_music_to_playlist(playlist.idPlaylist, music.idMusique)
 
-    message=ts.message_langue("Playlist enregistrée avec succès","Playlist successfully saved")
-    flash(message,"success")
+    message = ts.message_langue("Musique(s) ajoutée(s) avec succès à la playlist", "Music(s) successfully added to the playlist")
+    flash(message, "success")
     return redirect(url_for("marketing"))
 
 # @app.route("/musicsinplaylist", methods=["GET", "POST"])
