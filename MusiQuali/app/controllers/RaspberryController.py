@@ -4,6 +4,7 @@ from app.controllers.LoginController import reqrole
 from app.services.RaspberryService import RaspberryService
 import subprocess, ipaddress, time
 from app.services.TraductionService import Traductionservice
+import time
 
 
 rs = RaspberryService()
@@ -89,14 +90,13 @@ def action_rasp():
         flash(message, "success")
 
     elif button=="envoie-ping":
-        print(ip)
-        result = subprocess.run(["ping", "-c", "4", ip], capture_output=True, text=True)
-        if result.returncode == 0:
+        if pingRasp(ip):
             message=ts.message_langue("Ping et initialisation OK","Ping and initialisation OK")
             flash(message, "success")
         else:
             message=ts.message_langue("Erreur lors de l'initialisation","Error during initialisation")
             flash(message, "error")
+        
     #tmp
     elif button=="test":
         if ip==None:
@@ -111,8 +111,33 @@ def action_rasp():
     
     return redirect(url_for("admin_dashboard"))
 
+def pingRasp(ip):
+    result = subprocess.run(["ping", "-c", "4", ip], capture_output=True, text=True)
+    return result.returncode == 0
+        
 
-#-> déplacement dans services/RaspberryService.py
+def pingLoop():
+    while True:
+        raspberrys = rs.montreToutRasp()
+        for r in raspberrys:
+            if r.ipRasp is None or r.nom is None:
+                continue  # Ignorer les entrées avec des informations incomplètes
+            ok = pingRasp(r.ipRasp)
+            if ok : 
+                print(f"ok pour {r.nom} ({r.ipRasp})")
+                dernierOk = f"{r.nom} a été effectué à {time.strftime('%Y-%m-%d %H:%M:%S')}"
+            else:
+                print(f"pas ok pour {r.nom} ({r.ipRasp})")
+                dernierOk = ""        
+            print(f"Dernier ping : {dernierOk}")
+        time.sleep(30) # 5min
+
+import threading
+
+threading.Thread(
+    target=pingLoop,
+    daemon=True
+).start()#-> déplacement dans services/RaspberryService.py
 
 # @app.route("/save_export", methods=["POST"])
 # @reqrole('commercial')
