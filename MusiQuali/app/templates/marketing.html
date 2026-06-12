@@ -35,38 +35,16 @@
 
                 <div class="split-container">
                     <div class="list-column">
+                        {% for p in playlists %}
                         <div class="list-item">
                             <input type="checkbox" class="custom-checkbox">
-                            <span class="item-name">Playlist 1</span>
+                            <span class="item-name">{{p.title}}</span>
                             <div class="item-actions">
                                 <span class="icon"><img src="{{ url_for('static', filename='img/modif.png') }}" alt="Modification" class="modif-img" ></span>
                                 <span class="icon"><img src="{{ url_for('static', filename='img/delete.png') }}" alt="Delete" class="delete-img" ></span>
                             </div>
                         </div>
-                        <div class="list-item">
-                            <input type="checkbox" class="custom-checkbox">
-                            <span class="item-name">Playlist 2</span>
-                            <div class="item-actions">
-                                <span class="icon"><img src="{{ url_for('static', filename='img/modif.png') }}" alt="Modification" class="modif-img" ></span>
-                                <span class="icon"><img src="{{ url_for('static', filename='img/delete.png') }}" alt="Delete" class="delete-img" ></span>
-                            </div>
-                        </div>
-                        <div class="list-item">
-                            <input type="checkbox" class="custom-checkbox">
-                            <span class="item-name">Playlist 3</span>
-                            <div class="item-actions">
-                                <span class="icon"><img src="{{ url_for('static', filename='img/modif.png') }}" alt="Modification" class="modif-img" ></span>
-                                <span class="icon"><img src="{{ url_for('static', filename='img/delete.png') }}" alt="Delete" class="delete-img" ></span>
-                            </div>
-                        </div>
-                        <div class="list-item">
-                            <input type="checkbox" class="custom-checkbox">
-                            <span class="item-name">Playlist 4</span>
-                            <div class="item-actions">
-                                <span class="icon"><img src="{{ url_for('static', filename='img/modif.png') }}" alt="Modification" class="modif-img" ></span>
-                                <span class="icon"><img src="{{ url_for('static', filename='img/delete.png') }}" alt="Delete" class="delete-img" ></span>
-                            </div>
-                        </div>
+                        {% endfor %}
                     </div>
 
                     <div class="list-column hidden" id="playlist-details"></div>
@@ -92,27 +70,50 @@
                 </div>
 
                 <div class="list-column">
+                    {% for m in musiques %}
                     <div class="list-item" style="align-items: center;">
                         <input type="checkbox" class="custom-checkbox">
-                        <span class="item-name">Musique 1</span>
+                        <span class="item-name">{{m.nomMusique}}</span>
+                        <span class="item-name">{{m.duree}}</span>
                         <div class="item-actions">
                             <span class="icon"><img src="{{ url_for('static', filename='img/modif.png') }}" alt="Modification" class="modif-img"></span>
                             <span class="icon"><img src="{{ url_for('static', filename='img/delete.png') }}" alt="Delete" class="delete-img"></span>
                         </div>
                     </div>
+                    {% endfor %}
                 </div>
             </div>
         </div>
 
         <div class="right-panel">
-            <div class="upload-area">
-                <p>Glisser-déposer ou cliquer pour sélectionner un fichier</p>
-            </div>
+            <form action="/upload" method="POST" enctype="multipart/form-data" id="upload-form">
+                <input type="hidden" name="playlist_id" id="playlist-id">
 
-            <div class="upload-actions">
-                <button class="btn-action-blue full-width">Ajouter la nouvelle musique à la base de données</button>
-                <button class="btn-outline-blue">Convertir en MP3</button>
-            </div>
+                <label class="upload-area" id="upload-zone" for="audio-input">
+                    <p id="upload-text">Glisser-déposer ou cliquer pour sélectionner un fichier</p>
+                    <input
+                        type="file"
+                        name="audio"
+                        id="audio-input"
+                        accept=".mp3"
+                        multiple 
+                        required
+                        style="display: none;"
+                    >
+                </label>
+
+                <div id="file-preview-container" class="file-preview-container hidden"></div>
+
+                <div class="upload-actions">
+                    <button type="submit" id="btn-upload" class="btn-action-blue full-width" disabled>
+                        Ajouter à la base de données
+                    </button>
+                    <button type="button" class="btn-outline-blue">
+                        <a href="https://notube.lol/fr" target="_blank">Convertir en MP3</a>
+                    </button>
+                </div>
+            </form>
+            
         </div>
 
     </main>
@@ -120,32 +121,14 @@
     <div id="modal-overlay" class="modal-overlay hidden" onclick="if(event.target === this) closeModal()">
         <div class="modal-box">
             <h3>Composer la playlist</h3>
-            
             <div class="modal-items-container">
+                {% for m in musics %}
                 <div class="list-item modal-item">
                     <input type="checkbox" checked class="custom-checkbox"> 
-                    <span class="item-name">Musique 1</span>
+                    <span class="item-name">{{m.nomMusique}}</span>
+                    <span class="item-name">{{m.duree}}</span>
                 </div>
-                <div class="list-item modal-item">
-                    <input type="checkbox" checked class="custom-checkbox"> 
-                    <span class="item-name">Musique 2</span>
-                </div>
-                <div class="list-item modal-item">
-                    <input type="checkbox" class="custom-checkbox"> 
-                    <span class="item-name">Musique 3</span>
-                </div>
-                <div class="list-item modal-item">
-                    <input type="checkbox" class="custom-checkbox"> 
-                    <span class="item-name">Musique 4</span>
-                </div>
-                <div class="list-item modal-item">
-                    <input type="checkbox" class="custom-checkbox"> 
-                    <span class="item-name">Musique 5</span>
-                </div>
-                <div class="list-item modal-item">
-                    <input type="checkbox" class="custom-checkbox"> 
-                    <span class="item-name">Musique 6</span>
-                </div>
+                {% endfor %}
             </div>
             
             <button class="btn-action-blue full-width modal-btn" onclick="closeModal()">
@@ -265,6 +248,81 @@
         // Fonctions Modale
         function openModal() { modalOverlay.classList.remove('hidden'); }
         function closeModal() { modalOverlay.classList.add('hidden'); }
+
+        // --- GESTION DE L'UPLOAD DE FICHIERS (Preview & Suppression) ---
+        const audioInput = document.getElementById('audio-input');
+        const filePreviewContainer = document.getElementById('file-preview-container');
+        const btnUpload = document.getElementById('btn-upload');
+        const uploadText = document.getElementById('upload-text');
+        
+        // Objet magique pour manipuler les FileList en JavaScript
+        let selectedFilesTransfer = new DataTransfer(); 
+
+        if (audioInput) {
+            audioInput.addEventListener('change', function() {
+                // Ajoute les nouveaux fichiers sélectionnés à notre liste virtuelle
+                for (let i = 0; i < this.files.length; i++) {
+                    selectedFilesTransfer.items.add(this.files[i]);
+                }
+                // Met à jour le vrai input pour l'envoi Flask
+                this.files = selectedFilesTransfer.files;
+                updateFilePreview();
+            });
+        }
+
+        function updateFilePreview() {
+            filePreviewContainer.innerHTML = ''; // On vide l'affichage
+
+            if (selectedFilesTransfer.files.length > 0) {
+                filePreviewContainer.classList.remove('hidden');
+                btnUpload.disabled = false; // Active le bouton d'envoi
+                uploadText.innerText = "Ajouter d'autres fichiers (.mp3)";
+
+                // Génère le HTML pour chaque fichier
+                Array.from(selectedFilesTransfer.files).forEach((file, index) => {
+                    const fileItem = document.createElement('div');
+                    fileItem.className = 'file-preview-item';
+
+                    const fileName = document.createElement('span');
+                    fileName.className = 'item-name';
+                    fileName.innerText = file.name;
+
+                    const removeBtn = document.createElement('span');
+                    removeBtn.className = 'remove-file-btn';
+                    // On réutilise ton icône de poubelle
+                    removeBtn.innerHTML = `<img src="${deleteImgUrl}" alt="Delete">`;
+                    
+                    removeBtn.addEventListener('click', function(e) {
+                        e.preventDefault(); // Évite d'ouvrir l'explorateur de fichiers
+                        removeFile(index);
+                    });
+
+                    fileItem.appendChild(fileName);
+                    fileItem.appendChild(removeBtn);
+                    filePreviewContainer.appendChild(fileItem);
+                });
+            } else {
+                // S'il n'y a plus de fichiers, on cache tout
+                filePreviewContainer.classList.add('hidden');
+                btnUpload.disabled = true;
+                uploadText.innerText = "Glisser-déposer ou cliquer pour sélectionner un fichier";
+            }
+        }
+
+        function removeFile(indexToRemove) {
+            const newTransfer = new DataTransfer();
+            
+            // On recrée la liste en ignorant le fichier supprimé
+            Array.from(selectedFilesTransfer.files).forEach((file, index) => {
+                if (index !== indexToRemove) {
+                    newTransfer.items.add(file);
+                }
+            });
+            
+            selectedFilesTransfer = newTransfer;
+            audioInput.files = selectedFilesTransfer.files; // Met à jour le vrai input
+            updateFilePreview(); // Rafraîchit l'affichage
+        }
     </script>
     <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>

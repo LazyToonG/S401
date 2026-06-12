@@ -200,12 +200,123 @@ body.no-scroll {
 .btn-outline-blue:hover { background-color: #EBE3E3; }
 
 /* --- CONTENU PANNEAU DROIT (Upload) --- */
-.upload-area {
-    border: 1px solid #651b1b; border-radius: 15px; flex: 1; /* S'étire pour remplir l'espace au-dessus des boutons */
-    display: flex; align-items: center; justify-content: center; margin-bottom: 20px; background-color: rgba(255, 255, 255, 0.5);
+
+/* Le formulaire devient lui-même un conteneur flexible */
+#upload-form {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    height: 100%;
 }
-.upload-area p { color: #555; font-size: 16px; }
-.upload-actions { margin-top: auto; } /* Pousse les boutons tout en bas */
+
+.upload-area {
+    border: 1px solid #651b1b; 
+    border-radius: 15px; 
+    flex: 1; /* S'étire désormais correctement pour remplir l'espace */
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    margin-bottom: 25px; 
+    background-color: #ffffff; /* Fond bien blanc */
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.upload-area:hover {
+    background-color: #f7f3f3; /* Léger effet visuel au survol */
+}
+
+.upload-area p { 
+    color: #555; 
+    font-size: 16px; 
+    text-align: center;
+    margin: 0;
+    padding: 20px;
+}
+
+.upload-actions { 
+    margin-top: auto; 
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Centre les boutons horizontalement */
+    gap: 15px; /* Espace propre et uniforme entre les deux boutons */
+}
+
+/* Correction du lien dans le bouton Convertir */
+.btn-outline-blue a {
+    text-decoration: none;
+    color: inherit;
+    display: block; /* Rend toute la surface du bouton cliquable */
+}
+
+/* On s'assure que le bouton outline ne force plus de marges inutiles */
+.btn-outline-blue {
+    background-color: transparent; 
+    border: 1px solid #651b1b; 
+    color: #651b1b; 
+    padding: 8px 30px;
+    border-radius: 20px; 
+    font-size: 14px; 
+    font-family: inherit; 
+    cursor: pointer; 
+    margin: 0; /* Remplace l'ancien margin: 15px auto 0 auto */
+}
+
+.btn-outline-blue:hover { 
+    background-color: #EBE3E3; 
+}
+
+/* --- PREVISUALISATION DES FICHIERS UPLOAD --- */
+.file-preview-container {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 20px;
+    max-height: 150px;
+    overflow-y: auto;
+    padding-right: 5px; /* Pour la scrollbar */
+}
+
+/* Stylisation de la barre de défilement pour la liste des fichiers */
+.file-preview-container::-webkit-scrollbar { width: 6px; }
+.file-preview-container::-webkit-scrollbar-track { background: transparent; }
+.file-preview-container::-webkit-scrollbar-thumb { background: #cc5f5f; border-radius: 10px; }
+
+.file-preview-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #f9f9f9;
+    border: 1px solid #b5abab;
+    padding: 8px 15px;
+    border-radius: 8px;
+    font-size: 14px;
+    color: #333;
+}
+
+.file-preview-item .item-name {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis; /* Ajoute des "..." si le nom est trop long */
+    max-width: 280px;
+}
+
+.remove-file-btn {
+    cursor: pointer;
+    opacity: 0.6;
+    transition: 0.2s ease;
+    display: flex;
+    align-items: center;
+}
+
+.remove-file-btn:hover {
+    opacity: 1;
+}
+
+.remove-file-btn img {
+    width: 16px;
+    height: auto;
+}
 
 /* --- FENÊTRE MODALE --- */
 .modal-overlay {
