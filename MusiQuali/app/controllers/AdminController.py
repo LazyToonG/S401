@@ -101,3 +101,15 @@ def admin_search_user():
     flash(message, "success")
     return render_template("admin.html",searched_users=searched_users, t=textes, current_lang=langue_choisie, user=user, role=role)
 
+@app.route("/admin/edit_user", methods=["POST"])
+@reqrole('admin')
+def edit_user():
+    username = request.form.get("edit_username")
+    email = request.form.get("edit_email")
+
+    user_service.setUsername(username, email, username)
+    user_service.setEmail(username, email, email)
+
+    message = ts.message_langue("Utilisateur mis à jour !", "User updated!")
+    flash(message, "success")
+    return redirect(url_for("admin_dashboard", _anchor="users"))

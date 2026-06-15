@@ -132,36 +132,44 @@ def delete_playlist():
 
 @app.route("/upload", methods=["POST"])
 def upload():
-    # 1. On utilise getlist() pour récupérer la liste de tous les fichiers envoyés
+    # 1. On récupère la liste des fichiers et l'ID de la playlist (qui peut être vide "")
     fichiers = request.files.getlist("audio")
     playlist_id = request.form.get("playlist_id")
     role = session.get('role')
 
-    # 2. On vérifie s'il y a bien des fichiers (les navigateurs envoient parfois un fichier vide par défaut)
-    if not fichiers or fichiers[0].filename == '' or not playlist_id:
-        message = ts.message_langue("Fichier(s) ou playlist manquant(s)", "File(s) or playlist missing")
+    # 2. On vérifie UNIQUEMENT si les fichiers sont absents
+    if not fichiers or fichiers[0].filename == '':
+        message = ts.message_langue("Fichier(s) manquant(s)", "File(s) missing")
         flash(message, "error")
         return redirect(url_for("marketing"))
 
-    playlist = playlist_service.get_by_id(int(playlist_id))
-    if not playlist:
-        message = ts.message_langue("Playlist invalide", "Invalid playlist")
-        flash(message, "error")
-        return redirect(url_for("marketing"))
-    
-    # Verify commercial users can only upload to "message" playlist
-    if role == "commercial" and playlist.title.lower() != "message":
-        message = ts.message_langue("Accès refusé: vous ne pouvez modifier que la playlist 'message'", "Access denied: you can only edit the 'message' playlist.")
-        flash(message, "error")
-        return redirect(url_for("marketing"))
+    # 3. Si un ID de playlist a été fourni, on fait les vérifications de playlist
+    playlist = None
+    if playlist_id:  # S'exécute seulement si playlist_id n'est pas vide
+        playlist = playlist_service.get_by_id(int(playlist_id))
+        if not playlist:
+            message = ts.message_langue("Playlist invalide", "Invalid playlist")
+            flash(message, "error")
+            return redirect(url_for("marketing"))
+        
+        # Vérification des droits pour les commerciaux
+        if role == "commercial" and playlist.title.lower() != "message":
+            message = ts.message_langue("Accès refusé: vous ne pouvez modifier que la playlist 'message'", "Access denied: you can only edit the 'message' playlist.")
+            flash(message, "error")
+            return redirect(url_for("marketing"))
 
-    # 3. On boucle sur chaque fichier récupéré pour les enregistrer un par un
+    # 4. On enregistre chaque fichier dans la base de données
     for file in fichiers:
         if file and file.filename != '':
+            # On sauvegarde la musique dans la base de données générale
             music = service.save_file(file)
-            playlist_service.add_music_to_playlist(playlist.idPlaylist, music.idMusique)
+            
+            # Et on l'ajoute à la playlist SEULEMENT si une playlist était précisée
+            if playlist:
+                playlist_service.add_music_to_playlist(playlist.idPlaylist, music.idMusique)
 
-    message = ts.message_langue("Musique(s) ajoutée(s) avec succès à la playlist", "Music(s) successfully added to the playlist")
+    # 5. Message de succès
+    message = ts.message_langue("Musique(s) ajoutée(s) avec succès à la base de données", "Music(s) successfully added to the database")
     flash(message, "success")
     return redirect(url_for("marketing"))
 

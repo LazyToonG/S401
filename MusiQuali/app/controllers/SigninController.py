@@ -25,8 +25,9 @@ class SigninController:
             user_1 = request.form["username"]
             password_1 = request.form["password"]
             role_1 = request.form.get("role", "commercial")
+            mail_1 = request.form["email"]
 
-            result = us.signin(user_1, password_1, role_1)
+            result = us.signin(user_1, password_1, role_1, mail_1)
             if not result and session.get('logged'):
                 return render_template("admin.html", msg_error="creation error", t=textes, current_lang=langue_choisie, user=user, role=role)
             elif result and session.get('logged'):

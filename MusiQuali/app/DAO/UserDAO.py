@@ -36,27 +36,27 @@ class UserSqliteDAO(UserDAOInterface):
                 role VARCHAR(15) NOT NULL,
                 mail VARCHAR(50),
                 idEntreprise INT NOT NULL default 1,
-                UNIQUE(mail),
+                UNIQUE(username,mail),
                 FOREIGN KEY(idEntreprise) REFERENCES Entreprise(idEntreprise)
                 );
             """)
 
             # insert admin si table vient d'etre crée
         if not table_exists:
-            self.createUser("admin", "admin", "admin")
+            self.createUser("admin", "admin", "admin", "admin@gmail.com")
 
         conn.commit()
         conn.close()
 
         #ainsi, meme si on lance une bd vide on à un admin, mais que quand la table est crée donc que 1 fois
 
-    def createUser(self, username, password, role):
+    def createUser(self, username, password, role, mail):
         conn = self._getDbConnection()
         hashed = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
         try:
             conn.execute(
-                "INSERT INTO Users(username, password, role) VALUES (?,?,?)",
-                (username, hashed, role)
+                "INSERT INTO Users(username, password, role), mail VALUES (?,?,?,?)",
+                (username, hashed, role, mail)
             )
             conn.commit()
             return True
@@ -65,7 +65,7 @@ class UserSqliteDAO(UserDAOInterface):
         finally:
             conn.close()
 
-    def findByUsername(self, username):
+    def getByUsername(self, username):
         conn = self._getDbConnection()
         user = conn.execute(
             "SELECT * FROM Users WHERE username = ?", (username,)
@@ -87,6 +87,42 @@ class UserSqliteDAO(UserDAOInterface):
         if bcrypt.checkpw(password.encode('utf-8'), hashed):
             return User(**dict(user))
         return None
+    
+    def setUsername(self, username, mail, new_username):
+        conn = self._getDbConnection()
+        conn.execute(
+            "UPDATE Users SET username = ? WHERE username = ? AND mail = ?",
+            (new_username, username, mail)
+        )
+        conn.commit()
+        conn.close()
+
+    def setEmail(self, username, mail, new_mail):
+        conn = self._getDbConnection()
+        conn.execute(
+            "UPDATE Users SET mail = ? WHERE username = ? AND mail = ?",
+            (new_mail, username, mail)
+        )
+        conn.commit()
+        conn.close()
+
+    def setPassword(self, username, mail, new_password):
+        conn = self._getDbConnection()
+        conn.execute(
+            "UPDATE Users SET password = ? WHERE username = ? AND mail = ?",
+            (new_password, username, mail)
+        )
+        conn.commit()
+        conn.close()
+
+    def setRole(self, username, mail, new_role):
+        conn = self._getDbConnection()
+        conn.execute(
+            "UPDATE Users SET role = ? WHERE username = ? AND mail = ?",
+            (new_role, username, mail)
+        )
+        conn.commit()
+        conn.close()
 
     def findAll(self):
         conn = self._getDbConnection()

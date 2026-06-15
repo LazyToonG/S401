@@ -122,7 +122,7 @@
         <div class="modal-box">
             <h3>Composer la playlist</h3>
             <div class="modal-items-container">
-                {% for m in musics %}
+                {% for m in musiques %}
                 <div class="list-item modal-item">
                     <input type="checkbox" checked class="custom-checkbox"> 
                     <span class="item-name">{{m.nomMusique}}</span>
@@ -134,6 +134,24 @@
             <button class="btn-action-blue full-width modal-btn" onclick="closeModal()">
                 Valider la sélection
             </button>
+        </div>
+    </div>
+
+    <div id="add-playlist-modal-overlay" class="modal-overlay hidden" onclick="if(event.target === this) closeAddPlaylistModal()">
+        <div class="modal-box" style="background-color: #fff; max-width: 400px; padding: 30px; border-radius: 20px;">
+            <h3 style="color: #651b1b; margin-bottom: 25px; font-weight: normal; font-size: 22px; text-align: center;">Créer une playlist</h3>
+            
+            <form action="/playlist/create" method="POST">
+                <div style="margin-bottom: 25px;">
+                    <label style="display: block; color: #651b1b; margin-bottom: 8px; font-size: 14px;">Nom de la playlist</label>
+                    <input type="text" name="title" required placeholder="Ex: Musique d'ambiance..." style="width: 100%; padding: 10px 15px; border: 1px solid #b5abab; border-radius: 8px; font-size: 14px; outline: none; box-sizing: border-box; font-family: inherit;">
+                </div>
+                
+                <div style="display: flex; justify-content: center; gap: 15px;">
+                    <button type="submit" class="btn-action-blue" style="border: none; padding: 10px 30px; border-radius: 20px; cursor: pointer; font-family: inherit;">Créer</button>
+                    <button type="button" class="btn-outline-blue" onclick="closeAddPlaylistModal()" style="padding: 10px 30px; border-radius: 20px; cursor: pointer; font-family: inherit;">Annuler</button>
+                </div>
+            </form>
         </div>
     </div>
 
@@ -248,6 +266,19 @@
         // Fonctions Modale
         function openModal() { modalOverlay.classList.remove('hidden'); }
         function closeModal() { modalOverlay.classList.add('hidden'); }
+
+        // --- FONCTIONS MODALE (Création Playlist) ---
+        const btnAddPlaylistAction = document.getElementById('btn-add-playlist');
+        
+        if (btnAddPlaylistAction) {
+            btnAddPlaylistAction.addEventListener('click', () => {
+                document.getElementById('add-playlist-modal-overlay').classList.remove('hidden');
+            });
+        }
+
+        function closeAddPlaylistModal() {
+            document.getElementById('add-playlist-modal-overlay').classList.add('hidden');
+        }
 
         // --- GESTION DE L'UPLOAD DE FICHIERS (Preview & Suppression) ---
         const audioInput = document.getElementById('audio-input');
