@@ -42,8 +42,14 @@ def delete_playlist(playlist_id):
 @app.route("/marketing/music/<int:music_id>/delete", methods=["POST"])
 @reqrole("admin","marketing")
 def delete_music(music_id):
-    marketingService.delete_music(music_id)
+    marketingService.delete_music(music_id)# hop de l'ajax
+    #pour ne pas recharger la page a chaque del
+
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return '', 204
+
     return redirect(url_for("marketing"))
+
 
 
 #je fusionne service musique et service playliste parceque c t debile

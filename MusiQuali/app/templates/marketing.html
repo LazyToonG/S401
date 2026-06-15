@@ -96,9 +96,9 @@
     <!--in future mettre js dans son fichier dedié ca casse les couiiles la-->
 
     <script>
-        // --------------------------- BOÎTES MUSIQUE DRAGON DROP ---------------------------
+        // --------------------------- GESTION MUSIQUES---------------------------
         // Une boîte est générée par musique (cf. boucle Jinja dans #tab-all-music).
-        // Elles ne peuvent être lâchées que dans les zones désignées (.panel-view).
+        // DragonDrop dans .panel-view).
         const musicBoxes = document.querySelectorAll('.music-box');
         const dropzones = document.querySelectorAll('.panel-view');
 
@@ -129,6 +129,30 @@
                 }
             });
         });
+
+            //pour les effacer SANS RECHHARGER LA PAGE
+            document.querySelectorAll('#tab-all-music .music-box form').forEach(form => {
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const box = form.closest('.music-box');
+
+            try {
+                const res = await fetch(form.action, {
+                    method: 'POST',//RONTIDJUUuuU
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                });
+
+                if (res.ok) {
+                    box.remove();
+                } else {
+                    console.error('Erreur lors de la suppression', res.status);
+                }
+            } catch (err) {
+                console.error('Erreur réseau lors de la suppression', err);
+            }
+        });
+    });
 
 
 
