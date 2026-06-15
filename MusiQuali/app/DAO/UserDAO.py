@@ -1,9 +1,8 @@
 import sqlite3, bcrypt
 from app import app
 from app.models.User import User
-from app.DAO.UserDAOInterface import UserDAOInterface
 
-class UserSqliteDAO(UserDAOInterface):
+class UserSqliteDAO():
 
     def __init__(self):
         self.databasename = app.static_folder + '/data/database.db'
@@ -36,14 +35,14 @@ class UserSqliteDAO(UserDAOInterface):
                 role VARCHAR(15) NOT NULL,
                 mail VARCHAR(50),
                 idEntreprise INT NOT NULL default 1,
-                UNIQUE(username,mail),
+                UNIQUE(username),
                 FOREIGN KEY(idEntreprise) REFERENCES Entreprise(idEntreprise)
                 );
             """)
 
             # insert admin si table vient d'etre crée
         if not table_exists:
-            self.createUser("admin", "admin", "admin", "admin@gmail.com")
+            self.createUser("admin", "admin", "admin", "admin@musiquali.com")
 
         conn.commit()
         conn.close()
@@ -87,6 +86,48 @@ class UserSqliteDAO(UserDAOInterface):
         if bcrypt.checkpw(password.encode('utf-8'), hashed):
             return User(**dict(user))
         return None
+    
+    def recherche(self, query):
+        conn = self._getDbConnection()
+        rows = conn.execute(
+            "SELECT * FROM Users WHERE username = ? ORDER BY username ASC",
+            (f"{query}%",)
+        ).fetchall()
+        conn.close()
+        if not rows: # S'il n'y a aucune selection correspondante
+            return None
+        return [User(r["idUtilisateur"], r["username"], r["password"], r["role"], r["mail"]) for r in rows]
+    
+    def triASC(self):
+        conn = self._getDbConnection()
+        rows = conn.execute(
+            "SELECT * FROM Users ORDER BY username ASC"
+        ).fetchall()
+        conn.close()
+        if not rows: # S'il n'y a aucune selection correspondante
+            return None
+        return [User(r["idUtilisateur"], r["username"], r["password"], r["role"], r["mail"]) for r in rows]
+    
+    def triDESC(self):
+        conn = self._getDbConnection()
+        rows = conn.execute(
+            "SELECT * FROM Users ORDER BY username DESC"
+        ).fetchall()
+        conn.close()
+        if not rows: # S'il n'y a aucune selection correspondante
+            return None
+        return [User(r["idUtilisateur"], r["username"], r["password"], r["role"], r["mail"]) for r in rows]
+    
+    def triRole(self):
+        conn = self._getDbConnection()
+        rows = conn.execute(
+            "SELECT * FROM Users ORDER BY role ASC"
+        ).fetchall()
+        conn.close()
+        if not rows: # S'il n'y a aucune selection correspondante
+            return None
+        return [User(r["idUtilisateur"], r["username"], r["password"], r["role"], r["mail"]) for r in rows]
+    
     
     def setUsername(self, username, mail, new_username):
         conn = self._getDbConnection()

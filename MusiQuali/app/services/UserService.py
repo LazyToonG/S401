@@ -25,6 +25,18 @@ class UserService():
     def getUsers(self):
         return self.udao.findAll()
     
+    def recherche(self, query):
+        return self.udao.recherche(query)
+    
+    def triASC(self):
+        return self.udao.triASC()
+    
+    def triDESC(self):
+        return self.udao.triDESC()
+    
+    def triRole(self):
+        return self.udao.triRole()
+    
     def signin(self, username, password, role, mail):
         return self.udao.createUser(username, password, role, mail)
 
