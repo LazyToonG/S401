@@ -93,7 +93,7 @@
     </main>
 
 
-    <!--in future mettre js dans son fichier dedié ca casse les couiiles la-->
+    <!--in future mettre js dans son fichier dedié ca casse les couiiles la voir deux en vrai pour meilleure orga-->
 
     <script>
         // --------------------------- GESTION MUSIQUES---------------------------
@@ -184,6 +184,9 @@
         const deleteImgUrl = "{{ url_for('static', filename='img/delete.png') }}";
 
         // --------------------------- GESTION DE L'UPLOAD DE FICHIERS  ---------------------------
+
+        //---------preview
+
         const audioInput = document.getElementById('audio-input');
         const filePreviewContainer = document.getElementById('file-preview-container');
         const btnUpload = document.getElementById('btn-upload');
@@ -257,7 +260,98 @@
             audioInput.files = selectedFilesTransfer.files; // Met à jour le vrai input
             updateFilePreview(); // Rafraîchit l'affichage
         }
+
+
+
+        // --- UPLOAD EN AJAX (pas de rechargement de page) ---
+        // Récupère le formulaire d'upload et le conteneur de l'onglet musique
+        const uploadForm = document.getElementById('upload-form');
+        const allMusicTab = document.getElementById('tab-all-music');
+
+        if (uploadForm) {
+            uploadForm.addEventListener('submit', async (e) => {
+                // Empêche la soumission qui recharge la page
+                e.preventDefault();
+
+                // Récupère tous les fichiers + champs cachés du formulaire (audio, playlist_id...)
+                const formData = new FormData(uploadForm);
+
+                try {
+                    // Envoie la requête en POST via fetch, avec l'en-tête qui signale
+                    // au serveur qu'il s'agit d'une requête AJAX (pas une navigation classique)
+                    const res = await fetch(uploadForm.action, {
+                        method: 'POST',
+                        headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                        body: formData
+                    });
+
+                    // Si le serveur renvoie une erreur HTTP (4xx/5xx), on log et on arrête
+                    if (!res.ok) {
+                        console.error('Erreur lors de l\'upload', res.status);
+                        return;
+                    }
+
+                    // Le serveur renvoie du JSON contenant les musiques nouvellement créées
+                    const data = await res.json();
+
+                    // Pour chaque musique créée, on génère une boîte "music-box"
+                    // et on l'ajoute directement dans l'onglet "Toutes les musiques"
+                    (data.musiques || []).forEach(m => {
+                        const box = document.createElement('div');
+                        box.id = `music-box-${m.idMusique}`;
+                        box.className = 'music-box';
+                        box.draggable = true;
+                        box.dataset.musicId = m.idMusique;
+                        box.innerHTML = `
+                            <b>${m.nomMusique}</b><br>
+                            <small>Durée : ${m.duree}</small>
+                            <form action="/marketing/music/${m.idMusique}/delete" method="POST" style="display:inline;">
+                                <button type="submit"><img src="${deleteImgUrl}" alt="Supprimer"></button>
+                            </form>
+                        `;
+
+                        // Réattache l'écouteur de drag (comme pour les boîtes générées par Jinja)
+                        box.addEventListener('dragstart', (ev) => {
+                            ev.dataTransfer.setData('text/plain', ev.target.id);
+                        });
+
+                        // Réattache l'écouteur de suppression AJAX sur le formulaire de cette nouvelle boîte
+                        box.querySelector('form').addEventListener('submit', async (ev) => {
+                            ev.preventDefault();
+                            const f = ev.target;
+                            const b = f.closest('.music-box');
+                            try {
+                                const r = await fetch(f.action, {
+                                    method: 'POST',
+                                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                                });
+                                if (r.ok) {
+                                    b.remove(); // Retire la boîte du DOM si la suppression a réussi
+                                } else {
+                                    console.error('Erreur lors de la suppression', r.status);
+                                }
+                            } catch (err) {
+                                console.error('Erreur réseau lors de la suppression', err);
+                            }
+                        });
+
+                        // Ajoute la nouvelle boîte dans l'onglet musique
+                        allMusicTab.appendChild(box);
+                    });
+
+                    // Réinitialise le sélecteur de fichiers et la prévisualisation
+                    selectedFilesTransfer = new DataTransfer();
+                    audioInput.value = '';
+                    updateFilePreview();
+
+                } catch (err) {
+                    console.error('Erreur réseau lors de l\'upload', err);
+                }
+            });
+        }
+
+
     </script>
-    <script src="{{ url_for('static', filename='script.js') }}"></script>
+    
 </body>
 </html>
