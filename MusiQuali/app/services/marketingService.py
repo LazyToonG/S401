@@ -39,8 +39,14 @@ class MarketingService:
         return self.musicDAO.create(nomMusique, duree, idEntreprise)
 
     def delete_music(self, idMusique):
-        self.musicDAO.delete(idMusique)
-        #!!!! todo, virer le mp3 de allmusics
+        music = self.musicDAO.get_by_id(idMusique)
+        #!!!! todo, virer le mp3 de allmusics--- fait
+        if music:
+            filepath = os.path.join(app.static_folder, "AllMusics", music.nomMusique)
+            if os.path.exists(filepath):#rm mp2
+                os.remove(filepath)
+
+        self.musicDAO.delete(idMusique) #rm nobjet de la bd
 
     def delete_playlist(self, idPlaylist):
         self.playlistDAO.delete(idPlaylist)
