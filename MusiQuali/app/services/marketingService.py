@@ -40,6 +40,7 @@ class MarketingService:
 
     def delete_music(self, idMusique):
         self.musicDAO.delete(idMusique)
+        #!!!! todo, virer le mp3 de allmusics
 
     def delete_playlist(self, idPlaylist):
         self.playlistDAO.delete(idPlaylist)

@@ -49,7 +49,7 @@ def delete_music(music_id):
 #je fusionne service musique et service playliste parceque c t debile
 
 @app.route("/upload", methods=["POST"])
-@reqrole('admin')  # adapter selon le rôle requis
+@reqrole('admin', 'marketing')  # adapter selon le rôle requis
 def upload_music():
     files = request.files.getlist("audio")
 
@@ -61,3 +61,5 @@ def upload_music():
 
     flash("Musique(s) ajoutée(s) avec succès", "success")
     return redirect(url_for("marketing"))
+
+# marketingController.py
