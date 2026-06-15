@@ -52,20 +52,42 @@ class MarketingService:
         self.playlistDAO.delete(idPlaylist)
 
     
-
+    def save_music_files(self, files):
+    #Sauvegarde plusieurs fichiers mp3, retourne la liste des Music créées.
+        created = []
+        for file in files:
+            if file and file.filename:
+                created.append(self.save_music_file(file))
+        return created
 
 
     def save_music_file(self, file):
-        
-        #Sauvegarde le fichier mp3 dans app/static/AllMusics
-        #et enregistre la musique en base de données.
-        #Retourne l'objet Music créé pour la bd
-        
-        filename = secure_filename(file.filename) #!!! securefilename modifie les accents/charactères spéciaux
-        nomMusique = filename  # nomMusique = "AllMusics/{nom.mp3}" 
+    
+   # Sauvegarde le fichier mp3 dans app/static/AllMusics
+    #et enregistre la musique en base de données.
+    #Retourne l'objet Music créé.
+
+        filename = secure_filename(file.filename)
 
         folder = os.path.join(app.static_folder, "AllMusics")
         os.makedirs(folder, exist_ok=True)
+
+
+
+
+        # Vérifie les collisions de noms et ajoute (n) si nécessaire
+        base, ext = os.path.splitext(filename)
+        candidate = filename
+        counter = 1
+        while os.path.exists(os.path.join(folder, candidate)):
+            candidate = f"{base}({counter}){ext}"
+            counter += 1
+
+        
+
+
+        filename = candidate
+        nomMusique = filename
 
         filepath = os.path.join(folder, filename)
         file.save(filepath)
@@ -78,11 +100,3 @@ class MarketingService:
             duree = 0
 
         return self.musicDAO.create(nomMusique, duree)
-
-    def save_music_files(self, files):
-        """Sauvegarde plusieurs fichiers mp3, retourne la liste des Music créées."""
-        created = []
-        for file in files:
-            if file and file.filename:
-                created.append(self.save_music_file(file))
-        return created

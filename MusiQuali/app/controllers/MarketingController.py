@@ -42,9 +42,10 @@ def delete_playlist(playlist_id):
 @app.route("/marketing/music/<int:music_id>/delete", methods=["POST"])
 @reqrole("admin","marketing")
 def delete_music(music_id):
-    marketingService.delete_music(music_id)# hop de l'ajax
+    marketingService.delete_music(music_id)
+    
+    # hop de l'ajax
     #pour ne pas recharger la page a chaque del
-
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
         return '', 204
 
@@ -52,18 +53,29 @@ def delete_music(music_id):
 
 
 
-#je fusionne service musique et service playliste parceque c t debile
+#je fusionne service musique et service playliste parceque c t debile de les séparer
+#enfin peut etre pas mais ils était pas si grands que ca
 
 @app.route("/upload", methods=["POST"])
-@reqrole('admin', 'marketing')  # adapter selon le rôle requis
+@reqrole('admin')
 def upload_music():
     files = request.files.getlist("audio")
 
     if not files:
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return {"error": "Aucun fichier sélectionné"}, 400
         flash("Aucun fichier sélectionné", "error")
         return redirect(url_for("marketing"))
 
-    marketingService.save_music_files(files)
+    created = marketingService.save_music_files(files)
+
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest': # async
+        return {
+            "musiques": [
+                {"idMusique": m.idMusique, "nomMusique": m.nomMusique, "duree": m.duree}
+                for m in created
+            ]
+        }
 
     flash("Musique(s) ajoutée(s) avec succès", "success")
     return redirect(url_for("marketing"))
