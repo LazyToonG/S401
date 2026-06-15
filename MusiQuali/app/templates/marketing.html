@@ -136,7 +136,7 @@
             </button>
         </div>
     </div>
-
+<!-- ---------------------------------Javascript------------------------------- -->
     <script>
         // --- ÉLÉMENTS DU DOM ---
         const selectAllCheckbox = document.getElementById('select-all-playlists');
@@ -255,7 +255,7 @@
         const btnUpload = document.getElementById('btn-upload');
         const uploadText = document.getElementById('upload-text');
         
-        // Objet magique pour manipuler les FileList en JavaScript
+        // manip des objets en js pour eviter de devoir refresh la page autant que possible
         let selectedFilesTransfer = new DataTransfer(); 
 
         if (audioInput) {
@@ -271,11 +271,11 @@
         }
 
         function updateFilePreview() {
-            filePreviewContainer.innerHTML = ''; // On vide l'affichage
+            filePreviewContainer.innerHTML = ''; 
 
             if (selectedFilesTransfer.files.length > 0) {
                 filePreviewContainer.classList.remove('hidden');
-                btnUpload.disabled = false; // Active le bouton d'envoi
+                btnUpload.disabled = false; 
                 uploadText.innerText = "Ajouter d'autres fichiers (.mp3)";
 
                 // Génère le HTML pour chaque fichier
@@ -289,7 +289,7 @@
 
                     const removeBtn = document.createElement('span');
                     removeBtn.className = 'remove-file-btn';
-                    // On réutilise ton icône de poubelle
+                    //  icône poubelle
                     removeBtn.innerHTML = `<img src="${deleteImgUrl}" alt="Delete">`;
                     
                     removeBtn.addEventListener('click', function(e) {
