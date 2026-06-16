@@ -54,6 +54,7 @@ class LoginController:
                 session["logged"] = True
                 session["username"] = user.username
                 session["role"] = user.role
+                session["idUtilisateur"] = user.idUtilisateur
                 if user.role == "admin":
                     return redirect(url_for("admin_dashboard"))
                 elif user.role == "marketing":

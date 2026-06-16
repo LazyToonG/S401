@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash
+from flask import Blueprint, render_template, request, redirect, url_for, flash, session
 from app.controllers.LoginController import reqrole
 from app.services.TraductionService import Traductionservice
 from app.services.marketingService import MarketingService
@@ -8,7 +8,6 @@ marketingService = MarketingService()
 
 
 @app.route("/marketing")
-@reqrole("admin","marketing")
 def marketing():
     data = marketingService.get_marketing_data()
     return render_template(
@@ -16,6 +15,8 @@ def marketing():
         playlists=data["playlists"],
         musiques=data["musiques"],
         musics=data["musics"],
+        user=session['username'],
+        role=session['role']
     )
 
 
@@ -32,11 +33,24 @@ def playlist_tracks(playlist_id):
     }
 
 
+@app.route("/marketing/playlist/add", methods=["POST"])
+@reqrole('admin', 'marketing')
+def add_playlist():
+    title = request.form.get("title")
+    if not title:
+        return redirect(url_for("marketing"))
+    marketingService.add_playlist(title)
+    return redirect(url_for("marketing"))
+
 @app.route("/marketing/playlist/<int:playlist_id>/delete", methods=["POST"])
-@reqrole("admin","marketing")
+@reqrole('admin', 'marketing')
 def delete_playlist(playlist_id):
     marketingService.delete_playlist(playlist_id)
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return '', 204
     return redirect(url_for("marketing"))
+
+
 
 
 @app.route("/marketing/music/<int:music_id>/delete", methods=["POST"])

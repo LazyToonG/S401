@@ -4,6 +4,7 @@ import os
 from mutagen.mp3 import MP3
 from werkzeug.utils import secure_filename
 from app import app
+from flask import session
 
 class MarketingService:
 
@@ -34,6 +35,8 @@ class MarketingService:
             "musiques": self.get_all_musics(),
             "musics": self.get_all_musics(),
         }
+    
+
 
     def add_music(self, nomMusique, duree, idEntreprise=1):
         return self.musicDAO.create(nomMusique, duree, idEntreprise)
@@ -47,6 +50,13 @@ class MarketingService:
                 os.remove(filepath)
 
         self.musicDAO.delete(idMusique) #rm nobjet de la bd
+
+    def add_playlist(self, title):
+        from app.models.Playlist import Playlist
+        idUtilisateur = session['idUtilisateur']  # adapte la clé si nécessaire
+        playlist = Playlist(idPlaylist=None, title=title, idUtilisateur=idUtilisateur, idPlanning=1)
+        self.playlistDAO.create(playlist)
+        return playlist
 
     def delete_playlist(self, idPlaylist):
         self.playlistDAO.delete(idPlaylist)
