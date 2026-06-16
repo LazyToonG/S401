@@ -55,13 +55,13 @@ class RaspberrySqliteDAO():
 		conn.close()
 		return raspberry_instances
 	
-	def createRasp(self, nom, ip):
+	def createRasp(self, nom, ip, idEntreprise):
 		"""Rajoute un raspberry dans la base de données"""
 		conn = self._getDbConnection()
 		try:
 			conn.execute(
 				"INSERT INTO Lecteur (nomLecteur, ip, idEntreprise) VALUES (?, ?, ?)",
-				(nom, ip, 1)
+				(nom, ip, idEntreprise)
 			)
 			conn.commit()
 			return True

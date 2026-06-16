@@ -95,6 +95,7 @@ def create_user():
     password = request.form.get("password")
     role = request.form.get("role")
     mail = request.form.get("email")
+    entreprise = session["idEntreprise"]  # Récupère l'idEntreprise de la session, ou 2 par défaut
 
     if not username or not password or not role:
         flash("Tous les champs sont obligatoires", "error")
@@ -108,7 +109,7 @@ def create_user():
                 flash(message, "error")
                 return redirect(url_for("admin_dashboard"))
                 
-    user_service.signin(username, password, role, mail)
+    user_service.signin(username, password, role, mail, entreprise)
 
     message=ts.message_langue("Utilisateur créé avec succès","User successfully created")
     flash(message, "success")

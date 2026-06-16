@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from flask import render_template, request, redirect, url_for, flash
+from flask import render_template, request, redirect, url_for, flash, session
 from app import app
 from app.controllers.LoginController import reqrole
 from app.services.RaspberryService import RaspberryService
@@ -34,12 +34,14 @@ def addRaspberry():#manque trad pour les flash
     
     try:
         try:
+            print(f"Vérification de l'IP : {ip}")
             ipaddress.IPv4Address(ip)
         except ipaddress.AddressValueError:
             flash("IP invalide", "error")
             return redirect(url_for("admin_dashboard"))
         # subprocess.run(["scp", "-r", "./app/static/rasdata/*", f"{nom}@{ip}:/home/{nom}/musiquali/"])
-        subprocess.run(["sshpass", "-p", mdp, "ssh-copy-id", "-o", "StrictHostKeyChecking=no", f"{nom}@{ip}"], check=True, timeout=8)
+        # print(f"sshpass -p {mdp} ssh-copy-id -o StrictHostKeyChecking=no {nom}@{ip}")
+        subprocess.run(["sshpass", "-p", mdp, "ssh-copy-id", "-o", "StrictHostKeyChecking=no", f"{nom}@{ip}"], check=True, timeout=8, capture_output=True, text=True)
 
     except subprocess.TimeoutExpired:
         flash("Délai dépassé : le Raspberry ne répond pas", "error")
@@ -58,7 +60,7 @@ def addRaspberry():#manque trad pour les flash
             flash("Erreur SSH inconnue", "error")
         return redirect(url_for("admin_dashboard")) 
 
-    rs.ajoutR(nom, ip)#mettre mdp <----------------------
+    rs.ajoutR(nom, ip, session["idEntreprise"])#mettre mdp <----------------------
     flash("Raspberry ajouté avec succès", "success")
     return redirect(url_for("admin_dashboard"))
 

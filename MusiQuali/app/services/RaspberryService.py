@@ -13,8 +13,8 @@ class RaspberryService():
     def montreToutRasp(self):
         return self.rdao.findAll()
     
-    def ajoutR(self, identifiant, ipRasp):
-        return self.rdao.createRasp(identifiant, ipRasp)
+    def ajoutR(self, identifiant, ipRasp, idEntreprise):
+        return self.rdao.createRasp(identifiant, ipRasp, idEntreprise)
     
     # def selectRIp(self, ipRasp):
     #     r = self.rdao.findByIp(ipRasp)
