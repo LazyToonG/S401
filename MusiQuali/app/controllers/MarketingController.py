@@ -1,197 +1,97 @@
-# app/controllers/MarketingController.py
-from flask import render_template, request, redirect, url_for, session, flash
-from app import app
+from flask import Blueprint, render_template, request, redirect, url_for, flash, session
 from app.controllers.LoginController import reqrole
-from app.services.MusiqueService import MusiqueService
-from app.services.playlistServiceMarketing import PlaylistService
 from app.services.TraductionService import Traductionservice
+from app.services.marketingService import MarketingService
+from app import app
 
-ts = Traductionservice()
-service = MusiqueService()
-playlist_service = PlaylistService()
+marketingService = MarketingService()
 
-@app.route('/marketing', methods=['GET', 'POST'])
-@reqrole("admin","marketing")
+
+@app.route("/marketing")
 def marketing():
-    # Translations
-    traductions = ts.tradMarketing()
-    langue_choisie = ts.getLangue()
-    textes = traductions[langue_choisie]
-
-    # Page content
-    playlists = playlist_service.get_all()
-    sort = request.args.get("sort", "date")
-    musiques = service.get_musiques(sort)#on s'en sert pas je crois
-    user = session['username']
-    role = session['role']
-    metadata = {"title": "Espace Marketing", "pagename": "marketing"}
-
-    # Restrict commercial users to "message" playlist only
-    if role == "commercial":
-        # For commercial, filter playlists to only show "message"
-        playlists = [p for p in playlists if p.title.lower() == "message"]
-        if not playlists:
-            message=ts.message_langue("Accès refusé: la playlist 'message' n'existe pas","Access denied: the 'message' playlist does not exist.")
-            flash(message, "error")
-            return render_template("marketing.html",metadata=metadata,sort=sort,current_lang=langue_choisie,musiques=musiques,t=textes,playlists=playlists,user=user,role=role,musics=musics,selected_playlist_id=selected_playlist_id)
-
-    # Playlist selection
-    selected_playlist_id = None
-    musics = []
-
-    if request.method == "POST":
-        playlist_id_raw = request.form.get("playlist_id")
-        if playlist_id_raw:
-            # For commercial users, verify they only access "message" playlist
-            if role == "commercial":
-                selected_playlist = playlist_service.get_by_id(playlist_id_raw)
-                if not selected_playlist or selected_playlist.title.lower() != "message":
-                    message=ts.message_langue("Accès refusé: vous ne pouvez modifier que la playlist 'message'","Access denied: you can only edit the 'message' playlist.")
-                    flash(message,"error")
-                    return render_template("marketing.html",metadata=metadata,sort=sort,current_lang=langue_choisie,musiques=musiques,t=textes,playlists=playlists,user=user,role=role,musics=musics,selected_playlist_id=selected_playlist_id)
-            
-            #si une playlist est selectionnée
-            selected_playlist_id = str(playlist_id_raw)  
-            a = playlist_service.musics_in_playlist(selected_playlist_id)
-            for music in a:
-                musics.append(music.nomMusique)
-
+    data = marketingService.get_marketing_data()
     return render_template(
         "marketing.html",
-        metadata=metadata,
-        sort=sort,
-        current_lang=langue_choisie,
-        musiques=musiques,
-        t=textes,
-        playlists=playlists,
-        user=user,
-        role=role,
-        musics=musics,
-        selected_playlist_id=selected_playlist_id
+        playlists=data["playlists"],
+        musiques=data["musiques"],
+        musics=data["musics"],
+        user=session['username'],
+        role=session['role']
     )
 
 
-
-@app.route("/delete/<int:id>")
-def delete(id):
-    service.delete_musique(id)
-    return redirect(url_for("marketing"))
-
-@app.route("/search_by_title")
-def search_by_title():
-    traductions=ts.tradMarketing()
-    langue_url = request.args.get('lang')
-        
-    langue_choisie=ts.getLangue()
-    textes = traductions[langue_choisie]
-    user = session['username']
-    role = session['role']
-
-    title = request.args.get("title")
-    musiques = service.search_by_title(title)#nexiste pas
-    if musiques:
-        return render_template("marketing.html", musiques=[musiques], t=textes, current_lang=langue_choisie, user=user, role=role)
-    return redirect(url_for("marketing"))
-
-@app.route("/playlist/create", methods=["POST"])
+@app.route("/marketing/playlist/<int:playlist_id>/tracks")
 @reqrole("admin","marketing")
-def create_playlist():
+def playlist_tracks(playlist_id):
+    """Renvoie la composition d'une playlist (pour affichage dynamique)."""
+    tracks = marketingService.get_playlist_tracks(playlist_id)
+    return {
+        "tracks": [
+            {"idMusique": m.idMusique, "nomMusique": m.nomMusique, "duree": m.duree}
+            for m in tracks
+        ]
+    }
+
+
+@app.route("/marketing/playlist/add", methods=["POST"])
+@reqrole('admin', 'marketing')
+def add_playlist():
     title = request.form.get("title")
     if not title:
-        message=ts.message_langue("Title de playlist obligatoire","Required playlist title")
-        flash(message,"error")
         return redirect(url_for("marketing"))
-
-    playlist_service.create_playlist(title=title)
-    message=ts.message_langue("Playlist créée avec succès","Playlist successfully created")
-    flash(message,"success")
+    marketingService.add_playlist(title)
     return redirect(url_for("marketing"))
 
-@app.route("/playlist/delete", methods=["POST"])
+@app.route("/marketing/playlist/<int:playlist_id>/delete", methods=["POST"])
+@reqrole('admin', 'marketing')
+def delete_playlist(playlist_id):
+    marketingService.delete_playlist(playlist_id)
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return '', 204
+    return redirect(url_for("marketing"))
+
+
+
+
+@app.route("/marketing/music/<int:music_id>/delete", methods=["POST"])
 @reqrole("admin","marketing")
-def delete_playlist():
+def delete_music(music_id):
+    marketingService.delete_music(music_id)
     
-    playlist_id = request.form.get("playlist_id")  # récupère l'id du formulaire
-    if not playlist_id:
-        message=ts.message_langue("Aucune playlist sélectionnée","No playlist selected")
-        flash(message,"error")
-        return redirect(url_for('marketing'))
-    
-    a=playlist_service.musics_in_playlist(playlist_id)
-    for music in a:
-        if music is not None:
-            service.delete_musique(music.id)
-    playlist_service.delete_playlist(playlist_id)
-    # for music in a:
-    #     delSql.append(music.id)
-    # for music in a:
-    #     delMp3.append(music.path)
-    message=ts.message_langue("Playlist supprimée avec succès","Playlist successfully deleted")
-    flash(message,"success")
-    return redirect(url_for('marketing'))
+    # hop de l'ajax
+    #pour ne pas recharger la page a chaque del
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return '', 204
+
+    return redirect(url_for("marketing"))
+
+
+
+#je fusionne service musique et service playliste parceque c t debile de les séparer
+#enfin peut etre pas mais ils était pas si grands que ca
 
 @app.route("/upload", methods=["POST"])
-def upload():
-    # 1. On récupère la liste des fichiers et l'ID de la playlist (qui peut être vide "")
-    fichiers = request.files.getlist("audio")
-    playlist_id = request.form.get("playlist_id")
-    role = session.get('role')
+@reqrole('admin')
+def upload_music():
+    files = request.files.getlist("audio")
 
-    # 2. On vérifie UNIQUEMENT si les fichiers sont absents
-    if not fichiers or fichiers[0].filename == '':
-        message = ts.message_langue("Fichier(s) manquant(s)", "File(s) missing")
-        flash(message, "error")
+    if not files:
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return {"error": "Aucun fichier sélectionné"}, 400
+        flash("Aucun fichier sélectionné", "error")
         return redirect(url_for("marketing"))
 
-    # 3. Si un ID de playlist a été fourni, on fait les vérifications de playlist
-    playlist = None
-    if playlist_id:  # S'exécute seulement si playlist_id n'est pas vide
-        playlist = playlist_service.get_by_id(int(playlist_id))
-        if not playlist:
-            message = ts.message_langue("Playlist invalide", "Invalid playlist")
-            flash(message, "error")
-            return redirect(url_for("marketing"))
-        
-        # Vérification des droits pour les commerciaux
-        if role == "commercial" and playlist.title.lower() != "message":
-            message = ts.message_langue("Accès refusé: vous ne pouvez modifier que la playlist 'message'", "Access denied: you can only edit the 'message' playlist.")
-            flash(message, "error")
-            return redirect(url_for("marketing"))
+    created = marketingService.save_music_files(files)
 
-    # 4. On enregistre chaque fichier dans la base de données
-    for file in fichiers:
-        if file and file.filename != '':
-            # On sauvegarde la musique dans la base de données générale
-            music = service.save_file(file)
-            
-            # Et on l'ajoute à la playlist SEULEMENT si une playlist était précisée
-            if playlist:
-                playlist_service.add_music_to_playlist(playlist.idPlaylist, music.idMusique)
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest': # async
+        return {
+            "musiques": [
+                {"idMusique": m.idMusique, "nomMusique": m.nomMusique, "duree": m.duree}
+                for m in created
+            ]
+        }
 
-    # 5. Message de succès
-    message = ts.message_langue("Musique(s) ajoutée(s) avec succès à la base de données", "Music(s) successfully added to the database")
-    flash(message, "success")
+    flash("Musique(s) ajoutée(s) avec succès", "success")
     return redirect(url_for("marketing"))
 
-# @app.route("/musicsinplaylist", methods=["GET", "POST"])
-# def musicsinplaylist():
-
-#     t = ts.getLangue()
-
-#     playlist_id = request.values.get("playlist_id")
-
-#     playlists = playlist_service.get_all()
-
-#     musics = []
-#     if playlist_id:
-#         musics = playlist_service.musics_in_playlist(playlist_id)
-
-#     return render_template(
-#         "marketing.html",
-#         playlists=playlists,
-#         musics=musics,
-#         selected_playlist_id=playlist_id,
-#         t=t
-#     )
-
-
+# marketingController.py

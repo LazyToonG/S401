@@ -55,7 +55,7 @@ class PlaylisteDAO:
     def _str_to_ids(self, data):
         return [int(i) for i in data.split("|")] if data else []
 
-    def insert(self, playlist: Playlist):
+    def create(self, playlist: Playlist):
         conn = self._getDbConnection()
         cur = conn.cursor()
 
