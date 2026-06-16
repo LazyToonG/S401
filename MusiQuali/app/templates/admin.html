@@ -52,16 +52,16 @@
                     {% for r in raspberry %}
                     <div class="user-list-item">
                         <input type="checkbox" class="custom-round-checkbox">
-                        <span class="item-name">{{ r.nom }}</span>
-                        <span class="item-name">{{ r.ipRasp }}</span>
+                        <span class="item-name">{{ r.nomLecteur }}</span>
+                        <span class="item-name">{{ r.ip }}</span>
                         <span class="user-role-text">
-                            {% if etatPing.get(r.nom, False) %}
+                            {% if etatPing.get(r.nomLecteur, False) %}
                                 🟢 En ligne
                             {% else %}
-                                🔴 Hors ligne - {{ dernierOk.get(r.nom, "Jamais") }}
+                                🔴 Hors ligne - {{ dernierOk.get(r.nomLecteur, "Jamais") }}
                             {% endif %}
                         </span>
-                        <button type="button" onclick="openLogsModal('{{ r.nom }}')">
+                        <button type="button" onclick="openLogsModal('{{ r.nomLecteur }}')">
                             Voir logs
                         </button>
                         <div class="item-actions">
@@ -69,7 +69,7 @@
                             <!-- DELETE FIX -->
                             <form method="POST" action="/admin/action_rasp">
                                 <input type="hidden" name="action" value="delete-rasp">
-                                <input type="hidden" name="raspberry-select" value="{{ r.idRasp }}">
+                                <input type="hidden" name="raspberry-select" value="{{ r.idLecteur }}">
 
                                 <button type="submit" style="background:none;border:none;cursor:pointer;">
                                     <img src="{{ url_for('static', filename='img/delete.png') }}"
@@ -93,9 +93,6 @@
                         <h3>Les étapes pour configurer votre Raspberry :</h3>
                         <h3>Pour pouvoir connecter la Raspberry il y a 3 informations nécéssaire qui nécéssite de chercher directement dans la Raspberry :</h3>
                         <ul>
-                            <li><strong>Utilisateur :</strong> <code>whoami</code></li>
-                            <li><strong>IP :</strong> <code>ip a</code></li>
-                            <li><strong>Mot de passe :</strong> défini lors de la création du Raspberry</li>
                             <li><strong>Utilisateur :</strong> il faut taper la commande <code>whoami</code></li>
                             <li><strong>IP :</strong> il faut taper la commande <code>ip a</code> et chercher à la ligne 
                                 <br><code>inet <strong>IPSETROUVEICI</strong> brd ADRESSERESEAU scope global dynamic noprefixroute wlp4s0</code>

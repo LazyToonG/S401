@@ -30,7 +30,7 @@ def admin_dashboard():
     logs_by_rasp = {}
 
     for r in rasp:
-        logs_by_rasp[r.nom] = ls.list_log_files(r.nom)
+        logs_by_rasp[r.nomLecteur] = ls.list_log_files(r.nomLecteur)
 
     current_sort = request.args.get('sort')
 

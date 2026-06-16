@@ -51,7 +51,7 @@ class RaspberrySqliteDAO():
 			# Ici on crée l'objet Raspberry avec les colonnes de la DB
 			raspberry_instances.append(
 				Raspberry(r["idLecteur"], r["nomLecteur"], r["ip"])
-			)
+				)
 		conn.close()
 		return raspberry_instances
 	

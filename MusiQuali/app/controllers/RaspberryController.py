@@ -21,13 +21,13 @@ ts = Traductionservice()
 @app.route("/admin/add_rasp", methods=["POST"])
 @reqrole('admin')
 def addRaspberry():#manque trad pour les flash
-    ip = request.form.get("ipRasp")
-    nom = request.form.get("nom")
+    ip = request.form.get("ip")
+    nom = request.form.get("nomLecteur")
     mdp = request.form.get("mdpRasp")
     
 
     rasps = rs.montreToutRasp()
-    if any(r.ipRasp == ip for r in rasps):
+    if any(r.ip == ip for r in rasps):
         message=ts.message_langue("Raspberry déjà existant","Raspberry already exists")
         flash(message,"error")
         return redirect(url_for("admin_dashboard"))
@@ -102,28 +102,42 @@ def action_rasp():
             flash(message, "error")
         
     #tmp
-    elif button=="test":
-        if ip==None:
+    elif button == "test":
+        if envoieChangementPlanning(nom, ip):
+            flash("Envoi du planning OK", "success")
+        else:
             flash("Pas de Raspberry trouvé", "error")
-            return redirect(url_for("admin_dashboard"))
-        flash("En cours d'envoi...", "warning") #warning parceque c'est jaune, neutre
-        subprocess.run(["rsync", "-avz", "--delete", "-e", "ssh","./app/static/rasdata/",  f"{nom}@{ip}:/home/{nom}/musiquali/"])
-        flash("envoyer !", "success")
-        time.sleep(5)
-        flash("Exécution en cours...", "warning")
-        subprocess.run(["ssh", f"{nom}@{ip}", "python3", f"/home/{nom}/musiquali/RAS.py"])
-    
+
+        
     return redirect(url_for("admin_dashboard"))
 
+def envoieChangementPlanning(nom, ip):
+    if not ip:
+        return False
+    subprocess.run(["rsync", "-avz", "--delete", "-e", "ssh","./app/static/rasdata/",  f"{nom}@{ip}:/home/{nom}/musiquali/"])
+    print("fini envoie")
+    time.sleep(5)
+    print("lancement RAS.py")
+    print(f"ssh {nom}@{ip} python3 /home/{nom}/musiquali/RAS.py")
+    subprocess.Popen(["ssh", "-tt", f"{nom}@{ip}", "python3", "-u", f"/home/{nom}/musiquali/RAS.py"])
+    # subprocess.Popen([
+    #             "ssh",
+    #             f"{nom}@{ip}",
+    #             "nohup python3 -u /home/{nom}/musiquali/RAS.py > /home/{nom}/musiquali/ras.log 2>&1 &"
+    #         ])
+    print("fini RAS.py")
+
+
 last_sync = {}  # mémorise le dernier rsync par raspberry
-def recupLogs(nom, ip):
-    dest = Path(f"./app/static/raspLogs/{nom}/")
-    log = subprocess.run(["rsync", "-avz", "-e", "ssh",f"{nom}@{ip}:/home/{nom}/musiquali/logs", str(dest)])
+def recupLogs(idLecteur, nom, ip):
+    dest = Path(f"./app/static/raspLogs/{nom}/logs/")
+    dest.mkdir(parents=True, exist_ok=True)
+    log = subprocess.run(["rsync", "-avz", "-e", "ssh", f"{nom}@{ip}:/home/{nom}/musiquali/logs/", str(dest)])
     
     #met en base de données les fichiers récupérer
     for file in dest.iterdir():
         if file.is_file():
-            ls.add_log(nom, file.name)
+            ls.add_log(idLecteur, file.name)
     return log
 
 def pingRasp(ip):
@@ -133,29 +147,33 @@ def pingRasp(ip):
 dernierOk = {}
 etatPing = {}
 def pingLoop():
+    print("PING LOOP DEMARRE")
     while True:
         raspberrys = rs.montreToutRasp()
         for r in raspberrys:
-            if r.ipRasp is None or r.nom is None:
+            if r.ip is None or r.nomLecteur is None:
                 continue  # Ignorer les entrées avec des informations incomplètes
-            ok = pingRasp(r.ipRasp)
+            ok = pingRasp(r.ip)
             if ok : 
-                print(f"ok pour {r.nom} ({r.ipRasp})")
-                etatPing[r.nom] = True
-                dernierOk[r.nom] = time.strftime('%Y-%m-%d %H:%M:%S')
+                print(f"ok pour {r.nomLecteur} ({r.ip})")
+                etatPing[r.nomLecteur] = True
+                dernierOk[r.nomLecteur] = time.strftime('%Y-%m-%d %H:%M:%S')
 
                 # rajout logs(1 fois toutes les 5 minutes max)
                 now = time.time()
-                last = last_sync.get(r.nom, 0)
+                last = last_sync.get(r.nomLecteur, 0)
 
                 if now - last > 300:  # 300s = 5 min
-                    print(f"sync logs pour {r.nom}")
-                    recupLogs(r.nom, r.ipRasp)
-                    last_sync[r.nom] = now
+                    envoieChangementPlanning(r.nomLecteur, r.ip)
+
+                    print(f"sync logs pour {r.nomLecteur}")
+                    recupLogs(r.idLecteur, r.nomLecteur, r.ip)
+                    last_sync[r.nomLecteur] = now
+
             else:
-                print(f"pas ok pour {r.nom} ({r.ipRasp})")
-                etatPing[r.nom] = False
-            dernier = dernierOk.get(r.nom, "Jamais")   
+                print(f"pas ok pour {r.nomLecteur} ({r.ip})")
+                etatPing[r.nomLecteur] = False
+            dernier = dernierOk.get(r.nomLecteur, "Jamais")   
             print(f"Dernier ping : {dernier}")
         time.sleep(30) # 5min
 
@@ -165,6 +183,7 @@ threading.Thread(
     target=pingLoop,
     daemon=True
 ).start()#-> déplacement dans services/RaspberryService.py
+
 
 # @app.route("/save_export", methods=["POST"])
 # @reqrole('commercial')
