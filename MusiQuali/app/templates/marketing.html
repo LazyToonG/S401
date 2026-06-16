@@ -41,7 +41,7 @@
                 <div id="playlist-box-{{ p.idPlaylist }}" draggable="true" data-playlist-id="{{ p.idPlaylist }}" style="display:flex; justify-content:space-between; align-items:center; border:2px dashed #333; padding:10px; margin:5px 0; background-color:#e0e0e0; cursor:move;">
                     <div>
                         <b>{{ p.title }}</b><br>
-                        <small>{{ p.idUtiisateur }}</small>
+                        <small>{{ p.idUtilisateur }}</small>
                     </div>
                     <form action="{{ url_for('delete_playlist', playlist_id=p.idPlaylist) }}" method="POST" style="display:inline;">
                         <button type="submit" style="background:none; border:none; cursor:pointer;">
