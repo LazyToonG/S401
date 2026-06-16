@@ -27,7 +27,6 @@ def admin_dashboard():
     # --- TRI DES RASPBERRY ---
     current_sort_rasp = request.args.get('sort_rasp')
 
-<<<<<<< HEAD
     if current_sort_rasp == 'asc':
         rasp = rs.triASC()
     elif current_sort_rasp == 'desc':
@@ -38,13 +37,11 @@ def admin_dashboard():
         rasp = rs.montreToutRasp()
 
     # --- TRI DES UTILISATEURS ---
-=======
     logs_by_rasp = {}
 
     for r in rasp:
         logs_by_rasp[r.nomLecteur] = ls.list_log_files(r.nomLecteur)
 
->>>>>>> raspNewBd
     current_sort = request.args.get('sort')
     if current_sort == 'asc':
         users = user_service.triASC()
@@ -55,9 +52,6 @@ def admin_dashboard():
     else:
         users = user_service.getUsers()
 
-<<<<<<< HEAD
-    return render_template("admin.html", raspberry=rasp, users=users, t=textes, current_lang=langue_choisie, user=user, role=role, current_sort=current_sort, current_sort_rasp=current_sort_rasp)
-=======
     return render_template(
         "admin.html",
         raspberry=rasp,
@@ -68,10 +62,10 @@ def admin_dashboard():
         user=user,
         role=role,
         current_sort=current_sort,
+        current_sort_rasp=current_sort_rasp,
         etatPing=etatPing,
         dernierOk=dernierOk
     )
->>>>>>> raspNewBd
 
 #LOGS
 

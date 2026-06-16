@@ -80,10 +80,6 @@
                     </div>
                 </div>
 
-<<<<<<< HEAD
-                <div class="users-list" id="rasp-list-container">
-                    {% include 'partials/admin_rasp_list.html' %}
-=======
                 <div class="users-list">
                     <div class="user-list-item">
                         <span class="item-name">Nom</span>
@@ -125,18 +121,11 @@
                         </div>
                     </div>
                     {% endfor %}
->>>>>>> raspNewBd
                 </div>
             </div>
             
             <div class="admin-panel">
                 <h3 class="panel-title">{{t.titreRasp}}</h3>
-<<<<<<< HEAD
-                
-                <div class="modal-content">
-                    <span class="close" onclick="closeModal()">&times;</span>
-                    <h2>{{t.titreRasp}}</h2>
-=======
                 <!--Info pour la procédure pour mettre son Raspberry-->
                 <div class="tooltip">
                     <img src="{{ url_for('static', filename='img/aide.png') }}" alt="aide" class="aide-img">
@@ -152,7 +141,6 @@
                         </ul>
                     </span>
                 </div>
->>>>>>> raspNewBd
                     <form action="/admin/add_rasp" method="POST">
                         <div class="mb-3 mt-3">
                             <label for="nom" class="form-label">{{t.nomRasp}}</label>
@@ -543,7 +531,6 @@
             }
         });
 
-<<<<<<< HEAD
 
         // --- GESTION DU MENU DE TRI RASPBERRY ---
         function toggleSortMenuRasp() {
@@ -593,11 +580,10 @@
             })
             .catch(error => console.error("Erreur lors de la recherche dynamique :", error));
         }
-=======
+
         // setInterval(() => {
         //     window.location.reload();
         // }, 20000); // toutes les 20 secondes
->>>>>>> raspNewBd
     </script>
     <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
