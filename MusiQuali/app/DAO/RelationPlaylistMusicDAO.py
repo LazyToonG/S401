@@ -14,12 +14,13 @@ class RelationPlaylistMusicDAO:
         return conn
 
     def _init_db(self):
-        conn = self._getDbConnection()
+        conn = self._getDbConnection() #je veux que les doublon soient possibles.
         conn.execute("""
             CREATE TABLE IF NOT EXISTS PlaylistMusique(
+                INTEGER PRIMARY KEY AUTOINCREMENT, 
                 idPlaylist INTEGER NOT NULL,
                 idMusique  INTEGER NOT NULL,
-                PRIMARY KEY (idPlaylist, idMusique),
+                
                 FOREIGN KEY (idPlaylist) REFERENCES Playlist(idPlaylist),
                 FOREIGN KEY (idMusique)  REFERENCES Musique(idMusique)
             );
@@ -32,7 +33,7 @@ class RelationPlaylistMusicDAO:
         conn = self._getDbConnection()
         try:
             conn.execute(
-                "INSERT OR IGNORE INTO PlaylistMusique (idPlaylist, idMusique) VALUES (?, ?)",
+                "INSERT INTO PlaylistMusique (idPlaylist, idMusique) VALUES (?, ?)",
                 (idPlaylist, idMusique)
             )
             conn.commit()
