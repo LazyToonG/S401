@@ -61,8 +61,21 @@
                                 🔴 Hors ligne - {{ dernierOk.get(r.nom, "Jamais") }}
                             {% endif %}
                         </span>
+
                         <div class="item-actions">
-                            <span class="icon"><img src="{{ url_for('static', filename='img/delete.png') }}" alt="Delete" class="delete-img"></span>
+
+                            <!-- DELETE FIX -->
+                            <form method="POST" action="/admin/action_rasp">
+                                <input type="hidden" name="action" value="delete-rasp">
+                                <input type="hidden" name="raspberry-select" value="{{ r.idRasp }}">
+
+                                <button type="submit" style="background:none;border:none;cursor:pointer;">
+                                    <img src="{{ url_for('static', filename='img/delete.png') }}"
+                                        alt="Delete"
+                                        class="delete-img">
+                                </button>
+                            </form>
+
                         </div>
                     </div>
                     {% endfor %}
@@ -433,9 +446,9 @@
             }
         });
 
-        setInterval(() => {
-            window.location.reload();
-        }, 10000); // toutes les 10 secondes
+        // setInterval(() => {
+        //     window.location.reload();
+        // }, 20000); // toutes les 20 secondes
     </script>
     <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
