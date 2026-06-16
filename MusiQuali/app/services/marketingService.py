@@ -32,8 +32,8 @@ class MarketingService:
     def get_marketing_data(self):
         return {
             "playlists": self.get_playlists(),
-            "musiques": self.get_all_musics(),
-            "musics": self.get_all_musics(),
+            "musiques": self.get_all_musics()
+            
         }
     
 

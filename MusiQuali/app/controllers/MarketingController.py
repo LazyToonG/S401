@@ -14,7 +14,6 @@ def marketing():
         "marketing.html",
         playlists=data["playlists"],
         musiques=data["musiques"],
-        musics=data["musics"],
         user=session['username'],
         role=session['role']
     )
