@@ -105,8 +105,8 @@
     <div class="nav">
         <div class="logo"><img src="{{ url_for('static', filename='img/logo.png') }}" alt="logo"/><p>Musi-quali</p></div>
         <div class="b">
-            <div class="page" id="signin" onclick="window.location.href='{{ url_for('signin') }}';">S'inscrire</div>
-            <div class="page" id="index" onclick="window.location.href='{{ url_for('index') }}';">Retour à l'accueil</div>
+            <div class="page" id="signin" onclick="window.location.href='{{ url_for('signin') }}';">{{t.signin}}</div>
+            <div class="page" id="index" onclick="window.location.href='{{ url_for('index') }}';">{{t.retour}}</div>
         </div>
     </div>
     {% include 'messages_alert.html' %}
@@ -115,15 +115,15 @@
             <h1 class="title">{{t.login}}</h1>
             <form action="#" method="POST">
                 <div class="input-group">
-                    <label for="username">Nom d'utilisateur</label>
+                    <label for="username">{{t.user}}</label>
                     <input type="text" id="username" name="username" required>
                 </div>
                 <div class="input-group">
-                    <label for="password">Mot de passe</label>
+                    <label for="password">{{t.password}}</label>
                     <input type="password" id="password" name="password" required>
                 </div>
                 <button type="submit" class="auth-submit-btn">{{t.login}}</button>
-                <a href="{{ url_for('forgot_password') }}" style="display: flex; font-size: 12px; color: #651b1b; text-decoration: underline; margin-top: 5px; justify-content: center;">Mot de passe oublié ?</a>
+                <a href="{{ url_for('forgot_password') }}" style="display: flex; font-size: 12px; color: #651b1b; text-decoration: underline; margin-top: 5px; justify-content: center;">{{t.mdp_oubli}}</a>
             </form>
         </div>
     </div>

@@ -142,6 +142,10 @@ def edit_user():
 @app.route("/admin/api/search_users", methods=["GET"])
 @reqrole('admin')
 def api_search_users():
+    traductions = ts.tradAdmin()
+    langue_choisie = ts.getLangue()
+    textes = traductions[langue_choisie]
+
     query = request.args.get('q', '')
     
     if query == '':
@@ -150,11 +154,15 @@ def api_search_users():
         users = user_service.recherche(query)
         
     # On renvoie UNIQUEMENT le morceau de HTML (le partial)
-    return render_template("partials/admin_users_list.html", users=users)
+    return render_template("partials/admin_users_list.html", users=users, t=textes)
 
 @app.route("/admin/api/search_rasp", methods=["GET"])
 @reqrole('admin')
 def api_search_rasp():
+    traductions = ts.tradAdmin()
+    langue_choisie = ts.getLangue()
+    textes = traductions[langue_choisie]
+    
     query = request.args.get('q', '')
     
     if query == '':
@@ -162,4 +170,4 @@ def api_search_rasp():
     else:
         raspberry = rs.recherche(query)
         
-    return render_template("partials/admin_rasp_list.html", raspberry=raspberry)
+    return render_template("partials/admin_rasp_list.html", raspberry=raspberry, t=textes)

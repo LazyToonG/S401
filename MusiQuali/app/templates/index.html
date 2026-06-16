@@ -11,7 +11,7 @@
             
             <div class="logo"><img src="{{ url_for('static', filename='img/logo.png') }}" alt="logo"/><p>Musi-quali</p></div>
             <div class="b">
-                <div class="page" id="signin" style="background-color: #1fe0; border-color: white !important;" onclick="window.location.href='{{ url_for('signin') }}';">S'inscrire</div>
+                <div class="page" id="signin" style="background-color: #1fe0; border-color: white !important;" onclick="window.location.href='{{ url_for('signin') }}';">{{t.signin}}</div>
                 <div class="page" id="login" onclick="window.location.href='{{ url_for('login') }}';">{{t.login}}</div>
             </div>
         </div>

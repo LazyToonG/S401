@@ -127,7 +127,7 @@ class LoginController:
 
     @app.route('/forgot_password', methods=['GET', 'POST'])
     def forgot_password():
-        traductions = ts.tradAdmin() # Ou tes traductions adaptées
+        traductions = ts.tradPassword()
         langue_choisie = ts.getLangue()
         textes = traductions[langue_choisie]
 
@@ -159,11 +159,15 @@ class LoginController:
             flash(message, "success")
             return redirect(url_for('login'))
             
-        return render_template('forgot_password.html')
+        return render_template('forgot_password.html', t=textes)
     
 
     @app.route('/reset_password/<token>', methods=['GET', 'POST'])
     def reset_password(token):
+        traductions = ts.tradPassword()
+        langue_choisie = ts.getLangue()
+        textes = traductions[langue_choisie]
+
         s = URLSafeTimedSerializer(app.config['SECRET_KEY'])
         
         try:
@@ -188,7 +192,7 @@ class LoginController:
             
             if nouveau_mdp != conf_mdp:
                 flash("Les mots de passe ne correspondent pas.", "error")
-                return render_template('reset_password_form.html', token=token)
+                return render_template('reset_password_form.html', token=token, t=textes)
                 
             us.setPassword(user.username, nouveau_mdp)
         
@@ -197,4 +201,4 @@ class LoginController:
             
         # Si c'est un GET, on affiche un petit formulaire pour taper le nouveau mot de passe
         # (On va créer ce fichier HTML juste en dessous)
-        return render_template('reset_password_form.html', token=token)
+        return render_template('reset_password_form.html', token=token, t=textes)
