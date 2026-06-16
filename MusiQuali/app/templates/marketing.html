@@ -29,10 +29,22 @@
 
     <main class="marketing-layout">
 
-        <div class="left-panel">
+        <div class="left-panel"> <!--liste des musiques, toujours visible-->
+            {% for m in musiques %}
+            <div id="music-box-{{ m.idMusique }}" class="music-box" draggable="true" data-music-id="{{ m.idMusique }}">
+                <b>{{ m.nomMusique }}</b><br>
+                <small>Durée : {{ m.duree }}</small>
+                <form action="{{ url_for('delete_music', music_id=m.idMusique) }}" method="POST" style="display:inline;">
+                    <button type="submit" style="background:none; border:none; cursor:pointer;">
+                        <img src="{{ url_for('static', filename='img/delete.png') }}" alt="Supprimer" style="width:20px;"></button>
+                </form>
+            </div>
+            {% endfor %}
+        </div>
 
-            <div id="tab-playlists" class="panel-view active">
-                
+        <div class="right-panel">
+
+            <div id="tab-playlists" class="panel-view active"> <!--gestion des playlistes-->
                 <form action="{{ url_for('add_playlist') }}" method="POST" style="display:flex; gap:8px; margin-bottom:10px;">
                     <input type="text" name="title" placeholder="Nom de la playlist" required>
                     <button type="submit">+ add playlist</button>
@@ -45,28 +57,14 @@
                     </div>
                     <form action="{{ url_for('delete_playlist', playlist_id=p.idPlaylist) }}" method="POST" style="display:inline;">
                         <button type="submit" style="background:none; border:none; cursor:pointer;">
-                            <img src="{{ url_for('static', filename='img/delete.png') }}" style="width:20px;">
+                            <img src="{{ url_for('static', filename='img/delete.png') }}" alt="Supprimer" style="width:20px;">
                         </button>
                     </form>
                 </div>
                 {% endfor %}
             </div>
-            <div id="tab-all-music" class="panel-view"> <!--musique gauche, liste des musiques-->
-                {% for m in musiques %}
-                <div id="music-box-{{ m.idMusique }}" class="music-box" draggable="true" data-music-id="{{ m.idMusique }}">
-                    <b>{{ m.nomMusique }}</b><br>
-                    <small>Durée : {{ m.duree }}</small>
-                    <form action="{{ url_for('delete_music', music_id=m.idMusique) }}" method="POST" style="display:inline;">
-                        <button type="submit" class="btn-outline-blue"><img src="{{ url_for('static', filename='img/delete.png') }}" alt="Supprimer"></button>
-                    </form>
-                </div>
-                {% endfor %}
-            </div>
-        </div>
 
-        <div class="right-panel">
-
-            <div id="upload-panel" class="panel-view">
+            <div id="tab-all-music" class="panel-view"> <!--upload musiques-->
                 <form action="/upload" method="POST" enctype="multipart/form-data" id="upload-form">
                     <input type="hidden" name="playlist_id" id="playlist-id">
 
@@ -96,18 +94,13 @@
                 </form>
             </div>
 
-            <div id="playlist-side-panel" class="panel-view active">
-            </div>
-
         </div>
 
     </main>
 
-    <script> //in future, mets js dans fichier dédié voir 2 ca casse les couilles la
-
-
+    <script>
         // --- BOÎTES PLAYLIST & DRAG AND DROP ---
-        // Une boîte par playlist(cf. boucle Jinja dans #tab-playlists).
+        // Les playlists sont dans le panneau droit (#tab-playlists).
         const playlistBoxes = document.querySelectorAll('#tab-playlists [draggable="true"]');
         playlistBoxes.forEach(box => {
             box.addEventListener('dragstart', (e) => {
@@ -115,9 +108,8 @@
             });
         });
 
-
         // --- SUPPRESSION DE PLAYLIST EN AJAX ---
-        document.querySelectorAll('#tab-playlists .panel-view form').forEach(form => {
+        document.querySelectorAll('#tab-playlists [draggable] form').forEach(form => {
             form.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 const box = form.closest('[draggable]');
@@ -138,8 +130,7 @@
         });
 
         // --- BOÎTES MUSIQUE & DRAG AND DROP ---
-        // Une boîte par musique (cf. boucle Jinja dans #tab-all-music).
-        // Elles ne peuvent être lâchées que dans les zones désignées (.panel-view).
+        // Une boîte par musique (panneau gauche, toujours visible).
         const musicBoxes = document.querySelectorAll('.music-box');
         const dropzones = document.querySelectorAll('.panel-view');
 
@@ -171,8 +162,8 @@
             });
         });
 
-        // --- SUPPRESSION DE MUSIQUE EN AJAX ---
-        document.querySelectorAll('#tab-all-music .music-box form').forEach(form => {
+        // --- SUPPRESSION DE MUSIQUE EN AJAX (pas de rechargement de page) ---
+        document.querySelectorAll('.music-box form').forEach(form => {
             form.addEventListener('submit', async (e) => {
                 e.preventDefault();
 
@@ -195,10 +186,7 @@
             });
         });
 
-        // Onglets Playlists / Toutes les musiques
-        const uploadPanel = document.getElementById('upload-panel');
-        const playlistSidePanel = document.getElementById('playlist-side-panel');
-
+        // Onglets — bascule uniquement le panneau droit
         document.querySelectorAll('.tab-pill').forEach(btn => {
             btn.addEventListener('click', () => {
                 document.querySelectorAll('.tab-pill').forEach(b => b.classList.remove('active'));
@@ -206,15 +194,6 @@
                 btn.classList.add('active');
                 const targetId = btn.getAttribute('data-target');
                 document.getElementById(targetId).classList.add('active');
-
-                // Bascule le panneau droit en fonction de l'onglet actif
-                uploadPanel.classList.remove('active');
-                playlistSidePanel.classList.remove('active');
-                if (targetId === 'tab-all-music') {
-                    uploadPanel.classList.add('active');
-                } else {
-                    playlistSidePanel.classList.add('active');
-                }
             });
         });
 

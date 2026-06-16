@@ -39,12 +39,6 @@ class PlaylisteDAO:
 
         exists = cursor.fetchone() is not None
 
-        # if not exists:
-        #     conn.execute("""
-        #         INSERT INTO Playlist (title)
-        #         VALUES ('annonces');
-        #     """)
-
         conn.commit()
         conn.close()
         
