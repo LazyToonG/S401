@@ -1,12 +1,15 @@
-from flask import render_template, request, session, redirect, url_for, flash
+from flask import render_template, request, session, redirect, url_for, flash, jsonify
 from app import app
 from app.controllers.LoginController import reqrole
+from app.controllers.RaspberryController import etatPing, dernierOk
+from app.services.LogsService import LogsService
 
 from app.services.UserService import UserService
 from app.services.RaspberryService import RaspberryService
 from app.services.TraductionService import Traductionservice
 
 rs = RaspberryService()
+ls = LogsService()
 ts = Traductionservice()
 user_service = UserService()
 
@@ -24,6 +27,7 @@ def admin_dashboard():
     # --- TRI DES RASPBERRY ---
     current_sort_rasp = request.args.get('sort_rasp')
 
+<<<<<<< HEAD
     if current_sort_rasp == 'asc':
         rasp = rs.triASC()
     elif current_sort_rasp == 'desc':
@@ -34,6 +38,13 @@ def admin_dashboard():
         rasp = rs.montreToutRasp()
 
     # --- TRI DES UTILISATEURS ---
+=======
+    logs_by_rasp = {}
+
+    for r in rasp:
+        logs_by_rasp[r.nomLecteur] = ls.list_log_files(r.nomLecteur)
+
+>>>>>>> raspNewBd
     current_sort = request.args.get('sort')
     if current_sort == 'asc':
         users = user_service.triASC()
@@ -44,8 +55,42 @@ def admin_dashboard():
     else:
         users = user_service.getUsers()
 
+<<<<<<< HEAD
     return render_template("admin.html", raspberry=rasp, users=users, t=textes, current_lang=langue_choisie, user=user, role=role, current_sort=current_sort, current_sort_rasp=current_sort_rasp)
+=======
+    return render_template(
+        "admin.html",
+        raspberry=rasp,
+        users=users,
+        logs_by_rasp=logs_by_rasp,
+        t=textes,
+        current_lang=langue_choisie,
+        user=user,
+        role=role,
+        current_sort=current_sort,
+        etatPing=etatPing,
+        dernierOk=dernierOk
+    )
+>>>>>>> raspNewBd
 
+#LOGS
+
+@app.route("/admin/api/logs/<nom>")
+@reqrole('admin')
+def api_list_logs(nom):
+    """Retourne en JSON la liste des fichiers logs d'un lecteur."""
+    files = ls.list_log_files(nom)
+    return jsonify({"nom": nom, "files": files})
+
+
+@app.route("/admin/api/log/<nom>/<filename>")
+@reqrole('admin')
+def api_read_log(nom, filename):
+    """Retourne en JSON le contenu d'un fichier log précis."""
+    content = ls.read_log_file(nom, filename)
+    if content is None:
+        return jsonify({"error": "Fichier introuvable"}), 404
+    return jsonify({"nom": nom, "filename": filename, "content": content})
 
 # Création utilisateur
 

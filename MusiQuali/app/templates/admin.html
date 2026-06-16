@@ -80,17 +80,79 @@
                     </div>
                 </div>
 
+<<<<<<< HEAD
                 <div class="users-list" id="rasp-list-container">
                     {% include 'partials/admin_rasp_list.html' %}
+=======
+                <div class="users-list">
+                    <div class="user-list-item">
+                        <span class="item-name">Nom</span>
+                        <span class="user-role-text">Ip</span>
+                        <span class="user-role-text">Etat</span>
+                        <div class="item-actions">
+                            
+                        </div>
+                    </div>
+                    {% for r in raspberry %}
+                    <div class="user-list-item">
+                        <input type="checkbox" class="custom-round-checkbox">
+                        <span class="item-name">{{ r.nomLecteur }}</span>
+                        <span class="item-name">{{ r.ip }}</span>
+                        <span class="user-role-text">
+                            {% if etatPing.get(r.nomLecteur, False) %}
+                                🟢 En ligne
+                            {% else %}
+                                🔴 Hors ligne - {{ dernierOk.get(r.nomLecteur, "Jamais") }}
+                            {% endif %}
+                        </span>
+                        <button type="button" onclick="openLogsModal('{{ r.nomLecteur }}')">
+                            Voir logs
+                        </button>
+                        <div class="item-actions">
+
+                            <!-- DELETE FIX -->
+                            <form method="POST" action="/admin/action_rasp">
+                                <input type="hidden" name="action" value="delete-rasp">
+                                <input type="hidden" name="raspberry-select" value="{{ r.idLecteur }}">
+
+                                <button type="submit" style="background:none;border:none;cursor:pointer;">
+                                    <img src="{{ url_for('static', filename='img/delete.png') }}"
+                                        alt="Delete"
+                                        class="delete-img">
+                                </button>
+                            </form>
+
+                        </div>
+                    </div>
+                    {% endfor %}
+>>>>>>> raspNewBd
                 </div>
             </div>
             
             <div class="admin-panel">
                 <h3 class="panel-title">{{t.titreRasp}}</h3>
+<<<<<<< HEAD
                 
                 <div class="modal-content">
                     <span class="close" onclick="closeModal()">&times;</span>
                     <h2>{{t.titreRasp}}</h2>
+=======
+                <!--Info pour la procédure pour mettre son Raspberry-->
+                <div class="tooltip">
+                    <img src="{{ url_for('static', filename='img/aide.png') }}" alt="aide" class="aide-img">
+                    <span class="tooltip-text">
+                        <h3>Les étapes pour configurer votre Raspberry :</h3>
+                        <h3>Pour pouvoir connecter la Raspberry il y a 3 informations nécéssaire qui nécéssite de chercher directement dans la Raspberry :</h3>
+                        <ul>
+                            <li><strong>Utilisateur :</strong> il faut taper la commande <code>whoami</code></li>
+                            <li><strong>IP :</strong> il faut taper la commande <code>ip a</code> et chercher à la ligne 
+                                <br><code>inet <strong>IPSETROUVEICI</strong> brd ADRESSERESEAU scope global dynamic noprefixroute wlp4s0</code>
+                                <br> ou la première valeur avec la commande <code>hostname -I</code></li>
+                            <li><strong>Mot de passe :</strong> Il est défini lors de la création du Raspberry</li>
+                        </ul>
+                    </span>
+                </div>
+>>>>>>> raspNewBd
                     <form action="/admin/add_rasp" method="POST">
                         <div class="mb-3 mt-3">
                             <label for="nom" class="form-label">{{t.nomRasp}}</label>
@@ -124,6 +186,21 @@
                 </div>
 
                 </form>
+            </div>
+        </div>
+
+        <!-- MODAL LOGS UNIQUE -->
+        <div id="logs-modal" class="modal-overlay hidden" onclick="if(event.target === this) closeLogsModal()">
+            <div class="modal-box" style="background-color: #fff; color: #000;">
+                <h3 id="logs-modal-title" style="color: #000;">Logs</h3>
+
+                <div id="logs-list" class="logs-list" style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:12px;">
+                    <!-- liste des fichiers logs, remplie en JS -->
+                </div>
+
+                <pre id="logs-content" class="logs-content" style="max-height:300px; overflow:auto; background:#f5f5f5; color:#000; padding:10px; text-align:left;"></pre>
+
+                <button type="button" onclick="closeLogsModal()">Fermer</button>
             </div>
         </div>
 
@@ -367,6 +444,58 @@
         }
 
         
+        // --- FONCTIONS MODALE (Logs Raspberry) ---
+        function openLogsModal(nom) {
+            document.getElementById('logs-modal-title').innerText = 'Logs - ' + nom;
+            document.getElementById('logs-content').innerText = '';
+            document.getElementById('logs-list').innerHTML = 'Chargement...';
+            document.getElementById('logs-modal').classList.remove('hidden');
+
+            fetch('/admin/api/logs/' + encodeURIComponent(nom))
+                .then(resp => resp.json())
+                .then(data => {
+                    const listDiv = document.getElementById('logs-list');
+                    listDiv.innerHTML = '';
+
+                    if (!data.files || data.files.length === 0) {
+                        listDiv.innerHTML = '<p>Aucun fichier log.</p>';
+                        return;
+                    }
+
+                    data.files.forEach(filename => {
+                        const btn = document.createElement('button');
+                        btn.type = 'button';
+                        btn.style.display = 'block';
+                        btn.style.color = '#000';
+                        btn.style.background = '#eee';
+                        btn.innerText = filename;
+                        btn.onclick = () => loadLogContent(nom, filename);
+                        listDiv.appendChild(btn);
+                    });
+                })
+                .catch(() => {
+                    document.getElementById('logs-list').innerHTML = '<p>Erreur de chargement des logs.</p>';
+                });
+        }
+
+        function loadLogContent(nom, filename) {
+            const contentEl = document.getElementById('logs-content');
+            contentEl.innerText = 'Chargement...';
+
+            fetch('/admin/api/log/' + encodeURIComponent(nom) + '/' + encodeURIComponent(filename))
+                .then(resp => resp.json())
+                .then(data => {
+                    contentEl.innerText = data.content !== undefined ? data.content : (data.error || 'Erreur');
+                })
+                .catch(() => {
+                    contentEl.innerText = 'Erreur de chargement du fichier.';
+                });
+        }
+
+        function closeLogsModal() {
+            document.getElementById('logs-modal').classList.add('hidden');
+        }
+
         // --- FONCTIONS MODALE (Modification Utilisateur) ---
         function openUserModal(username, email) {
             document.getElementById('original_username').value = username;
@@ -414,6 +543,7 @@
             }
         });
 
+<<<<<<< HEAD
 
         // --- GESTION DU MENU DE TRI RASPBERRY ---
         function toggleSortMenuRasp() {
@@ -463,6 +593,11 @@
             })
             .catch(error => console.error("Erreur lors de la recherche dynamique :", error));
         }
+=======
+        // setInterval(() => {
+        //     window.location.reload();
+        // }, 20000); // toutes les 20 secondes
+>>>>>>> raspNewBd
     </script>
     <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
