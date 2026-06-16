@@ -7,6 +7,10 @@ from app import app
 marketingService = MarketingService()
 
 
+
+
+
+
 @app.route("/marketing")
 def marketing():
     data = marketingService.get_marketing_data()
@@ -18,6 +22,7 @@ def marketing():
         role=session['role']
     )
 
+# PLAYLISTES
 
 @app.route("/marketing/playlist/<int:playlist_id>/tracks")
 @reqrole("admin","marketing")
@@ -50,7 +55,7 @@ def delete_playlist(playlist_id):
     return redirect(url_for("marketing"))
 
 
-
+#------ Musiques
 
 @app.route("/marketing/music/<int:music_id>/delete", methods=["POST"])
 @reqrole("admin","marketing")
@@ -65,10 +70,7 @@ def delete_music(music_id):
     return redirect(url_for("marketing"))
 
 
-
-#je fusionne service musique et service playliste parceque c t debile de les séparer
-#enfin peut etre pas mais ils était pas si grands que ca
-
+ 
 @app.route("/upload", methods=["POST"])
 @reqrole('admin')
 def upload_music():
@@ -93,4 +95,49 @@ def upload_music():
     flash("Musique(s) ajoutée(s) avec succès", "success")
     return redirect(url_for("marketing"))
 
-# marketingController.py
+
+
+
+# ------ RELATION PLAYISTE-MUSIQUE ----
+
+
+@app.route("/marketing/playlist/<int:playlist_id>/add_music/<int:music_id>", methods=["POST"])
+@reqrole('admin', 'marketing')
+def add_music_to_playlist(playlist_id, music_id):
+    marketingService.add_music_to_playlist(playlist_id, music_id)
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return '', 204
+    return redirect(url_for("marketing"))
+
+
+@app.route("/marketing/playlist/<int:playlist_id>/remove_music/<int:music_id>", methods=["POST"])
+@reqrole('admin', 'marketing')
+def remove_music_from_playlist(playlist_id, music_id):
+    marketingService.remove_music_from_playlist(playlist_id, music_id)
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return '', 204
+    return redirect(url_for("marketing"))
+
+
+@app.route("/marketing/playlist/<int:playlist_id>/musiques", methods=["GET"])
+@reqrole('admin', 'marketing')
+def get_musiques_by_playlist(playlist_id):
+    musiques = marketingService.get_musiques_by_playlist(playlist_id)
+    return {
+        "musiques": [
+            {"idMusique": m.idMusique, "nomMusique": m.nomMusique, "duree": m.duree}
+            for m in musiques if m is not None
+        ]
+    }
+
+
+@app.route("/marketing/playlist/<int:playlist_id>/save_composition", methods=["POST"])
+@reqrole('admin', 'marketing')
+def save_playlist_composition(playlist_id):
+    # Attend un JSON : {"idMusiques": [1, 2, 3]}
+    data = request.get_json()
+    idMusiques = data.get("idMusiques", [])
+    marketingService.save_playlist_composition(playlist_id, idMusiques)
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return '', 204
+    return redirect(url_for("marketing"))

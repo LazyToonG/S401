@@ -5,18 +5,27 @@ from mutagen.mp3 import MP3
 from werkzeug.utils import secure_filename
 from app import app
 from flask import session
+from app.DAO.RelationPlaylistMusicDAO import RelationPlaylistMusicDAO
+
 
 class MarketingService:
 
     def __init__(self):
         self.playlistDAO = PlaylisteDAO()
         self.musicDAO = MusicDAO()
+        self.relationDAO = RelationPlaylistMusicDAO() 
+
+    def get_marketing_data(self):
+        return {
+        "playlists": self.get_playlists(),
+        "musiques": self.get_all_musics()
+            
+        }
+
+ # Playlistes       
 
     def get_playlists(self):
         return self.playlistDAO.get_all()
-
-    def get_all_musics(self):
-        return self.musicDAO.get_musiques()
 
     def get_playlist_tracks(self, playlist_id):
         """Retourne la liste des musiques associées à une playlist."""
@@ -29,28 +38,6 @@ class MarketingService:
 
         return [all_musics[i] for i in ids if i in all_musics]
 
-    def get_marketing_data(self):
-        return {
-            "playlists": self.get_playlists(),
-            "musiques": self.get_all_musics()
-            
-        }
-    
-
-
-    def add_music(self, nomMusique, duree, idEntreprise=1):
-        return self.musicDAO.create(nomMusique, duree, idEntreprise)
-
-    def delete_music(self, idMusique):
-        music = self.musicDAO.get_by_id(idMusique)
-        #!!!! todo, virer le mp3 de allmusics--- fait
-        if music:
-            filepath = os.path.join(app.static_folder, "AllMusics", music.nomMusique)
-            if os.path.exists(filepath):#rm mp2
-                os.remove(filepath)
-
-        self.musicDAO.delete(idMusique) #rm nobjet de la bd
-
     def add_playlist(self, title):
         from app.models.Playlist import Playlist
         idUtilisateur = session['idUtilisateur']  # adapte la clé si nécessaire
@@ -60,6 +47,26 @@ class MarketingService:
 
     def delete_playlist(self, idPlaylist):
         self.playlistDAO.delete(idPlaylist)
+
+
+# Musiques
+
+    
+    def get_all_musics(self):
+        return self.musicDAO.get_musiques()
+
+    def add_music(self, nomMusique, duree, idEntreprise=1):
+        return self.musicDAO.create(nomMusique, duree, idEntreprise)
+
+    def delete_music(self, idMusique):
+        music = self.musicDAO.get_by_id(idMusique)
+        #!!!! todo, virer le mp3 de allmusics--- fait
+        if music:
+            filepath = os.path.join(app.static_folder, "AllMusics", music.nomMusique)
+            if os.path.exists(filepath):#rm mp3 du dossier
+                os.remove(filepath)
+
+        self.musicDAO.delete(idMusique) #rm objet de la bd
 
     
     def save_music_files(self, files):
@@ -110,3 +117,30 @@ class MarketingService:
             duree = 0
 
         return self.musicDAO.create(nomMusique, duree)
+
+
+
+# --- RELATION PLAYLIST / MUSIQUE ---
+
+    def add_music_to_playlist(self, idPlaylist, idMusique):
+        """Ajoute une musique à une playlist."""
+        self.relationDAO.add(idPlaylist, idMusique)
+
+    def remove_music_from_playlist(self, idPlaylist, idMusique):
+        """Retire une musique d'une playlist."""
+        self.relationDAO.remove(idPlaylist, idMusique)
+
+    def get_musiques_by_playlist(self, idPlaylist):
+        """Retourne les objets Music d'une playlist."""
+        ids = self.relationDAO.get_musiques_by_playlist(idPlaylist)
+        return [self.musicDAO.get_by_id(i) for i in ids]
+
+    def save_playlist_composition(self, idPlaylist, idMusiques):
+        """
+        Sauvegarde la composition complète d'une playlist.
+        idMusiques : liste d'idMusique à associer.
+        Vide d'abord la playlist puis réinsère.
+        """
+        self.relationDAO.remove_all_from_playlist(idPlaylist)
+        for idMusique in idMusiques:
+            self.relationDAO.add(idPlaylist, idMusique)
