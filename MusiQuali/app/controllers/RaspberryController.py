@@ -113,21 +113,49 @@ def action_rasp():
         
     return redirect(url_for("admin_dashboard"))
 
+
 def envoieChangementPlanning(nom, ip):
+    """
+    Envoie le contenu de ./app/static/rasdata/ vers le Raspberry distant via rsync,
+    puis lance RAS.py sur le Raspberry via SSH.
+    Retourne True si le rsync et le lancement SSH ont réussi, False sinon.
+    """
     if not ip:
         return False
-    subprocess.run(["rsync", "-avz", "--delete", "-e", "ssh","./app/static/rasdata/",  f"{nom}@{ip}:/home/{nom}/musiquali/"])
-    print("fini envoie")
+
+    try:
+        subprocess.run(
+            ["rsync", "-avz", "--delete", "-e", "ssh", "./app/static/rasdata/", f"{nom}@{ip}:/home/{nom}/musiquali/"],
+            check=True,
+            capture_output=True,
+            text=True,
+            timeout=60,
+        )
+        print("fini envoie")
+    except subprocess.TimeoutExpired:
+        print(f"Timeout rsync pour {nom}@{ip}")
+        return False
+    except subprocess.CalledProcessError as e:
+        print(f"Erreur rsync pour {nom}@{ip} : {(e.stderr or '').strip()}")
+        return False
+
     time.sleep(5)
+
     print("lancement RAS.py")
     print(f"ssh {nom}@{ip} python3 /home/{nom}/musiquali/RAS.py")
-    subprocess.Popen(["ssh", "-tt", f"{nom}@{ip}", "python3", "-u", f"/home/{nom}/musiquali/RAS.py"])
+    try:
+        subprocess.Popen(["ssh", "-tt", f"{nom}@{ip}", "python3", "-u", f"/home/{nom}/musiquali/RAS.py"])
+    except OSError as e:
+        print(f"Erreur lancement RAS.py pour {nom}@{ip} : {e}")
+        return False
+
+    print("fini RAS.py")
+    return True
     # subprocess.Popen([
     #             "ssh",
     #             f"{nom}@{ip}",
     #             "nohup python3 -u /home/{nom}/musiquali/RAS.py > /home/{nom}/musiquali/ras.log 2>&1 &"
     #         ])
-    print("fini RAS.py")
 
 
 last_sync = {}  # mémorise le dernier rsync par raspberry
@@ -155,8 +183,14 @@ def pingLoop():
         for r in raspberrys:
             if r.ip is None or r.nomLecteur is None:
                 continue  # Ignorer les entrées avec des informations incomplètes
-            ok = pingRasp(r.ip)
-            if ok : 
+
+            try:
+                ok = pingRasp(r.ip)
+            except Exception as e:
+                print(f"Erreur ping pour {r.nomLecteur} ({r.ip}) : {e}")
+                ok = False
+
+            if ok :
                 print(f"ok pour {r.nomLecteur} ({r.ip})")
                 etatPing[r.nomLecteur] = True
                 dernierOk[r.nomLecteur] = time.strftime('%Y-%m-%d %H:%M:%S')
@@ -166,11 +200,21 @@ def pingLoop():
                 last = last_sync.get(r.nomLecteur, 0)
 
                 if now - last > 300:  # 300s = 5 min
-                    envoieChangementPlanning(r.nomLecteur, r.ip)
+                    try:
+                        sync_ok = envoieChangementPlanning(r.nomLecteur, r.ip)
+                    except Exception as e:
+                        print(f"Erreur inattendue lors de l'envoi du planning pour {r.nomLecteur} : {e}")
+                        sync_ok = False
 
-                    print(f"sync logs pour {r.nomLecteur}")
-                    recupLogs(r.idLecteur, r.nomLecteur, r.ip)
-                    last_sync[r.nomLecteur] = now
+                    if sync_ok:
+                        print(f"sync logs pour {r.nomLecteur}")
+                        try:
+                            recupLogs(r.idLecteur, r.nomLecteur, r.ip)
+                            last_sync[r.nomLecteur] = now
+                        except Exception as e:
+                            print(f"Erreur récupération logs pour {r.nomLecteur} : {e}")
+                    else:
+                        print(f"échec de l'envoi du planning pour {r.nomLecteur}, nouvelle tentative au prochain cycle")
 
             else:
                 print(f"pas ok pour {r.nomLecteur} ({r.ip})")
