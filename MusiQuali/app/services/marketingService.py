@@ -4,7 +4,7 @@ import os
 from mutagen.mp3 import MP3
 from werkzeug.utils import secure_filename
 from app import app
-from flask import session
+from flask import session, jsonify
 from app.DAO.RelationPlaylistMusicDAO import RelationPlaylistMusicDAO
 
 
@@ -131,16 +131,25 @@ class MarketingService:
         self.relationDAO.remove(idPlaylist, idMusique)
 
     def get_musiques_by_playlist(self, idPlaylist):
-        """Retourne les objets Music d'une playlist."""
+        """Retourne les musiques d'une playlist."""
         ids = self.relationDAO.get_musiques_by_playlist(idPlaylist)
-        return [self.musicDAO.get_by_id(i) for i in ids]
-
-    def save_playlist_composition(self, idPlaylist, idMusiques):
-        """
-        Sauvegarde la composition complète d'une playlist.
-        idMusiques : liste d'idMusique à associer.
-        Vide d'abord la playlist puis réinsère.
-        """
-        self.relationDAO.remove_all_from_playlist(idPlaylist)
-        for idMusique in idMusiques:
-            self.relationDAO.add(idPlaylist, idMusique)
+        musiques = []
+        for music_id in ids:
+            m = self.musicDAO.get_by_id(music_id)
+            if m is not None:  # filtre none
+                musiques.append({
+                    'idMusique': m.idMusique,
+                    'nomMusique': m.nomMusique,
+                    'duree': m.duree
+                })
+        return musiques
+    
+    # def save_playlist_composition(self, idPlaylist, idMusiques):
+    #     """
+    #     Sauvegarde la composition complète d'une playlist.
+    #     idMusiques : liste d'idMusique à associer.
+    #     Vide d'abord la playlist puis réinsère.
+    #     """
+    #     self.relationDAO.remove_all_from_playlist(idPlaylist)
+    #     for idMusique in idMusiques:
+    #         self.relationDAO.add(idPlaylist, idMusique)

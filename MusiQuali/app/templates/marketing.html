@@ -60,9 +60,10 @@
                     </div>
                     <div style="display:flex; gap:8px; align-items:center;">
 
-                        <button type="submit" onclick="toggleplaylistInfo()" style="background:none; border:none; cursor:pointer;">
-                                <img src="{{ url_for('static', filename='img/modif.png') }}" style="width:20px;">
-                            </button>
+                        <button onclick="toggleplaylistInfo('{{ p.idPlaylist }}', '{{ p.title }}')"
+                                style="background:none; border:none; cursor:pointer;">
+                            <img src="{{ url_for('static', filename='img/modif.png') }}" style="width:20px;">
+                        </button>
 
                         <form action="{{ url_for('delete_playlist', playlist_id=p.idPlaylist) }}" method="POST" style="display:inline;">
                             <button type="submit" style="background:none; border:none; cursor:pointer;">
@@ -74,9 +75,9 @@
                 {% endfor %}
 
                 <div id="playlistMusics" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; background:rgb(255,255,255); z-index:10; padding:20px; box-sizing:border-box; overflow-y:auto;">
-                    <button onclick="toggleplaylistInfo()" style="position: absolute; top: 20px; right: 20px; background: none; border: 1px solid #333; padding: 5px 10px; cursor: pointer; border-radius: 4px;">
-                        Retour</button>
-                    <p style="color: #000;">LAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA</p>
+                    <button onclick="toggleplaylistInfo()" style="position: absolute; top: 20px; right: 20px; background: none; border: 1px solid #333; padding: 5px 10px; cursor: pointer; border-radius: 4px;">Retour</button>
+                    <h3 id="playlistTitle" style="color: #000; margin-top: 40px;"></h3>
+                    <div id="playlistMusicsContent" style="color: #000;"></div>
                 </div>
 
 
@@ -152,11 +153,35 @@
 
         //gestion des musiques dans les playlistes
 
-        function toggleplaylistInfo() {
+        async function toggleplaylistInfo(playlistId, playlistTitle) {
         const div = document.getElementById('playlistMusics');
-        div.style.display = div.style.display === 'none' ? 'block' : 'none';
-        }
+        const titleEl = document.getElementById('playlistTitle');
+        const contentEl = document.getElementById('playlistMusicsContent');
 
+        if (div.style.display === 'none') {
+            div.style.display = 'block';
+            titleEl.textContent = `Musiques de: ${playlistTitle}`;
+
+            try {
+                const response = await fetch(`/marketing/playlist/${playlistId}/musiques`, {
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                });
+                const data = await response.json();
+
+                // parsage json"
+                contentEl.innerHTML = data.map(m =>
+                    `<div style="padding: 8px; border-bottom: 1px solid #eee;">
+                        <b>${m.nomMusique}</b> — Durée: ${m.duree}s
+                    </div>`
+                ).join('');
+            } catch (err) {
+                contentEl.innerHTML = '<p>Erreur de chargement</p>';
+                console.error(err);
+            }
+        } else {
+            div.style.display = 'none';
+        }
+    }
 
 
         // --- BOÎTES MUSIQUE & DRAG AND DROP ---

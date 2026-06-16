@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash, session
+from flask import Blueprint, render_template, request, redirect, url_for, flash, session, jsonify
 from app.controllers.LoginController import reqrole
 from app.services.TraductionService import Traductionservice
 from app.services.marketingService import MarketingService
@@ -122,10 +122,9 @@ def remove_music_from_playlist(playlist_id, music_id):
 @app.route("/marketing/playlist/<int:playlist_id>/musiques", methods=["GET"])
 @reqrole('admin', 'marketing')
 def get_musiques_by_playlist(playlist_id):
+    """Retourne les musiques d'une playlist en JSON."""
     musiques = marketingService.get_musiques_by_playlist(playlist_id)
-    return {
-        "musiques": [
-            {"idMusique": m.idMusique, "nomMusique": m.nomMusique, "duree": m.duree}
-            for m in musiques if m is not None
-        ]
-    }
+    return jsonify(musiques)
+
+    
+
