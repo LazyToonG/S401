@@ -54,7 +54,7 @@ class UserSqliteDAO():
         hashed = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
         try:
             conn.execute(
-                "INSERT INTO Users(username, password, role), mail VALUES (?,?,?,?)",
+                "INSERT INTO Users(username, password, role, mail) VALUES (?,?,?,?)",
                 (username, hashed, role, mail)
             )
             conn.commit()
@@ -129,38 +129,38 @@ class UserSqliteDAO():
         return [User(r["idUtilisateur"], r["username"], r["password"], r["role"], r["mail"]) for r in rows]
     
     
-    def setUsername(self, username, mail, new_username):
+    def setUsername(self, username, new_username):
         conn = self._getDbConnection()
         conn.execute(
-            "UPDATE Users SET username = ? WHERE username = ? AND mail = ?",
-            (new_username, username, mail)
+            "UPDATE Users SET username = ? WHERE username = ?",
+            (new_username, username)
         )
         conn.commit()
         conn.close()
 
-    def setEmail(self, username, mail, new_mail):
+    def setEmail(self, username, new_mail):
         conn = self._getDbConnection()
         conn.execute(
-            "UPDATE Users SET mail = ? WHERE username = ? AND mail = ?",
-            (new_mail, username, mail)
+            "UPDATE Users SET mail = ? WHERE username = ?",
+            (new_mail, username)
         )
         conn.commit()
         conn.close()
 
-    def setPassword(self, username, mail, new_password):
+    def setPassword(self, username, new_password):
         conn = self._getDbConnection()
         conn.execute(
-            "UPDATE Users SET password = ? WHERE username = ? AND mail = ?",
-            (new_password, username, mail)
+            "UPDATE Users SET password = ? WHERE username = ?",
+            (new_password, username)
         )
         conn.commit()
         conn.close()
 
-    def setRole(self, username, mail, new_role):
+    def setRole(self, username, new_role):
         conn = self._getDbConnection()
         conn.execute(
-            "UPDATE Users SET role = ? WHERE username = ? AND mail = ?",
-            (new_role, username, mail)
+            "UPDATE Users SET role = ? WHERE username = ?",
+            (new_role, username)
         )
         conn.commit()
         conn.close()

@@ -10,17 +10,17 @@ class UserService():
             res = [res]
         return res
     
-    def setUsername(self, username, mail, new_username):
-        return self.udao.setUsername(username, mail, new_username)
+    def setUsername(self, username, new_username):
+        return self.udao.setUsername(username, new_username)
     
-    def setEmail(self, username, mail, new_mail):
-        return self.udao.setRole(username, mail, new_mail)
+    def setEmail(self, username, new_mail):
+        return self.udao.setEmail(username, new_mail)
     
-    def setPassword(self, username, mail, new_password):
-        return self.udao.setRole(username, mail, new_password)
+    def setPassword(self, username, new_password):
+        return self.udao.setPassword(username, new_password)
     
-    def setRole(self, username, mail, new_role):
-        return self.udao.setRole(username, mail, new_role)
+    def setRole(self, username, new_role):
+        return self.udao.setRole(username, new_role)
 
     def getUsers(self):
         return self.udao.findAll()

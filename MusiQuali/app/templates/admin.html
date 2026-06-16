@@ -242,6 +242,10 @@
         <div class="modal-box admin-modal-box">
             <h3 class="modal-title">Modifier</h3>
             <form action="/admin/edit_user" method="POST">
+                
+                <input type="hidden" id="original_username" name="original_username">
+                <input type="hidden" id="original_email" name="original_email">
+
                 <div class="input-group">
                     <label style="color: #651b1b;">Nom d'utilisateur</label>
                     <input type="text" id="edit_username" name="edit_username" class="transparent-input">
@@ -340,6 +344,9 @@
         
         // --- FONCTIONS MODALE (Modification Utilisateur) ---
         function openUserModal(username, email) {
+            document.getElementById('original_username').value = username;
+            document.getElementById('original_email').value = email;
+            
             document.getElementById('edit_username').value = username;
             document.getElementById('edit_email').value = email;
             

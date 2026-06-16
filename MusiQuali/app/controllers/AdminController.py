@@ -104,11 +104,17 @@ def admin_search_user():
 @app.route("/admin/edit_user", methods=["POST"])
 @reqrole('admin')
 def edit_user():
-    username = request.form.get("edit_username")
-    email = request.form.get("edit_email")
+    ancien_username = request.form.get("original_username")
+    ancien_email = request.form.get("original_email")
+    nouveau_username = request.form.get("edit_username")
+    nouvel_email = request.form.get("edit_email")
 
-    user_service.setUsername(username, email, username)
-    user_service.setEmail(username, email, email)
+    if nouvel_email != ancien_email:
+        user_service.setEmail(ancien_username, nouvel_email)
+        ancien_email = nouvel_email 
+
+    if nouveau_username != ancien_username:
+        user_service.setUsername(ancien_username, nouveau_username)
 
     message = ts.message_langue("Utilisateur mis à jour !", "User updated!")
     flash(message, "success")
