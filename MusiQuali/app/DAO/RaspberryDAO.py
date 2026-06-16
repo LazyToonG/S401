@@ -128,6 +128,56 @@ class RaspberrySqliteDAO():
 			return r["nomLecteur"]
 		else:
 			return None
+		
+
+	def recherche(self, query):
+		conn = self._getDbConnection()
+        
+        # On prépare le terme de recherche une seule fois
+		search_term = f"{query}%"
+        
+        # La requête cherche dans nomLecteur OU dans ipRasp !
+		rows = conn.execute(
+            """
+            SELECT * FROM Lecteur 
+            WHERE nomLecteur LIKE ? OR ipRasp LIKE ? 
+            ORDER BY nomLecteur ASC
+            """,
+            (search_term, search_term) # On donne le terme deux fois pour les deux '?'
+        ).fetchall()
+		
+		conn.close()
+		
+		if not rows:
+			return [] # On renvoie une liste vide si rien n'est trouvé
+
+		return [Raspberry(r["idRasp"], r["nom"], r["ipRasp"]) for r in rows]
+	
+
+	def triASC(self):
+		conn = self._getDbConnection()
+		rows = conn.execute("SELECT * FROM Lecteur ORDER BY nomLecteur ASC").fetchall()
+		conn.close()
+		if not rows:
+			return []
+		return [Raspberry(r["idRasp"], r["nom"], r["ipRasp"]) for r in rows]
+	
+	def triDESC(self):
+		conn = self._getDbConn
+		rows = conn.execute("SELECT * FROM Lecteur ORDER BY nomLecteur DESC").fetchall()
+		conn.close()
+		if not rows:
+			return []
+		return [Raspberry(r["idRasp"], r["nom"], r["ipRasp"]) for r in rows]
+	
+	def triIP(self):
+		conn = self._getDbConnection()
+        # Trie par ordre alphabétique sur l'adresse IP
+		rows = conn.execute("SELECT * FROM Lecteur ORDER BY ipRasp ASC").fetchall()
+		conn.close()
+		if not rows:
+			return []
+		return [Raspberry(r["idRasp"], r["nom"], r["ipRasp"]) for r in rows]
 
 	# def VerifieShell(self):
 	# 	raspberrys = self.findAll()

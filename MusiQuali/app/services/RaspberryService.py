@@ -51,3 +51,15 @@ class RaspberryService():
         toutRasp = self.montreToutRasp()
         for chaque in toutRasp:
                 subprocess.run(["ping", "-c", "1", chaque["ipRasp"]])
+
+    def triASC(self):
+        return self.rdao.triASC()
+    
+    def triDESC(self):
+        return self.rdao.triDESC()
+    
+    def triIP(self):
+        return self.rdao.triIP()
+    
+    def recherche(self, query):
+        return self.rdao.recherche(query)

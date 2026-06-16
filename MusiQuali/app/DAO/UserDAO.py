@@ -104,12 +104,14 @@ class UserSqliteDAO():
     def recherche(self, query):
         conn = self._getDbConnection()
         rows = conn.execute(
-            "SELECT * FROM Users WHERE username = ? ORDER BY username ASC",
+            "SELECT * FROM Users WHERE username LIKE ? ORDER BY username ASC",
             (f"{query}%",)
         ).fetchall()
         conn.close()
-        if not rows: # S'il n'y a aucune selection correspondante
-            return None
+        
+        if not rows: 
+            return [] # On renvoie une liste vide au lieu de None !
+            
         return [User(r["idUtilisateur"], r["username"], r["password"], r["role"], r["mail"], r["idEntreprise"]) for r in rows]
     
     def triASC(self):

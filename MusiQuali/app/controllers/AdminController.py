@@ -14,18 +14,27 @@ user_service = UserService()
 @app.route("/admin", methods=["GET"])
 @reqrole('admin')
 def admin_dashboard():
-
-    traductions=ts.tradAdmin()
-    langue_choisie=ts.getLangue()
+    traductions = ts.tradAdmin()
+    langue_choisie = ts.getLangue()
     textes = traductions[langue_choisie]
 
-    user=session['username']
-    role=session['role']
+    user = session['username']
+    role = session['role']
 
-    rasp = rs.montreToutRasp()
+    # --- TRI DES RASPBERRY ---
+    current_sort_rasp = request.args.get('sort_rasp')
 
+    if current_sort_rasp == 'asc':
+        rasp = rs.triASC()
+    elif current_sort_rasp == 'desc':
+        rasp = rs.triDESC()
+    elif current_sort_rasp == 'ip':
+        rasp = rs.triIP()
+    else:
+        rasp = rs.montreToutRasp()
+
+    # --- TRI DES UTILISATEURS ---
     current_sort = request.args.get('sort')
-
     if current_sort == 'asc':
         users = user_service.triASC()
     elif current_sort == 'desc':
@@ -35,7 +44,7 @@ def admin_dashboard():
     else:
         users = user_service.getUsers()
 
-    return render_template("admin.html", raspberry=rasp, users=users, t=textes, current_lang=langue_choisie, user=user, role=role, current_sort=current_sort)
+    return render_template("admin.html", raspberry=rasp, users=users, t=textes, current_lang=langue_choisie, user=user, role=role, current_sort=current_sort, current_sort_rasp=current_sort_rasp)
 
 
 # Création utilisateur
@@ -128,3 +137,29 @@ def edit_user():
     message = ts.message_langue("Utilisateur mis à jour !", "User updated!")
     flash(message, "success")
     return redirect(url_for("admin_dashboard", _anchor="users"))
+
+
+@app.route("/admin/api/search_users", methods=["GET"])
+@reqrole('admin')
+def api_search_users():
+    query = request.args.get('q', '')
+    
+    if query == '':
+        users = user_service.getUsers()
+    else:
+        users = user_service.recherche(query)
+        
+    # On renvoie UNIQUEMENT le morceau de HTML (le partial)
+    return render_template("partials/admin_users_list.html", users=users)
+
+@app.route("/admin/api/search_rasp", methods=["GET"])
+@reqrole('admin')
+def api_search_rasp():
+    query = request.args.get('q', '')
+    
+    if query == '':
+        raspberry = rs.montreToutRasp()
+    else:
+        raspberry = rs.recherche(query)
+        
+    return render_template("partials/admin_rasp_list.html", raspberry=raspberry)

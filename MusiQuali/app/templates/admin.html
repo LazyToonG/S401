@@ -46,47 +46,45 @@
     <main class="content-area">
         
         <div id="raspberry" class="tab-content split-layout">            
+            
             <div class="admin-panel">
                 <div class="users-header">
                     <div class="search-sort-bar">
+                        
                         <div class="search-bar admin-search">
                             <span class="search-icon"><img src="{{ url_for('static', filename='img/loupe.png') }}" alt="Recherche" class="recherche-img"></span>
-                            <input type="text" placeholder="Recherche...">
+                            <input type="text" id="search-rasp" placeholder="Recherche..." oninput="rechercheDynamique('raspberry')">
                         </div>
-                        <div class="sort-dropdown" style="cursor: pointer; color: #651b1b;">Trier ▼</div>
+                        
+                        <div class="sort-container" style="display: flex; align-items: center; gap: 15px; position: relative;">
+                            {% if current_sort_rasp %}
+                            <a href="{{ url_for('admin_dashboard', _anchor='raspberry') }}" class="clear-filter" style="color: #CE5956; text-decoration: none; font-size: 14px;">✖ Enlever les filtres</a>
+                            {% endif %}
+                            <div style="position: relative;">
+                                <div class="sort-dropdown" onclick="toggleSortMenuRasp()" style="cursor: pointer; color: #651b1b; padding: 5px;">Trier ▼</div>
+                                
+                                <div id="sort-menu-rasp" class="hidden" style="position: absolute; right: 0; top: 120%; background: white; border: 1px solid #b5abab; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); z-index: 100; min-width: 150px; overflow: hidden;">
+                                    <a href="{{ url_for('admin_dashboard', sort_rasp='asc', _anchor='raspberry') }}" style="display: block; padding: 10px 15px; color: #333; text-decoration: none; border-bottom: 1px solid #eee;">De A-Z</a>
+                                    <a href="{{ url_for('admin_dashboard', sort_rasp='desc', _anchor='raspberry') }}" style="display: block; padding: 10px 15px; color: #333; text-decoration: none; border-bottom: 1px solid #eee;">De Z-A</a>
+                                    <a href="{{ url_for('admin_dashboard', sort_rasp='ip', _anchor='raspberry') }}" style="display: block; padding: 10px 15px; color: #333; text-decoration: none;">Par IP</a>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     
                     <div class="actions-bar">
-                        <a href="#" class="action-link hidden" id="delete-users-selection">
+                        <a href="#" class="action-link hidden" id="delete-rasp-selection">
                             Supprimer la sélection 
                             <img src="{{ url_for('static', filename='img/delete.png') }}" alt="Delete" class="delete-img">
                         </a>
                     </div>
                 </div>
 
-                <div class="users-list">
-                    <div class="user-list-item">
-                        <span class="item-name">Nom</span>
-                        <span class="user-role-text">Ip</span>
-                        <span class="user-role-text">Etat</span>
-                        <div class="item-actions">
-                            
-                        </div>
-                    </div>
-                    {% for r in raspberry %}
-                    <div class="user-list-item">
-                        <input type="checkbox" class="custom-round-checkbox">
-                        <span class="item-name">{{ r.nom }}</span>
-                        <span class="item-name">{{ r.ipRasp }}</span>
-                        <span class="user-role-text">Etat</span>
-                        <div class="item-actions">
-                            <span class="icon"><img src="{{ url_for('static', filename='img/delete.png') }}" alt="Delete" class="delete-img"></span>
-                        </div>
-                    </div>
-                    {% endfor %}
+                <div class="users-list" id="rasp-list-container">
+                    {% include 'partials/admin_rasp_list.html' %}
                 </div>
             </div>
-
+            
             <div class="admin-panel">
                 <h3 class="panel-title">Ajouter une raspberry</h3>
                 
@@ -137,9 +135,10 @@
             <div class="admin-panel">
                 <div class="users-header">
                     <div class="search-sort-bar">
+                        
                         <div class="search-bar admin-search">
                             <span class="search-icon"><img src="{{ url_for('static', filename='img/loupe.png') }}" alt="Recherche" class="recherche-img"></span>
-                            <input type="text" placeholder="Recherche...">
+                            <input type="text" id="search-users" placeholder="Recherche..." oninput="rechercheDynamique('users')">
                         </div>
                         
                         <div class="sort-container" style="display: flex; align-items: center; gap: 15px; position: relative;">
@@ -168,31 +167,8 @@
                     </div>
                 </div>
 
-
-                <div class="users-list">
-
-                    <div class="user-list-item" style="font-weight: bold; padding-bottom: 15px; border-bottom: 1px solid #eee;">
-                        <span class="col-checkbox"></span> <span class="item-name col-nom">Nom</span>
-                        <span class="user-role-text col-email">E-mail</span>
-                        <span class="user-role-text col-role">Rôle</span>
-                        <div class="item-actions"></div>
-                    </div>
-
-                    {% for u in users %}
-                    <div class="user-list-item">
-                        <input type="checkbox" class="custom-round-checkbox col-checkbox">
-                        <span class="item-name col-nom">{{u.username}}</span>
-                        
-                        <span class="user-role-text col-email" title="{{u.mail}}">{{u.mail}}</span>
-                        
-                        <span class="user-role-text col-role">{{u.role}}</span>
-                        <div class="item-actions">
-                            <span class="icon"><img src="{{ url_for('static', filename='img/modif.png') }}" alt="Edit" class="modif-img" onclick="openUserModal('{{u.username}}', '{{u.mail}}')"></span>
-                            <span class="icon"><img src="{{ url_for('static', filename='img/delete.png') }}" alt="Delete" class="delete-img" onclick="openDeleteModal('{{u.username}}')"></span>
-                        </div>
-                    </div>
-                    {% endfor %}
-                    
+                <div class="users-list" id="users-list-container">
+                    {% include 'partials/admin_users_list.html' %}
                 </div>
             </div>
 
@@ -437,6 +413,56 @@
                 }
             }
         });
+
+
+        // --- GESTION DU MENU DE TRI RASPBERRY ---
+        function toggleSortMenuRasp() {
+            document.getElementById('sort-menu-rasp').classList.toggle('hidden');
+        }
+
+        // --- MISE À JOUR : Fermeture globale des menus ---
+        window.addEventListener('click', function(e) {
+            if (!e.target.matches('.sort-dropdown')) {
+                var sortMenuUser = document.getElementById('sort-menu');
+                var sortMenuRasp = document.getElementById('sort-menu-rasp');
+                
+                if (sortMenuUser && !sortMenuUser.classList.contains('hidden')) {
+                    sortMenuUser.classList.add('hidden');
+                }
+                if (sortMenuRasp && !sortMenuRasp.classList.contains('hidden')) {
+                    sortMenuRasp.classList.add('hidden');
+                }
+            }
+        });
+
+
+        // --- RECHERCHE DYNAMIQUE (AJAX) ---
+        function rechercheDynamique(type) {
+            let inputId, containerId, url;
+
+            // On configure les cibles selon l'onglet actif
+            if (type === 'users') {
+                inputId = 'search-users';
+                containerId = 'users-list-container';
+                url = '/admin/api/search_users';
+            } 
+            else if (type === 'raspberry') {
+                inputId = 'search-rasp';
+                containerId = 'rasp-list-container';
+                url = '/admin/api/search_rasp';
+            }
+
+            const query = document.getElementById(inputId).value;
+
+            // Appel en arrière-plan à notre serveur Flask
+            fetch(`${url}?q=${encodeURIComponent(query)}`)
+            .then(response => response.text())
+            .then(html => {
+                // On remplace l'ancien tableau par le nouveau code HTML filtré
+                document.getElementById(containerId).innerHTML = html;
+            })
+            .catch(error => console.error("Erreur lors de la recherche dynamique :", error));
+        }
     </script>
     <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
