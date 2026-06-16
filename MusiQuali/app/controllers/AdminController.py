@@ -1,6 +1,7 @@
 from flask import render_template, request, session, redirect, url_for, flash
 from app import app
 from app.controllers.LoginController import reqrole
+from app.controllers.RaspberryController import etatPing, dernierOk
 
 from app.services.UserService import UserService
 from app.services.RaspberryService import RaspberryService
@@ -35,7 +36,7 @@ def admin_dashboard():
     else:
         users = user_service.getUsers()
 
-    return render_template("admin.html", raspberry=rasp, users=users, t=textes, current_lang=langue_choisie, user=user, role=role, current_sort=current_sort)
+    return render_template("admin.html", raspberry=rasp, users=users, t=textes, current_lang=langue_choisie, user=user, role=role, current_sort=current_sort, etatPing=etatPing, dernierOk=dernierOk)
 
 
 # Création utilisateur

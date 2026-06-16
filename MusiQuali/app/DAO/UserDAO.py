@@ -35,11 +35,7 @@ class UserSqliteDAO():
                 role VARCHAR(15) NOT NULL,
                 mail VARCHAR(50),
                 idEntreprise INT NOT NULL default 1,
-<<<<<<< HEAD
-                UNIQUE(mail),
-=======
                 UNIQUE(username),
->>>>>>> main
                 FOREIGN KEY(idEntreprise) REFERENCES Entreprise(idEntreprise)
                 );
             """)
@@ -58,13 +54,8 @@ class UserSqliteDAO():
         hashed = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
         try:
             conn.execute(
-<<<<<<< HEAD
-                "INSERT INTO Users(username, password, role) VALUES (?,?,?)",
-                (username, hashed, role)
-=======
                 "INSERT INTO Users(username, password, role, mail) VALUES (?,?,?,?)",
                 (username, hashed, role, mail)
->>>>>>> main
             )
             conn.commit()
             return True

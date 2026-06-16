@@ -143,10 +143,6 @@ def upload():
         flash(message, "error")
         return redirect(url_for("marketing"))
 
-<<<<<<< HEAD
-    music = service.save_file(file)
-    playlist_service.add_music_to_playlist(playlist.idPlaylist, music.idMusique)
-=======
     # 3. Si un ID de playlist a été fourni, on fait les vérifications de playlist
     playlist = None
     if playlist_id:  # S'exécute seulement si playlist_id n'est pas vide
@@ -161,7 +157,6 @@ def upload():
             message = ts.message_langue("Accès refusé: vous ne pouvez modifier que la playlist 'message'", "Access denied: you can only edit the 'message' playlist.")
             flash(message, "error")
             return redirect(url_for("marketing"))
->>>>>>> main
 
     # 4. On enregistre chaque fichier dans la base de données
     for file in fichiers:

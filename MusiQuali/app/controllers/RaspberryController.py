@@ -34,12 +34,7 @@ def addRaspberry():#manque trad pour les flash
             flash("IP invalide", "error")
             return redirect(url_for("admin_dashboard"))
         # subprocess.run(["scp", "-r", "./app/static/rasdata/*", f"{nom}@{ip}:/home/{nom}/musiquali/"])
-<<<<<<< HEAD
-        subprocess.run(["sshpass", "-p", mdp, "ssh-copy-id", "-o", "StrictHostKeyChecking=no", f"{nom}@{ip}"],shell =True, check=True, timeout=8)
-        print(subprocess.run(["sshpass", "-p", mdp, "ssh-copy-id", "-o", "StrictHostKeyChecking=no", f"{nom}@{ip}"],shell=True, check=True, timeout=8))
-=======
         subprocess.run(["sshpass", "-p", mdp, "ssh-copy-id", "-o", "StrictHostKeyChecking=no", f"{nom}@{ip}"], shell=True, check=True, timeout=8)
->>>>>>> main
 
     except subprocess.TimeoutExpired:
         flash("Délai dépassé : le Raspberry ne répond pas", "error")
@@ -122,6 +117,7 @@ def pingRasp(ip):
 
 
 dernierOk = {}
+etatPing = {}
 def pingLoop():
     while True:
         raspberrys = rs.montreToutRasp()
@@ -131,9 +127,11 @@ def pingLoop():
             ok = pingRasp(r.ipRasp)
             if ok : 
                 print(f"ok pour {r.nom} ({r.ipRasp})")
+                etatPing[r.nom] = True
                 dernierOk[r.nom] = time.strftime('%Y-%m-%d %H:%M:%S')
             else:
-                print(f"pas ok pour {r.nom} ({r.ipRasp})")   
+                print(f"pas ok pour {r.nom} ({r.ipRasp})")
+                etatPing[r.nom] = False
             dernier = dernierOk.get(r.nom, "Jamais")   
             print(f"Dernier ping : {dernier}")
         time.sleep(30) # 5min

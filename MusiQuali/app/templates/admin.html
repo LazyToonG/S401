@@ -54,7 +54,13 @@
                         <input type="checkbox" class="custom-round-checkbox">
                         <span class="item-name">{{ r.nom }}</span>
                         <span class="item-name">{{ r.ipRasp }}</span>
-                        <span class="user-role-text">Etat</span>
+                        <span class="user-role-text">
+                            {% if etatPing.get(r.nom, False) %}
+                                🟢 En ligne
+                            {% else %}
+                                🔴 Hors ligne - {{ dernierOk.get(r.nom, "Jamais") }}
+                            {% endif %}
+                        </span>
                         <div class="item-actions">
                             <span class="icon"><img src="{{ url_for('static', filename='img/delete.png') }}" alt="Delete" class="delete-img"></span>
                         </div>
@@ -412,6 +418,10 @@
                 }
             }
         });
+
+        setInterval(() => {
+            window.location.reload();
+        }, 10000); // toutes les 10 secondes
     </script>
     <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>

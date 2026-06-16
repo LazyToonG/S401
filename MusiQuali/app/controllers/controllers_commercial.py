@@ -26,21 +26,21 @@ class commercial_Controller:
         return render_template('planning.html', planning=service_schedule.get_planning(), playlists=playlists, t=textes, current_lang=langue_choisie, user=user, role=role)
 
 
-    @app.route('/admin')
-    @reqrole("admin")
-    def admin_page():
-        traductions=ts.tradAdmin()
+    # @app.route('/admin')
+    # @reqrole("admin")
+    # def admin_page():
+    #     traductions=ts.tradAdmin()
 
-        langue_choisie=ts.getLangue()
-        textes = traductions[langue_choisie]
+        # langue_choisie=ts.getLangue()
+        # textes = traductions[langue_choisie]
 
-        user=session['username']
-        role=session['role']
-        playlists = service_playlist.get_all_playlists()
+        # user=session['username']
+        # role=session['role']
+        # playlists = service_playlist.get_all_playlists()
 
-        rasp = rs.montreToutRasp()
+        # rasp = rs.montreToutRasp()
 
-        return render_template('admin.html', raspberry=rasp, playlists=playlists, t=textes, current_lang=langue_choisie, user=user, role=role)
+        # return render_template('admin.html', raspberry=rasp, playlists=playlists, t=textes, current_lang=langue_choisie, user=user, role=role)
 
     @app.route('/add_playlist', methods=['POST'])
     def add_playlist():
