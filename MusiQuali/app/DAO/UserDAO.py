@@ -96,7 +96,7 @@ class UserSqliteDAO():
         conn.close()
         if not rows: # S'il n'y a aucune selection correspondante
             return None
-        return [User(r["idUtilisateur"], r["username"], r["password"], r["role"], r["mail"]) for r in rows]
+        return [User(r["idUtilisateur"], r["username"], r["password"], r["role"], r["mail"], r["idEntreprise"]) for r in rows]
     
     def triASC(self):
         conn = self._getDbConnection()
@@ -106,7 +106,7 @@ class UserSqliteDAO():
         conn.close()
         if not rows: # S'il n'y a aucune selection correspondante
             return None
-        return [User(r["idUtilisateur"], r["username"], r["password"], r["role"], r["mail"]) for r in rows]
+        return [User(r["idUtilisateur"], r["username"], r["password"], r["role"], r["mail"], r["idEntreprise"]) for r in rows]
     
     def triDESC(self):
         conn = self._getDbConnection()
@@ -116,7 +116,7 @@ class UserSqliteDAO():
         conn.close()
         if not rows: # S'il n'y a aucune selection correspondante
             return None
-        return [User(r["idUtilisateur"], r["username"], r["password"], r["role"], r["mail"]) for r in rows]
+        return [User(r["idUtilisateur"], r["username"], r["password"], r["role"], r["mail"], r["idEntreprise"]) for r in rows]
     
     def triRole(self):
         conn = self._getDbConnection()
@@ -126,7 +126,7 @@ class UserSqliteDAO():
         conn.close()
         if not rows: # S'il n'y a aucune selection correspondante
             return None
-        return [User(r["idUtilisateur"], r["username"], r["password"], r["role"], r["mail"]) for r in rows]
+        return [User(r["idUtilisateur"], r["username"], r["password"], r["role"], r["mail"], r["idEntreprise"]) for r in rows]
     
     
     def setUsername(self, username, new_username):

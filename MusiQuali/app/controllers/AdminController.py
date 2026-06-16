@@ -24,9 +24,18 @@ def admin_dashboard():
 
     rasp = rs.montreToutRasp()
 
-    users = user_service.getUsers()
+    current_sort = request.args.get('sort')
 
-    return render_template("admin.html",  raspberry=rasp, users=users, t=textes, current_lang=langue_choisie, user=user, role=role)
+    if current_sort == 'asc':
+        users = user_service.triASC()
+    elif current_sort == 'desc':
+        users = user_service.triDESC()
+    elif current_sort == 'role':
+        users = user_service.triRole()
+    else:
+        users = user_service.getUsers()
+
+    return render_template("admin.html", raspberry=rasp, users=users, t=textes, current_lang=langue_choisie, user=user, role=role, current_sort=current_sort)
 
 
 # Création utilisateur
