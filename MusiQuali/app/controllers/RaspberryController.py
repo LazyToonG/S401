@@ -221,7 +221,7 @@ def pingLoop():
                 etatPing[r.nomLecteur] = False
             dernier = dernierOk.get(r.nomLecteur, "Jamais")   
             print(f"Dernier ping : {dernier}")
-        time.sleep(30) # 5min
+        time.sleep(30) # 300 -> 5min
 
 import threading
 
