@@ -1,0 +1,29 @@
+<header class="header">
+    <div class="logo">
+        <img src="{{ url_for('static', filename='img/logo.png') }}" alt="Logo" class="logo-img">
+        <span class="logo-text">Musiquali</span>
+    </div>
+    
+    <nav class="main-nav">
+        {% if role=="admin" or role=="commercial" %}
+        <a href="{{ url_for('voir_planning') }}" class="nav-link {% if request.path == '/commercial' %}active{% endif %}" id="commercial">Commercial</a>
+        {% endif %}
+        {% if role=="admin" %}
+        <a href="{{ url_for('admin_dashboard') }}" class="nav-link {% if request.path == '/admin' %}active{% endif %}" id="admin">Admin</a>
+        {% endif %}
+        {% if role=="admin" or role=="marketing" %}
+        <a href="{{ url_for('marketing') }}" class="nav-link {% if request.path == '/marketing' %}active{% endif %}" id="marketing">Marketing</a>
+        {% endif %}
+    </nav>
+
+    <div class="user-profile" id="userProfileBtn">
+        <span class="user-role">{{user}}</span>
+        <div class="user-icon">
+            <img src="{{ url_for('static', filename='img/logo_profil.png') }}" alt="Logo" class="logo-img" style="height: auto; width: 40px;">
+        </div>
+
+        {% include 'profile_menu.html' %}
+    </div>
+</header>
+{% include 'messages_alert.html' %}
+<script src="{{ url_for('static', filename='message_alert.js') }}"></script>

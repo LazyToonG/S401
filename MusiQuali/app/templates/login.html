@@ -1,29 +1,134 @@
 <html>
-  <head>
-	<title>Login to Musiquali</title>
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
-	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
-  </head>
-  <body>
+    <head>
+        <meta charset="utf-8">
+        <title>Site</title>
+        <link rel="icon" href="../static/logo.png" type="image/png">
+        <link href="{{ url_for('static', filename='style.css') }}" rel="stylesheet">
+        <link href="{{ url_for('static', filename='style_accueil.css') }}" rel="stylesheet">
+        <link href="{{ url_for('static', filename='message_alert.css') }}" rel="stylesheet">
 
-	<div class="container">
-	  <h1>Login Required</h1>
-	  <br>
-	  <form action="/login" method="post">
-		  <input type="text" placeholder="Username" name="username" >
-		   <input type="password" placeholder="Password" name="password">
-		<input class="btn btn-default" type="submit" value="Login">
-	  </form>
-	  {% if msg_error %}
-		<p class="text-danger"> {{ msg_error }}
-	  {% endif %}
+        <style>
 
-	  <form>
-		<button class="btn btn-secondary" type="submit" formaction="/signin" formmethod="get">Sign in</button>
-	  </form>
-	</div>
+        
+        /* Conteneur global qui prend tout l'espace sous la navbar */
+        .main-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: calc(100vh - 93px); 
+            width: 100%;
+            box-sizing: border-box;
+            padding: 20px;
+        }
 
-	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
-  </body>
+        /* Conteneur principal de la carte */
+        .signup-card {
+            background-color: #ffffff;
+            color: #5d1b1b;
+            width: 100%;
+            max-width: 600px;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.193);
+            position: relative;
+            z-index: 1; 
+            box-sizing: border-box;
+        }
+
+        /* Titre */
+        .title {
+            font-size: 28px;
+            font-weight: normal;
+            margin-bottom: 30px;
+        }
+
+        /* Groupes de champs de saisie */
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        .input-group input[type="text"],
+        .input-group input[type="password"] {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #5d1b1b5a;
+            border-radius: 6px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.3s ease;
+        }
+
+        .input-group input:focus {
+            border-color: #5d1b1b;
+        }
+
+
+
+        /* Bouton d'inscription final */
+        .submit-btn {
+            width: 100%;
+            background-color: #CE5956;
+            color: #5d1b1b;
+            border: none;
+            padding: 14px;
+            font-size: 16px;
+            font-family: inherit;
+            border-radius: 25px; /* Bords plus arrondis comme sur l'image */
+            cursor: pointer;
+            margin-top: 0px;
+            margin-bottom: 5px;
+            transition: background-color 0.3s ease;
+        }
+
+        .submit-btn:hover {
+            background-color: #91191d;
+            color: white;
+        }
+
+        .page#signin {
+            background-color: #a71e23;
+            border-color: #a71e23;
+        }
+        
+        .page:hover{
+            background-color: #91191d !important;
+        }
+    </style>
+    </head>
+    <body>
+    <div class="nav">
+        <div class="logo"><img src="{{ url_for('static', filename='img/logo.png') }}" alt="logo"/><p>Musi-quali</p></div>
+        <div class="b">
+            <div class="page" id="signin" onclick="window.location.href='{{ url_for('signin') }}';">S'inscrire</div>
+            <div class="page" id="index" onclick="window.location.href='{{ url_for('index') }}';">Retour à l'accueil</div>
+        </div>
+    </div>
+    {% include 'messages_alert.html' %}
+    <div class="auth-container">
+        <div class="auth-card">
+            <h1 class="title">{{t.login}}</h1>
+            <form action="#" method="POST">
+                <div class="input-group">
+                    <label for="username">Nom d'utilisateur</label>
+                    <input type="text" id="username" name="username" required>
+                </div>
+                <div class="input-group">
+                    <label for="password">Mot de passe</label>
+                    <input type="password" id="password" name="password" required>
+                </div>
+                <button type="submit" class="auth-submit-btn">{{t.login}}</button>
+            </form>
+        </div>
+    </div>
+
+        <script src="{{ url_for('static', filename='script.js') }}"></script>
+        <script src="{{ url_for('static', filename='message_alert.js') }}"></script>
+
+    </body>
 </html>

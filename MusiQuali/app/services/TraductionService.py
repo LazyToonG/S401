@@ -32,7 +32,7 @@ class Traductionservice():
                 'equipe_liste': "Notre équipe est composée de :"
             },
             'en': {
-                "login" : "Login",
+                "login" : "Log in",
                 'titre': "Welcome to Musi-quali, your sound broadcasting platform",
                 'desc_1': "Musi-quali is a platform that allows you to broadcast music and audio messages in your establishment. You can prepare a schedule of music and advertising messages in advance directly online, make announcements whenever you want, and our platform even works in the event of a connection failure.",
                 'desc_2': "Need a sound atmosphere in your store? Use Musi-quali!",
@@ -44,6 +44,8 @@ class Traductionservice():
     def tradLogin(self):
         return {
             "fr" : {
+                "signin" : "S'inscrire",
+                "login" : "Se connecter",
                 "user" : "Utilisateur",
                 "logout" : "Déconnexion",
                 "index" : "Accueil",
@@ -59,6 +61,8 @@ class Traductionservice():
             },
 
             "en" : {
+                "signin" : "Sign in",
+                "login" : "Log in",
                 "user" : "User",
                 "logout" : "Logout",
                 "index" : "Home",
@@ -71,6 +75,17 @@ class Traductionservice():
                 "marketing" : "Marketing",
                 "admin" : "Administrator",
                 "error" : "Invalid Credentials"
+            }
+        }
+    
+    def tradSignin(self):
+        return {
+            "fr" : {
+                "login" : "Se connecter"
+            },
+
+            "en" : {
+                "login" : "Log in"
             }
         }
     

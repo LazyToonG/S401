@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Musiquali - Envoyer une requête</title>
+    <link href="{{ url_for('static', filename='style.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='style_requete.css') }}" rel="stylesheet">
+</head>
+<body>
+
+    {% include 'nav_bar.html' %}
+
+    <main class="main-container">
+        
+        <div class="request-card">
+            <h1 class="title">Envoyer une requête à<br>l'administrateur</h1>
+            
+            <form action="#" method="POST">
+                
+                <div class="input-group">
+                    <label class="group-label">Type de requête</label>
+                    <div class="radio-options">
+                        <label class="radio-label">
+                            <input type="radio" name="request_type" value="role" required>
+                            <span class="radio-btn">Changement de rôle</span>
+                        </label>
+                        <label class="radio-label">
+                            <input type="radio" name="request_type" value="email">
+                            <span class="radio-btn">Modification de l'e-mail</span>
+                        </label>
+                        <label class="radio-label">
+                            <input type="radio" name="request_type" value="other">
+                            <span class="radio-btn">Autre</span>
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="input-group">
+                    <label class="group-label" for="description">Description</label>
+                    <textarea id="description" name="description" rows="4" required></textarea>
+                </div>
+                
+                <button type="submit" class="submit-btn">Envoyer</button>
+                
+                <p class="legal-text">
+                    Le nom de votre profil Canva sera partagé. Ne n'indiquez jamais de mots de passe.<br>
+                    <a href="#">Découvrez comment nous traitons vos données</a>
+                </p>
+                
+            </form>
+        </div>
+
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const profileBtn = document.getElementById('userProfileBtn');
+            const profileMenu = document.getElementById('profileMenu');
+
+            if (profileBtn && profileMenu) {
+                profileBtn.addEventListener('click', (event) => {
+                    profileMenu.classList.toggle('show');
+                    event.stopPropagation(); 
+                });
+
+                document.addEventListener('click', (event) => {
+                    if (!profileBtn.contains(event.target)) {
+                        profileMenu.classList.remove('show');
+                    }
+                });
+            }
+        });
+    </script>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

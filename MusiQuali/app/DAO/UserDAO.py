@@ -1,9 +1,8 @@
 import sqlite3, bcrypt
 from app import app
 from app.models.User import User
-from app.DAO.UserDAOInterface import UserDAOInterface
 
-class UserSqliteDAO(UserDAOInterface):
+class UserSqliteDAO():
 
     def __init__(self):
         self.databasename = app.static_folder + '/data/database.db'
@@ -36,27 +35,36 @@ class UserSqliteDAO(UserDAOInterface):
                 role VARCHAR(15) NOT NULL,
                 mail VARCHAR(50),
                 idEntreprise INT NOT NULL default 1,
+<<<<<<< HEAD
                 UNIQUE(mail),
+=======
+                UNIQUE(username),
+>>>>>>> main
                 FOREIGN KEY(idEntreprise) REFERENCES Entreprise(idEntreprise)
                 );
             """)
 
             # insert admin si table vient d'etre crée
         if not table_exists:
-            self.createUser("admin", "admin", "admin")
+            self.createUser("admin", "admin", "admin", "admin@musiquali.com")
 
         conn.commit()
         conn.close()
 
         #ainsi, meme si on lance une bd vide on à un admin, mais que quand la table est crée donc que 1 fois
 
-    def createUser(self, username, password, role):
+    def createUser(self, username, password, role, mail):
         conn = self._getDbConnection()
         hashed = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
         try:
             conn.execute(
+<<<<<<< HEAD
                 "INSERT INTO Users(username, password, role) VALUES (?,?,?)",
                 (username, hashed, role)
+=======
+                "INSERT INTO Users(username, password, role, mail) VALUES (?,?,?,?)",
+                (username, hashed, role, mail)
+>>>>>>> main
             )
             conn.commit()
             return True
@@ -65,7 +73,7 @@ class UserSqliteDAO(UserDAOInterface):
         finally:
             conn.close()
 
-    def findByUsername(self, username):
+    def getByUsername(self, username):
         conn = self._getDbConnection()
         user = conn.execute(
             "SELECT * FROM Users WHERE username = ?", (username,)
@@ -87,6 +95,84 @@ class UserSqliteDAO(UserDAOInterface):
         if bcrypt.checkpw(password.encode('utf-8'), hashed):
             return User(**dict(user))
         return None
+    
+    def recherche(self, query):
+        conn = self._getDbConnection()
+        rows = conn.execute(
+            "SELECT * FROM Users WHERE username = ? ORDER BY username ASC",
+            (f"{query}%",)
+        ).fetchall()
+        conn.close()
+        if not rows: # S'il n'y a aucune selection correspondante
+            return None
+        return [User(r["idUtilisateur"], r["username"], r["password"], r["role"], r["mail"], r["idEntreprise"]) for r in rows]
+    
+    def triASC(self):
+        conn = self._getDbConnection()
+        rows = conn.execute(
+            "SELECT * FROM Users ORDER BY username ASC"
+        ).fetchall()
+        conn.close()
+        if not rows: # S'il n'y a aucune selection correspondante
+            return None
+        return [User(r["idUtilisateur"], r["username"], r["password"], r["role"], r["mail"], r["idEntreprise"]) for r in rows]
+    
+    def triDESC(self):
+        conn = self._getDbConnection()
+        rows = conn.execute(
+            "SELECT * FROM Users ORDER BY username DESC"
+        ).fetchall()
+        conn.close()
+        if not rows: # S'il n'y a aucune selection correspondante
+            return None
+        return [User(r["idUtilisateur"], r["username"], r["password"], r["role"], r["mail"], r["idEntreprise"]) for r in rows]
+    
+    def triRole(self):
+        conn = self._getDbConnection()
+        rows = conn.execute(
+            "SELECT * FROM Users ORDER BY role ASC"
+        ).fetchall()
+        conn.close()
+        if not rows: # S'il n'y a aucune selection correspondante
+            return None
+        return [User(r["idUtilisateur"], r["username"], r["password"], r["role"], r["mail"], r["idEntreprise"]) for r in rows]
+    
+    
+    def setUsername(self, username, new_username):
+        conn = self._getDbConnection()
+        conn.execute(
+            "UPDATE Users SET username = ? WHERE username = ?",
+            (new_username, username)
+        )
+        conn.commit()
+        conn.close()
+
+    def setEmail(self, username, new_mail):
+        conn = self._getDbConnection()
+        conn.execute(
+            "UPDATE Users SET mail = ? WHERE username = ?",
+            (new_mail, username)
+        )
+        conn.commit()
+        conn.close()
+
+    def setPassword(self, username, new_password):
+        conn = self._getDbConnection()
+        conn.execute(
+            "UPDATE Users SET password = ? WHERE username = ?",
+            (new_password, username)
+        )
+        conn.commit()
+        conn.close()
+
+    def setRole(self, username, new_role):
+        conn = self._getDbConnection()
+        conn.execute(
+            "UPDATE Users SET role = ? WHERE username = ?",
+            (new_role, username)
+        )
+        conn.commit()
+        conn.close()
 
     def findAll(self):
         conn = self._getDbConnection()

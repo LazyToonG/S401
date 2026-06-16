@@ -11,7 +11,7 @@ service = MusiqueService()
 playlist_service = PlaylistService()
 
 @app.route('/marketing', methods=['GET', 'POST'])
-@reqrole("admin","marketing","commercial")
+@reqrole("admin","marketing")
 def marketing():
     # Translations
     traductions = ts.tradMarketing()
@@ -33,7 +33,7 @@ def marketing():
         if not playlists:
             message=ts.message_langue("Accès refusé: la playlist 'message' n'existe pas","Access denied: the 'message' playlist does not exist.")
             flash(message, "error")
-            return render_template("marketing_v2.html",metadata=metadata,sort=sort,current_lang=langue_choisie,musiques=musiques,t=textes,playlists=playlists,user=user,role=role,musics=musics,selected_playlist_id=selected_playlist_id)
+            return render_template("marketing.html",metadata=metadata,sort=sort,current_lang=langue_choisie,musiques=musiques,t=textes,playlists=playlists,user=user,role=role,musics=musics,selected_playlist_id=selected_playlist_id)
 
     # Playlist selection
     selected_playlist_id = None
@@ -48,7 +48,7 @@ def marketing():
                 if not selected_playlist or selected_playlist.title.lower() != "message":
                     message=ts.message_langue("Accès refusé: vous ne pouvez modifier que la playlist 'message'","Access denied: you can only edit the 'message' playlist.")
                     flash(message,"error")
-                    return render_template("marketing_v2.html",metadata=metadata,sort=sort,current_lang=langue_choisie,musiques=musiques,t=textes,playlists=playlists,user=user,role=role,musics=musics,selected_playlist_id=selected_playlist_id)
+                    return render_template("marketing.html",metadata=metadata,sort=sort,current_lang=langue_choisie,musiques=musiques,t=textes,playlists=playlists,user=user,role=role,musics=musics,selected_playlist_id=selected_playlist_id)
             
             #si une playlist est selectionnée
             selected_playlist_id = str(playlist_id_raw)  
@@ -57,7 +57,7 @@ def marketing():
                 musics.append(music.nomMusique)
 
     return render_template(
-        "marketing_v2.html",
+        "marketing.html",
         metadata=metadata,
         sort=sort,
         current_lang=langue_choisie,
@@ -90,7 +90,7 @@ def search_by_title():
     title = request.args.get("title")
     musiques = service.search_by_title(title)#nexiste pas
     if musiques:
-        return render_template("marketing_v2.html", musiques=[musiques], t=textes, current_lang=langue_choisie, user=user, role=role)
+        return render_template("marketing.html", musiques=[musiques], t=textes, current_lang=langue_choisie, user=user, role=role)
     return redirect(url_for("marketing"))
 
 @app.route("/playlist/create", methods=["POST"])
@@ -132,32 +132,50 @@ def delete_playlist():
 
 @app.route("/upload", methods=["POST"])
 def upload():
-    file = request.files.get("audio")
+    # 1. On récupère la liste des fichiers et l'ID de la playlist (qui peut être vide "")
+    fichiers = request.files.getlist("audio")
     playlist_id = request.form.get("playlist_id")
     role = session.get('role')
 
-    if not file or not playlist_id:
-        message=ts.message_langue("Fichier ou playlist manquant","File or playlist missing")
-        flash(message,"error")
-        return redirect(url_for("marketing"))
-
-    playlist = playlist_service.get_by_id(int(playlist_id))
-    if not playlist:
-        message=ts.message_langue("Playlist invalide","Invalid playlist")
-        flash(message,"error")
-        return redirect(url_for("marketing"))
-    
-    # Verify commercial users can only upload to "message" playlist
-    if role == "commercial" and playlist.title.lower() != "message":
-        message=ts.message_langue("Accès refusé: vous ne pouvez modifier que la playlist 'message'","Access denied: you can only edit the 'message' playlist.")
+    # 2. On vérifie UNIQUEMENT si les fichiers sont absents
+    if not fichiers or fichiers[0].filename == '':
+        message = ts.message_langue("Fichier(s) manquant(s)", "File(s) missing")
         flash(message, "error")
         return redirect(url_for("marketing"))
 
+<<<<<<< HEAD
     music = service.save_file(file)
     playlist_service.add_music_to_playlist(playlist.idPlaylist, music.idMusique)
+=======
+    # 3. Si un ID de playlist a été fourni, on fait les vérifications de playlist
+    playlist = None
+    if playlist_id:  # S'exécute seulement si playlist_id n'est pas vide
+        playlist = playlist_service.get_by_id(int(playlist_id))
+        if not playlist:
+            message = ts.message_langue("Playlist invalide", "Invalid playlist")
+            flash(message, "error")
+            return redirect(url_for("marketing"))
+        
+        # Vérification des droits pour les commerciaux
+        if role == "commercial" and playlist.title.lower() != "message":
+            message = ts.message_langue("Accès refusé: vous ne pouvez modifier que la playlist 'message'", "Access denied: you can only edit the 'message' playlist.")
+            flash(message, "error")
+            return redirect(url_for("marketing"))
+>>>>>>> main
 
-    message=ts.message_langue("Playlist enregistrée avec succès","Playlist successfully saved")
-    flash(message,"success")
+    # 4. On enregistre chaque fichier dans la base de données
+    for file in fichiers:
+        if file and file.filename != '':
+            # On sauvegarde la musique dans la base de données générale
+            music = service.save_file(file)
+            
+            # Et on l'ajoute à la playlist SEULEMENT si une playlist était précisée
+            if playlist:
+                playlist_service.add_music_to_playlist(playlist.idPlaylist, music.idMusique)
+
+    # 5. Message de succès
+    message = ts.message_langue("Musique(s) ajoutée(s) avec succès à la base de données", "Music(s) successfully added to the database")
+    flash(message, "success")
     return redirect(url_for("marketing"))
 
 # @app.route("/musicsinplaylist", methods=["GET", "POST"])
@@ -174,7 +192,7 @@ def upload():
 #         musics = playlist_service.musics_in_playlist(playlist_id)
 
 #     return render_template(
-#         "marketing_v2.html",
+#         "marketing.html",
 #         playlists=playlists,
 #         musics=musics,
 #         selected_playlist_id=playlist_id,

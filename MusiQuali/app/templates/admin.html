@@ -1,25 +1,71 @@
-<html>
+<!DOCTYPE html>
+<html lang="fr">
 <head>
-    <meta charset="utf-8">
-    <title>Admin Dashboard</title>
-    <link rel="icon" href="../static/logo.png" type="image/png">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Musiquali - Administration</title>
     <link href="{{ url_for('static', filename='style.css') }}" rel="stylesheet">
-    <link href="{{ url_for('static', filename='admin.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='style_admin.css') }}" rel="stylesheet">
     <link href="{{ url_for('static', filename='message_alert.css') }}" rel="stylesheet">
 </head>
-<body class="">
-    {% include 'nav_v2.html' %}
-    {% include 'messages_alert.html' %}
-    <div class="main">
-        <!-- moitié gauche -->
-        <div class="left-panel panel card">
-            <h2>Raspberry</h2>
+<body>
 
-            <!-- Pop up ajout rasp-->
-            <button type="button" onclick="openModal()">
-                {{t.titreRasp}}
-            </button>
-            <div id="raspModal" class="modal">
+    {% include 'nav_bar.html' %}
+
+    <div class="tabs-container">
+        <button class="tab-btn" data-target="raspberry">Gestion des Raspberry</button>
+        <button class="tab-btn" data-target="terminal">Terminal</button>
+        <button class="tab-btn" data-target="users">Gestion des utilisateurs</button>
+        <button class="tab-btn" data-target="requests">Requêtes administrateur [1]</button>
+    </div>
+
+    <main class="content-area">
+        
+        <div id="raspberry" class="tab-content split-layout">            
+            <div class="admin-panel">
+                <div class="users-header">
+                    <div class="search-sort-bar">
+                        <div class="search-bar admin-search">
+                            <span class="search-icon"><img src="{{ url_for('static', filename='img/loupe.png') }}" alt="Recherche" class="recherche-img"></span>
+                            <input type="text" placeholder="Recherche...">
+                        </div>
+                        <div class="sort-dropdown" style="cursor: pointer; color: #651b1b;">Trier ▼</div>
+                    </div>
+                    
+                    <div class="actions-bar">
+                        <a href="#" class="action-link hidden" id="delete-users-selection">
+                            Supprimer la sélection 
+                            <img src="{{ url_for('static', filename='img/delete.png') }}" alt="Delete" class="delete-img">
+                        </a>
+                    </div>
+                </div>
+
+                <div class="users-list">
+                    <div class="user-list-item">
+                        <span class="item-name">Nom</span>
+                        <span class="user-role-text">Ip</span>
+                        <span class="user-role-text">Etat</span>
+                        <div class="item-actions">
+                            
+                        </div>
+                    </div>
+                    {% for r in raspberry %}
+                    <div class="user-list-item">
+                        <input type="checkbox" class="custom-round-checkbox">
+                        <span class="item-name">{{ r.nom }}</span>
+                        <span class="item-name">{{ r.ipRasp }}</span>
+                        <span class="user-role-text">Etat</span>
+                        <div class="item-actions">
+                            <span class="icon"><img src="{{ url_for('static', filename='img/delete.png') }}" alt="Delete" class="delete-img"></span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="admin-panel">
+                <h3 class="panel-title">Ajouter une raspberry</h3>
+                
                 <div class="modal-content">
                     <span class="close" onclick="closeModal()">&times;</span>
                     <h2>{{t.titreRasp}}</h2>
@@ -44,180 +90,329 @@
                             <label for="mdpRasp" class="form-label">
                                 {{t.mdpRasp}}
                             </label>
-                            <input type="text"
+                            <input type="password"
                                 class="form-control"
                                 id="mdpRasp"
                                 placeholder="{{t.form_mdpRasp}}"
                                 name="mdpRasp">
                         </div>
                         <br>
-                        <button type="submit" class="btn btn-success">{{t.confirm}}</button>
+                        <button type="submit" class="btn-action-red" style="text-align: center; margin-top: 30px;">{{t.confirm}}</button>
                     </form>
                 </div>
+
+                </form>
             </div>
-            <!--Info pour la procédure pour mettre son Raspberry-->
-            <div class="tooltip">
-                <img src="../static/aide.png" alt="aide">
-                <span class="tooltip-text">
-                    <h3>Pour pouvoir connecter la Raspberry il y a 3 informations nécéssaire qui nécéssite de chercher directement dans la Raspberry :</h3>
-                    <ul>
-                        <li><strong>Utilisateur :</strong> il faut taper la commande <code>whoami</code></li>
-                        <li><strong>IP :</strong> il faut taper la commande <code>ip a</code> et chercher à la ligne 
-                            <br><code>inet <strong>IPSETROUVEICI</strong> brd ADRESSERESEAU scope global dynamic noprefixroute wlp4s0</code>
-                            <br> ou la première valeur avec la commande <code>hostname -I</code></li>
-                        <li><strong>Mot de passe :</strong> Il est défini lors de la création du Raspberry</li>
-                    </ul>
-                </span>
-            </div>
-            <br>
-            <hr>
-       
-            <label for="raspberry-select">{{t.select_rasp}} :</label>
-            <!-- <select id="raspberry-select">
-                <option value="">-- {{t.select}} --</option>
-                <option value="raspi1">Raspberry 1</option>
-                <option value="raspi2">Raspberry 2</option>
-            </select> truc d'avant, probabalent à supprimer-->
-            <form method="POST" action="/admin/action_rasp">
-                <select id="raspberry-select" name="raspberry-select">
-                    {% for r in raspberry %}
-                        <option value="{{ r.idRasp }}">{{ r.nom }} {{ r.ipRasp }}</option>
+        </div>
+
+        <div id="terminal" class="tab-content full-box">
+        </div>
+
+        <div id="users" class="tab-content split-layout">
+            
+            <div class="admin-panel">
+                <div class="users-header">
+                    <div class="search-sort-bar">
+                        <div class="search-bar admin-search">
+                            <span class="search-icon"><img src="{{ url_for('static', filename='img/loupe.png') }}" alt="Recherche" class="recherche-img"></span>
+                            <input type="text" placeholder="Recherche...">
+                        </div>
+                        
+                        <div class="sort-container" style="display: flex; align-items: center; gap: 15px; position: relative;">
+                            
+                            {% if current_sort %}
+                            <a href="{{ url_for('admin_dashboard', _anchor='users') }}" class="clear-filter" style="color: #CE5956; text-decoration: none; font-size: 14px;">✖ Enlever les filtres</a>
+                            {% endif %}
+
+                            <div style="position: relative;">
+                                <div class="sort-dropdown" onclick="toggleSortMenu()" style="cursor: pointer; color: #651b1b; padding: 5px;">Trier ▼</div>
+                                
+                                <div id="sort-menu" class="hidden" style="position: absolute; right: 0; top: 120%; background: white; border: 1px solid #b5abab; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); z-index: 100; min-width: 150px; overflow: hidden;">
+                                    <a href="{{ url_for('admin_dashboard', sort='asc', _anchor='users') }}" style="display: block; padding: 10px 15px; color: #333; text-decoration: none; border-bottom: 1px solid #eee;">De A-Z</a>
+                                    <a href="{{ url_for('admin_dashboard', sort='desc', _anchor='users') }}" style="display: block; padding: 10px 15px; color: #333; text-decoration: none; border-bottom: 1px solid #eee;">De Z-A</a>
+                                    <a href="{{ url_for('admin_dashboard', sort='role', _anchor='users') }}" style="display: block; padding: 10px 15px; color: #333; text-decoration: none;">Par rôle</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="actions-bar">
+                        <a href="#" class="action-link hidden" id="delete-users-selection">
+                            Supprimer la sélection 
+                            <img src="{{ url_for('static', filename='img/delete.png') }}" alt="Delete" class="delete-img">
+                        </a>
+                    </div>
+                </div>
+
+
+                <div class="users-list">
+
+                    <div class="user-list-item">
+                        <span class="item-name">Nom</span>
+                        <span class="user-role-text">E-mail</span>
+                        <span class="user-role-text">Rôle</span>
+                        <div class="item-actions">
+                            
+                        </div>
+                    </div>
+
+                    {% for u in users %}
+                    <div class="user-list-item">
+                        <input type="checkbox" class="custom-round-checkbox">
+                        <span class="item-name">{{u.username}}</span>
+                        <span class="user-role-text">{{u.mail}}</span>
+                        <span class="user-role-text">{{u.role}}</span>
+                        <div class="item-actions">
+                            <span class="icon"><img src="{{ url_for('static', filename='img/modif.png') }}" alt="Edit" class="modif-img" onclick="openUserModal('{{u.username}}', '{{u.mail}}')"></span>
+                            <span class="icon"><img src="{{ url_for('static', filename='img/delete.png') }}" alt="Delete" class="delete-img" onclick="openDeleteModal('{{u.username}}')"></span>
+                        </div>
+                    </div>
                     {% endfor %}
-                </select>
-                <div class="user-action">
-                    <button type="submit" name="action" value="delete-rasp">{{t.supp}} &times;</button>
+                </div>
+            </div>
+
+            <div class="admin-panel">
+                <h3 class="panel-title">Créer un utilisateur</h3>
                 
-                <button type="submit" name="action" value="envoie-ping">Ping</button>
-                <button type="submit" name="action" value="test">{{t.fichier}}</button>
+                <form class="create-user-form" action="/admin/create" method="POST">
+                    <div class="form-columns">
+                        
+                        <div class="form-col-left">
+                            <div class="input-group">
+                                <label>Nom d'utilisateur</label>
+                                <input type="text" class="transparent-input" required name="username">
+                            </div>
+                            <div class="input-group">
+                                <label>E-mail</label>
+                                <input type="email" class="transparent-input" required name="email">
+                            </div>
+                            <div class="input-group">
+                                <label>Mot de passe</label>
+                                <input type="password" class="transparent-input" required name="password">
+                            </div>
+                        </div>
+
+                        <div class="form-col-right">
+                            <label>Rôle</label>
+                            <div class="role-options">
+                                <label class="role-label">
+                                    <input type="radio" name="role" value="commercial" required>
+                                    <span class="role-btn">Commercial</span>
+                                </label>
+                                <label class="role-label">
+                                    <input type="radio" name="role" value="marketing">
+                                    <span class="role-btn">Marketing</span>
+                                </label>
+                                <label class="role-label">
+                                    <input type="radio" name="role" value="admin">
+                                    <span class="role-btn">Admin</span>
+                                </label>
+                            </div>
+                        </div>
+
+                    </div>
+                    
+                    <div style="text-align: center; margin-top: 30px;">
+                        <button type="submit" class="btn-action-red">Créer</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div id="requests" class="tab-content split-layout">
+            
+            <div class="requests-sidebar">
+                <h2 class="sidebar-title">Requêtes :</h2>
+                <div class="requests-list">
+                    <div class="request-item active">
+                        <div class="req-row"><b>Sujet :</b> <span>-------------------------</span></div>
+                        <div class="req-row right"><b>De :</b> <span>----------------</span></div>
+                    </div>
+                    <div class="request-item">
+                        <div class="req-row"><b>Sujet :</b> <span>-------------------------</span></div>
+                        <div class="req-row right"><b>De :</b> <span>----------------</span></div>
+                    </div>
+                    <div class="request-item"></div>
+                    <div class="request-item"></div>
+                    <div class="request-item"></div>
+                    <div class="request-item"></div>
+                </div>
+            </div>
+
+            <div class="requests-details">
+                <div class="details-header">
+                    <p>Sujet : ----------------------------------------------------</p>
+                    <p>De : --------------------</p>
+                </div>
+                
+                <div class="details-body">
+                    <p>--------------------------------------------------------------------------------------------------------------------------------</p>
+                    <p>--------------------------------------------------------------------------------------------------------------------------------</p>
+                    <p>--------------------------------------------------------------------------------------------------------------------------------</p>
+                    <p>----------------------------------------------------------------------------------------</p>
+                </div>
+
+                <div class="details-actions">
+                    <button class="btn-accept">Accepter</button>
+                    <button class="btn-refuse">Refuser</button>
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+
+    <div id="user-modal-overlay" class="modal-overlay hidden" onclick="if(event.target === this) closeUserModal()">
+        <div class="modal-box admin-modal-box">
+            <h3 class="modal-title">Modifier</h3>
+            <form action="/admin/edit_user" method="POST">
+                
+                <input type="hidden" id="original_username" name="original_username">
+                <input type="hidden" id="original_email" name="original_email">
+
+                <div class="input-group">
+                    <label style="color: #651b1b;">Nom d'utilisateur</label>
+                    <input type="text" id="edit_username" name="edit_username" class="transparent-input">
+                </div>
+                <div class="input-group">
+                    <label style="color: #651b1b;">E-mail</label>
+                    <input type="email" id="edit_email" name="edit_email" class="transparent-input">
+                </div>
+                <div class="modal-actions-row">
+                    <button type="submit" class="btn-action-red">Enregistrer</button>
+                    <button type="button" class="btn-outline-red" onclick="closeUserModal()">Annuler</button>
                 </div>
             </form>
-    
-            <div class="terminal">
-                <h3>Terminal</h3>
-
-                <div class="terminal-screen">
-                    <!-- terminal ici -->
-                </div>
-                
-            </div>
-
-            <button id="download-logs">
-                {{t.download}}
-            </button>
-        </div>
-
-        <!-- en haut a droite -->
-        <div class="top-right-panel panel card">
-            <h2>Navigation</h2>
-            <a href="/marketing" class="nav-btn">Marketing</a>
-            <a href="/commercial" class="nav-btn">Commercial</a>
-        </div>
-
-        <!-- en bas a droite -->
-        <div class="bottom-right-panel panel card">
-            <h2>{{t.users}}</h2>
-            <div class="user-panel">
-
-                <h2>{{t.create_user}}</h2>
-
-                <form method="post" action="/admin/create" class="user-form">
-                    <input
-                        type="text"
-                        name="username"
-                        placeholder="{{t.name_user}}"
-                        required
-                    >
-
-                    <input
-                        type="password"
-                        name="password"
-                        placeholder="{{t.password}}"
-                        required
-                    >
-
-                    <select name="role" required>
-                        <option value="">-- {{t.choix_role}} --</option>
-                        <option value="marketing">Marketing</option>
-                        <option value="commercial">Commercial</option>
-                        <option value="admin">{{t.admin}}</option>
-                    </select>
-
-                    <button type="submit">{{t.create}}</button>
-                </form>
-                <h2>{{t.recherche}}</h2>
-
-                <form method="post" action="/admin/search" class="user-search-form">
-                    <input
-                        type="text"
-                        name="username"
-                        placeholder="{{t.recherche_user}}"
-                        required
-                    >
-                    <button type="submit">{{t.search}}</button>
-                </form>
-                {% if searched_users %}
-                <h3>{{t.result}}</h3>
-                <ul>
-                    {% for user in searched_users %}
-                        <li>
-                            <form method="post" action="/admin/delete" class="users">
-                                <input type="hidden" name="username" value="{{ user.username }}">
-                                <div class="users-info">
-                                    <div name="username" class="info-line">
-                                        {{ t.name }} : <strong>{{ user.username }}</strong>
-                                    </div>
-                                    <div class="info-line">
-                                        {{ t.role }} : <strong>{{ user.role }}</strong>
-                                    </div>
-                                </div>
-                                <div class="user-action">
-                                    <button type="button" id="delete-user">{{t.supp}}</button>
-                                    <div class="user-action-confirm">
-                                        <button type="submit" name="decision" value="confirm" class="alert-success">{{t.confirm}} ✓</button>
-                                        <button type="submit" name="decision" value="cancel" class="alert-error">{{t.cancel}} &times;</button>
-                                    </div>
-                                </div>
-                            </form>
-                        </li>
-                    {% endfor %}
-                </ul>
-                {% endif %}
-
-            </div>
         </div>
     </div>
-    <script src="{{ url_for('static', filename='script.js') }}"></script>
-    <script src="{{ url_for('static', filename='message_alert.js') }}"></script>
+
+    <div id="delete-modal-overlay" class="modal-overlay hidden" onclick="if(event.target === this) closeDeleteModal()">
+        <div class="modal-box admin-modal-box" style="background-color: #fff; text-align: center;">
+            <h3 class="modal-title" style="color: #651b1b; margin-bottom: 15px;">Confirmer la suppression</h3>
+            
+            <p style="color: #333; margin-bottom: 25px; font-size: 16px;">
+                Voulez-vous vraiment supprimer l'utilisateur <strong id="delete-username-display" style="color: #a71e23;"></strong> ?
+            </p>
+            
+            <form action="/admin/delete" method="POST">
+                <input type="hidden" id="delete_username_input" name="username" value="">
+                
+                <div class="modal-actions-row" style="justify-content: center; gap: 20px; margin-top: 20px;">
+                    <button type="submit" name="decision" value="cancel" class="btn-outline-red">Annuler</button>
+                    <button type="submit" name="decision" value="confirm" class="btn-action-red">Confirmer</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script>
-        if(document.querySelector('.role_nav').textContent==='admin'){
-            document.querySelector('.role_nav').addEventListener('click',function(){
-                window.location.href = "/admin";
+        function updateTabs() {
+            // Récupère le hash dans l'URL (ex: #users), ou utilise 'raspberry' par défaut
+            let hash = window.location.hash.substring(1);
+            if (!hash) hash = 'raspberry';
+
+            // Met à jour les boutons
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                if (btn.getAttribute('data-target') === hash) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
             });
-        };
-        
-        document.getElementById("delete-user").addEventListener('click', function(){
-            document.querySelector(".user-action-confirm").style.display='flex';
+
+            // Met à jour les panneaux de contenu
+            document.querySelectorAll('.tab-content').forEach(content => {
+                if (content.id === hash) {
+                    content.classList.add('active');
+                } else {
+                    content.classList.remove('active');
+                }
+            });
+        }
+
+        // Écouteurs de clic sur les boutons pour changer l'URL
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                window.location.hash = btn.getAttribute('data-target');
+            });
         });
 
-        //ajout de Raspberry
-        function openModal() {
-            document.getElementById("raspModal").style.display = "block";
+        // Met à jour au chargement de la page et à chaque changement d'URL
+        window.addEventListener('hashchange', updateTabs);
+        window.addEventListener('DOMContentLoaded', updateTabs);
+
+        document.getElementById('marketing').addEventListener('click', function(){
+                window.location.href = "/marketing";
+        })
+
+
+
+        // --- GESTION DES CHECKBOXES (Utilisateurs) ---
+        const userCheckboxes = document.querySelectorAll('#users .custom-round-checkbox');
+        const deleteSelectionUser = document.getElementById('delete-users-selection');
+
+        if (userCheckboxes.length > 0) {
+            userCheckboxes.forEach(cb => {
+                cb.addEventListener('change', () => {
+                    // Vérifie si au moins une case est cochée
+                    const anyChecked = Array.from(userCheckboxes).some(c => c.checked);
+                    if(anyChecked) {
+                        deleteSelectionUser.classList.remove('hidden');
+                    } else {
+                        deleteSelectionUser.classList.add('hidden');
+                    }
+                });
+            });
         }
 
-        function closeModal() {
-            document.getElementById("raspModal").style.display = "none";
+        
+        // --- FONCTIONS MODALE (Modification Utilisateur) ---
+        function openUserModal(username, email) {
+            document.getElementById('original_username').value = username;
+            document.getElementById('original_email').value = email;
+            
+            document.getElementById('edit_username').value = username;
+            document.getElementById('edit_email').value = email;
+            
+            document.getElementById('user-modal-overlay').classList.remove('hidden');
         }
 
-        /* Fermer si clic à l'extérieur */
-        window.onclick = function(event) {
-            const modal = document.getElementById("raspModal");
+        function closeUserModal() {
+            document.getElementById('user-modal-overlay').classList.add('hidden');
+        }
 
-            if (event.target === modal) {
-                closeModal();
+        // --- FONCTIONS MODALE (Suppression Utilisateur) ---
+        function openDeleteModal(username) {
+            // Affiche le nom de l'utilisateur dans le texte de confirmation
+            document.getElementById('delete-username-display').innerText = username;
+            
+            // Met le nom de l'utilisateur dans l'input caché pour le formulaire Flask
+            document.getElementById('delete_username_input').value = username;
+            
+            // Affiche la fenêtre
+            document.getElementById('delete-modal-overlay').classList.remove('hidden');
+        }
+
+        function closeDeleteModal() {
+            // Cache la fenêtre
+            document.getElementById('delete-modal-overlay').classList.add('hidden');
+        }
+
+        // --- GESTION DU MENU DÉROULANT DE TRI ---
+        function toggleSortMenu() {
+            document.getElementById('sort-menu').classList.toggle('hidden');
+        }
+
+        // Ferme le menu si on clique n'importe où ailleurs sur la page
+        window.addEventListener('click', function(e) {
+            if (!e.target.matches('.sort-dropdown')) {
+                var sortMenu = document.getElementById('sort-menu');
+                if (sortMenu && !sortMenu.classList.contains('hidden')) {
+                    sortMenu.classList.add('hidden');
+                }
             }
-        }
+        });
     </script>
-    
-    {% include 'fin_nav.html' %}
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 </html>

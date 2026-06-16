@@ -24,7 +24,18 @@ def admin_dashboard():
 
     rasp = rs.montreToutRasp()
 
-    return render_template("admin.html",  raspberry=rasp, t=textes, current_lang=langue_choisie, user=user, role=role)
+    current_sort = request.args.get('sort')
+
+    if current_sort == 'asc':
+        users = user_service.triASC()
+    elif current_sort == 'desc':
+        users = user_service.triDESC()
+    elif current_sort == 'role':
+        users = user_service.triRole()
+    else:
+        users = user_service.getUsers()
+
+    return render_template("admin.html", raspberry=rasp, users=users, t=textes, current_lang=langue_choisie, user=user, role=role, current_sort=current_sort)
 
 
 # Création utilisateur
@@ -53,7 +64,7 @@ def create_user():
 
     message=ts.message_langue("Utilisateur créé avec succès","User successfully created")
     flash(message, "success")
-    return redirect(url_for("admin_dashboard"))
+    return redirect(url_for("admin_dashboard", _anchor="users"))
 
 #suppression utilisateur
 @app.route("/admin/delete", methods=["POST"])
@@ -63,22 +74,16 @@ def delete_user():
 
     decision=request.form.get("decision")
     if decision=="cancel" :
-        message=ts.message_langue("Suppression annulée", "Deletion cancelled")
-        flash(message, "error")
-        return redirect(url_for("admin_dashboard"))
+        return redirect(url_for("admin_dashboard", _anchor="users"))
     
     username = request.form.get("username")
 
     if username==user:
-        message=ts.message_langue("Utilisateur ne peut pas être supprimé (actuellement connecté)","User cannot be deleted (currently logged)")
-        flash(message, "error")
-        return redirect(url_for("admin_dashboard"))
+        return redirect(url_for("admin_dashboard", _anchor="users"))
     
     user_service.deleteUser(username)
 
-    message=ts.message_langue("Utilisateur supprimé avec succès","User successfully deleted")
-    flash(message, "success")
-    return redirect(url_for("admin_dashboard"))
+    return redirect(url_for("admin_dashboard", _anchor="users"))
 
 @app.route("/admin/search", methods=["POST", "GET"])
 @reqrole('admin')
@@ -93,7 +98,7 @@ def admin_search_user():
     username = request.form.get("username")
 
     if not username:
-        return redirect(url_for("admin_dashboard"))
+        return redirect(url_for("admin_dashboard", _anchor="users"))
 
     searched_users = user_service.getUserByUsername(username)
     for users in searched_users:
@@ -105,3 +110,21 @@ def admin_search_user():
     flash(message, "success")
     return render_template("admin.html",searched_users=searched_users, t=textes, current_lang=langue_choisie, user=user, role=role)
 
+@app.route("/admin/edit_user", methods=["POST"])
+@reqrole('admin')
+def edit_user():
+    ancien_username = request.form.get("original_username")
+    ancien_email = request.form.get("original_email")
+    nouveau_username = request.form.get("edit_username")
+    nouvel_email = request.form.get("edit_email")
+
+    if nouvel_email != ancien_email:
+        user_service.setEmail(ancien_username, nouvel_email)
+        ancien_email = nouvel_email 
+
+    if nouveau_username != ancien_username:
+        user_service.setUsername(ancien_username, nouveau_username)
+
+    message = ts.message_langue("Utilisateur mis à jour !", "User updated!")
+    flash(message, "success")
+    return redirect(url_for("admin_dashboard", _anchor="users"))

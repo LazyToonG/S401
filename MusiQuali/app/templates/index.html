@@ -3,18 +3,16 @@
         <meta charset="utf-8">
         <title>Site</title>
         <link rel="icon" href="../static/logo.png" type="image/png">
+        <link href="{{ url_for('static', filename='style.css') }}" rel="stylesheet">
         <link href="{{ url_for('static', filename='style_accueil.css') }}" rel="stylesheet">
     </head>
-    <body class=""> <!-- ajout class sombre ici -->
-        <div class="nav"> <!-- ajout class sombre ici -->
-            <div class="page" id="login">{{t.login}}</div>
-            <div class="logo">Musi-quali <img src="{{ url_for('static', filename='logo.png') }}" alt="logo"/></div>
+    <body> <!-- ajout class sombre ici -->
+        <div class="nav">
+            
+            <div class="logo"><img src="{{ url_for('static', filename='img/logo.png') }}" alt="logo"/><p>Musi-quali</p></div>
             <div class="b">
-                <input class="mode-sombre btn-mode" type="button" value="🌒" id="bouton" style="background-color: rgba(0, 0, 0, 0);border:none;font-size:20px;"/> <!-- modif class input entre mode_clair quand mode de la page est sombre, mode_sombre quand le mode de la page est clair -->
-                <select name="langue" id="select-langue">
-                    <option value="fr" {% if current_lang == 'fr' %}selected{% endif %}>Français</option>
-                    <option value="en" {% if current_lang == 'en' %}selected{% endif %}>English</option>
-                </select>
+                <div class="page" id="signin" style="background-color: #1fe0; border-color: white !important;" onclick="window.location.href='{{ url_for('signin') }}';">S'inscrire</div>
+                <div class="page" id="login" onclick="window.location.href='{{ url_for('login') }}';">{{t.login}}</div>
             </div>
         </div>
         <br>
@@ -23,13 +21,13 @@
         <div class="h1">
             <h1>{{ t.titre }}</h1>
         </div>
-        <div class="presentation"> <!-- ajout class sombre ici -->
+        <div class="presentation">
             <p>{{ t.desc_1 }}</p>
             <br>
             <h3>{{ t.desc_2 }}</h3>
         </div>
 
-        <div class="equipe"> <!-- ajout class sombre ici -->
+        <div class="equipe">
             <p>{{ t.equipe_intro }}</p>
             <p>{{ t.equipe_liste }}</p>
                 <ul>
@@ -43,12 +41,7 @@
         </div>
 
         <script src="{{ url_for('static', filename='script.js') }}"></script>
-        <script>
-            document.getElementById('login').addEventListener('click', function(){
-                window.location.href = "/login";
-            })
-        </script>
+        
 
-        {% include 'fin_nav.html' %}
     </body>
 </html>
