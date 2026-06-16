@@ -36,15 +36,26 @@
                 <small>Durée : {{ m.duree }}</small>
                 <form action="{{ url_for('delete_music', music_id=m.idMusique) }}" method="POST" style="display:inline;">
                     <button type="submit" style="background:none; border:none; cursor:pointer;">
-                        <img src="{{ url_for('static', filename='img/delete.png') }}" alt="Supprimer" style="width:20px;"></button>
+                                <img src="{{ url_for('static', filename='img/delete.png') }}" style="width:20px;">
+                    </button>
                 </form>
             </div>
             {% endfor %}
         </div>
 
-        <div class="right-panel">
+        <div class="right-panel" style="position:relative;">
 
             <div id="tab-playlists" class="panel-view active"> <!--gestion des playlistes-->
+
+                <!-- overlay de composition, positionné dans ce container -->
+                <div id="playlist-edit-overlay" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.97); z-index:10; padding:20px; box-sizing:border-box; overflow-y:auto;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                        <b id="overlay-playlist-title" style="font-size:16px;"></b>
+                        <button onclick="closePlaylistOverlay()" style="background:none; border:none; cursor:pointer; font-size:20px;">✕</button>
+                    </div>
+                    <div id="overlay-music-list"></div>
+                </div>
+
                 <form action="{{ url_for('add_playlist') }}" method="POST" style="display:flex; gap:8px; margin-bottom:10px;">
                     <input type="text" name="title" placeholder="Nom de la playlist" required>
                     <button type="submit">+ add playlist</button>
@@ -55,13 +66,18 @@
                         <b>{{ p.title }}</b><br>
                         <small>{{ p.idUtilisateur }}</small>
                     </div>
-                    <form action="{{ url_for('delete_playlist', playlist_id=p.idPlaylist) }}" method="POST" style="display:inline;">
-                        <button type="submit" style="background:none; border:none; cursor:pointer;">
-                            <img src="{{ url_for('static', filename='img/delete.png') }}" alt="Supprimer" style="width:20px;">
-                        </button>
-                    </form>
+                    <div style="display:flex; gap:8px; align-items:center;">
+                        <button onclick="toggleDiv()">Toggle</button>
+                        <form action="{{ url_for('delete_playlist', playlist_id=p.idPlaylist) }}" method="POST" style="display:inline;">
+                            <button type="submit" style="background:none; border:none; cursor:pointer;">
+                                <img src="{{ url_for('static', filename='img/delete.png') }}" style="width:20px;">
+                            </button>
+                        </form>
+                    </div>
                 </div>
                 {% endfor %}
+
+            <div id="playistMusics">bitch</div>
             </div>
 
             <div id="tab-all-music" class="panel-view"> <!--upload musiques-->
@@ -99,6 +115,65 @@
     </main>
 
     <script>
+        // --- OVERLAY DE COMPOSITION DE PLAYLIST ---
+        const playlistEditOverlay = document.getElementById('playlist-edit-overlay');
+        const overlayMusicList = document.getElementById('overlay-music-list');
+        const overlayPlaylistTitle = document.getElementById('overlay-playlist-title');
+
+        async function openPlaylistOverlay(playlistId, playlistTitle) {
+            overlayPlaylistTitle.textContent = playlistTitle;
+            overlayMusicList.innerHTML = '<i>Chargement...</i>';
+            playlistEditOverlay.style.display = 'block';
+
+            try {
+                const res = await fetch(`/marketing/playlist/${playlistId}/musiques`, {
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                });
+                const data = await res.json();
+                const musiques = data.musiques || [];
+
+                if (musiques.length === 0) {
+                    overlayMusicList.innerHTML = '<i>Aucune musique dans cette playlist.</i>';
+                    return;
+                }
+
+                overlayMusicList.innerHTML = musiques.map(m => `
+                    <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid #ccc;">
+                        <span><b>${m.nomMusique}</b> — <small>${m.duree}s</small></span>
+                        <button onclick="removeMusicFromPlaylist(${playlistId}, ${m.idMusique}, this)" style="background:none; border:none; cursor:pointer;">
+                            <img src="/static/img/delete.png" style="width:16px;">
+                        </button>
+                    </div>
+                `).join('');
+
+            } catch (err) {
+                overlayMusicList.innerHTML = '<i>Erreur de chargement.</i>';
+                console.error(err);
+            }
+        }
+
+        function closePlaylistOverlay() {
+            playlistEditOverlay.style.display = 'none';
+            overlayMusicList.innerHTML = '';
+        }
+
+        async function removeMusicFromPlaylist(playlistId, musicId, btn) {
+            try {
+                const res = await fetch(`/marketing/playlist/${playlistId}/remove_music/${musicId}`, {
+                    method: 'POST',
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                });
+                if (res.ok) {
+                    // Retire la ligne de l'overlay sans recharger
+                    btn.closest('div').remove();
+                } else {
+                    console.error('Erreur suppression relation', res.status);
+                }
+            } catch (err) {
+                console.error('Erreur réseau', err);
+            }
+        }
+
         // --- BOÎTES PLAYLIST & DRAG AND DROP ---
         // Les playlists sont dans le panneau droit (#tab-playlists).
         const playlistBoxes = document.querySelectorAll('#tab-playlists [draggable="true"]');
@@ -128,6 +203,16 @@
                 }
             });
         });
+
+
+        //gestion des musiques dans les playlistes
+
+        function toggleDiv() {
+        const div = document.getElementById('myDiv');
+        div.style.display = div.style.display === 'none' ? 'block' : 'none';
+        }
+
+
 
         // --- BOÎTES MUSIQUE & DRAG AND DROP ---
         // Une boîte par musique (panneau gauche, toujours visible).
@@ -159,6 +244,49 @@
                     const target = e.target.closest('.panel-view');
                     if (target) target.appendChild(draggedBox);
                 }
+            });
+        });
+
+        // --- DROP SUR UNE BOÎTE PLAYLIST : ajoute la relation musique/playlist ---
+        // Les playlist boxes sont des dropzones secondaires.
+        // Une musique droppée dessus crée la relation en BD mais reste dans le panneau gauche.
+        document.querySelectorAll('#tab-playlists [draggable][data-playlist-id]').forEach(playlistBox => {
+            playlistBox.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                e.stopPropagation(); // Empêche le drop de remonter au panel-view parent
+            });
+
+            playlistBox.addEventListener('drop', async (e) => {
+                e.preventDefault();
+                e.stopPropagation(); // Empêche le drop de remonter au panel-view parent
+
+                const boxId = e.dataTransfer.getData('text/plain');
+                const draggedBox = document.getElementById(boxId);
+                if (!draggedBox) return;
+
+                // Vérifie que c'est bien une music-box (pas une autre playlist)
+                const musicId = draggedBox.dataset.musicId;
+                if (!musicId) return;
+
+                const playlistId = playlistBox.dataset.playlistId;
+
+                // Appel au serveur pour persister la relation
+                try {
+                    const res = await fetch(`/marketing/playlist/${playlistId}/add_music/${musicId}`, {
+                        method: 'POST',
+                        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                    });
+                    if (res.ok) {
+                        // Feedback visuel temporaire sur la playlist box
+                        playlistBox.style.outline = '2px solid green';
+                        setTimeout(() => playlistBox.style.outline = '', 800);
+                    } else {
+                        console.error('Erreur ajout relation', res.status);
+                    }
+                } catch (err) {
+                    console.error('Erreur réseau ajout relation', err);
+                }
+                // La music-box reste dans le panneau gauche — on ne la déplace pas
             });
         });
 

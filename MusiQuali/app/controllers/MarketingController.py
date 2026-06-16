@@ -129,15 +129,3 @@ def get_musiques_by_playlist(playlist_id):
             for m in musiques if m is not None
         ]
     }
-
-
-@app.route("/marketing/playlist/<int:playlist_id>/save_composition", methods=["POST"])
-@reqrole('admin', 'marketing')
-def save_playlist_composition(playlist_id):
-    # Attend un JSON : {"idMusiques": [1, 2, 3]}
-    data = request.get_json()
-    idMusiques = data.get("idMusiques", [])
-    marketingService.save_playlist_composition(playlist_id, idMusiques)
-    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-        return '', 204
-    return redirect(url_for("marketing"))
