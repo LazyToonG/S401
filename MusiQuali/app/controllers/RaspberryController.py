@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from flask import render_template, request, redirect, url_for, flash
 from app import app
 from app.controllers.LoginController import reqrole
@@ -5,9 +7,12 @@ from app.services.RaspberryService import RaspberryService
 import subprocess, ipaddress, time
 from app.services.TraductionService import Traductionservice
 import time
+from app.services.LogsService import LogsService
+
 
 
 rs = RaspberryService()
+ls = LogsService()
 
 ts = Traductionservice()
 #import datetime
@@ -112,7 +117,13 @@ def action_rasp():
 
 last_sync = {}  # mémorise le dernier rsync par raspberry
 def recupLogs(nom, ip):
-    log = subprocess.run(["rsync", "-avz", "-e", "ssh",f"{nom}@{ip}:/home/{nom}/musiquali/logs", f"./app/static/raspLogs/{nom}/"])
+    dest = Path(f"./app/static/raspLogs/{nom}/")
+    log = subprocess.run(["rsync", "-avz", "-e", "ssh",f"{nom}@{ip}:/home/{nom}/musiquali/logs", str(dest)])
+    
+    #met en base de données les fichiers récupérer
+    for file in dest.iterdir():
+        if file.is_file():
+            ls.add_log(nom, file.name)
     return log
 
 def pingRasp(ip):

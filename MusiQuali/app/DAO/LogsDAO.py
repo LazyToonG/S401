@@ -77,3 +77,8 @@ class LogsSqliteDAO():
                 (idLecteur, nomFichierLog)
             )
             return cursor.lastrowid
+        
+    def delete(self, id):
+        """Supprime un log par son id"""
+        with self._getDbConnection() as conn:
+            conn.execute("DELETE FROM Logs WHERE idLogs=?", (id,))
