@@ -10,7 +10,7 @@ ts = Traductionservice()
 
 @app.route("/marketing")
 def marketing():
-    trad = ts.tradIndex()
+    trad = ts.tradMarketing()
     langue_choisie=ts.getLangue()
     textes = trad[langue_choisie]
     

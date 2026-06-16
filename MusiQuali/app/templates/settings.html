@@ -7,6 +7,7 @@
     <link href="{{ url_for('static', filename='style.css') }}" rel="stylesheet">
     <link href="{{ url_for('static', filename='style_admin.css') }}" rel="stylesheet">
     <link href="{{ url_for('static', filename='style_requete.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='message_alert.css') }}" rel="stylesheet">
     <style>
         .settings-container {
             max-width: 600px;
@@ -69,7 +70,7 @@
                     <div class="toggle-container">
                         <span>{{t.mode}}</span>
                         <label class="radio-label" style="width: auto;">
-                            <input type="checkbox" name="dark_mode" id="dark-mode-toggle" style="transform: scale(1.3); cursor: pointer;">
+                            <input type="checkbox" name="dark_mode" id="dark-mode-toggle" onchange="toggleQuickDarkMode()" style="transform: scale(1.3); cursor: pointer;">
                         </label>
                     </div>
                 </div>

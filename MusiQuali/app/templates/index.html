@@ -40,6 +40,70 @@
                 </ul>
         </div>
 
+        <div class="floating-prefs-container" style="position: fixed; bottom: 30px; right: 30px; z-index: 9999; display: flex; flex-direction: column-reverse; align-items: center; gap: 12px;">
+    
+            <div id="main-prefs-btn" onclick="togglePrefsMenu()" style="width: 50px; height: 50px; background-color: #CE5956; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.3); transition: transform 0.3s ease; user-select: none;">
+                <span style="font-size: 24px; color: white;"><img src="{{ url_for('static', filename='img/settings.png') }}" alt="Settings" class="settings-img" style="height: auto; width: 30px;"></span>
+            </div>
+
+            <div id="sub-prefs-menu" class="hidden-menu" style="display: flex; flex-direction: column; gap: 10px; opacity: 0; pointer-events: none; transform: translateY(20px); transition: all 0.3s ease;">
+                
+                <div id="quick-dark-toggle" onclick="toggleQuickDarkMode()" style="width: 42px; height: 42px; background-color: white; border: 1px solid #3A2525; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 8px rgba(0,0,0,0.15); font-size: 18px; user-select: none;">
+                    🌙
+                </div>
+
+                <div style="width: 42px; height: 42px; background-color: white; border: 1px solid #3A2525; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 8px rgba(0,0,0,0.15); overflow: hidden;">
+                    {% if current_lang == "fr" %}
+                        <a href="/set_language/en" style="color: #651b1b; text-decoration: none; font-weight: bold; font-size: 13px; font-family: sans-serif; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;">EN</a>
+                    {% else %}
+                        <a href="/set_language/fr" style="color: #651b1b; text-decoration: none; font-weight: bold; font-size: 13px; font-family: sans-serif; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;">FR</a>
+                    {% endif %}
+                </div>
+
+            </div>
+        </div>
+
+        <style>
+            /* Petite animation pour gérer l'ouverture fluide du menu */
+            .hidden-menu {
+                opacity: 0 !important;
+                pointer-events: none !important;
+                transform: translateY(20px) !important;
+            }
+            .open-menu {
+                opacity: 1 !important;
+                pointer-events: auto !important;
+                transform: translateY(0) !important;
+            }
+            
+            /* Adaptation de la couleur des petits cercles en mode sombre */
+            body.sombre #sub-prefs-menu div {
+                background-color: #241616 !important;
+                border-color: #3A2525 !important;
+            }
+            body.sombre #sub-prefs-menu a {
+                color: #F5E6E6 !important;
+            }
+        </style>
+
+        <script>
+            // --- OUVERTURE / FERMETURE DE LA BARRE FLOTTANTE ---
+            function togglePrefsMenu() {
+                const menu = document.getElementById('sub-prefs-menu');
+                const mainBtn = document.getElementById('main-prefs-btn');
+                
+                menu.classList.toggle('open-menu');
+                menu.classList.toggle('hidden-menu');
+                
+                // Petit effet de rotation de l'engrenage quand on clique dessus !
+                if (menu.classList.contains('open-menu')) {
+                    mainBtn.style.transform = 'rotate(45deg)';
+                } else {
+                    mainBtn.style.transform = 'rotate(0deg)';
+                }
+            }
+        </script>
+
         <script src="{{ url_for('static', filename='script.js') }}"></script>
         
 

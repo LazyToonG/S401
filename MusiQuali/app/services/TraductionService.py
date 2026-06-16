@@ -98,7 +98,7 @@ class Traductionservice():
             "fr" : {
                 "login" : "Se connecter",
                 "retour" : "Retour à l'accueil",
-                "login" : "Se connecter",
+                "signin" : "S'inscrire",
                 "user" : "Nom d'utilisateur",
                 "password" : "Mot de passe",
                 "role" : "Rôle",
@@ -111,6 +111,7 @@ class Traductionservice():
             "en" : {
                 "login" : "Log in",
                 "retour" : "Back to the home page",
+                "signin" : "Sign in",
                 "user" : "Username",
                 "role" : "Role",
                 "password" : "Password",
