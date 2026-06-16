@@ -40,13 +40,13 @@ def admin_dashboard():
 
 # Création utilisateur
 
-
 @app.route("/admin/create", methods=["POST", "GET"])
 @reqrole('admin')
 def create_user():
     username = request.form.get("username")
     password = request.form.get("password")
     role = request.form.get("role")
+    mail = request.form.get("email")
 
     if not username or not password or not role:
         flash("Tous les champs sont obligatoires", "error")
@@ -60,7 +60,7 @@ def create_user():
                 flash(message, "error")
                 return redirect(url_for("admin_dashboard"))
                 
-    user_service.signin(username, password, role)
+    user_service.signin(username, password, role, mail)
 
     message=ts.message_langue("Utilisateur créé avec succès","User successfully created")
     flash(message, "success")

@@ -197,7 +197,7 @@
 /* CHECKBOX RONDES */
 .custom-round-checkbox {
     appearance: none; -webkit-appearance: none;
-    width: 16px; height: 16px;
+    width: 16px !important; height: 16px;
     border: 1.5px solid #651b1b;
     border-radius: 50%; /* Rend la box ronde */
     cursor: pointer;

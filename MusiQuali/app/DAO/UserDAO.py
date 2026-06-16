@@ -36,6 +36,7 @@ class UserSqliteDAO():
                 mail VARCHAR(50),
                 idEntreprise INT NOT NULL default 1,
                 UNIQUE(username),
+                UNIQUE(mail),
                 FOREIGN KEY(idEntreprise) REFERENCES Entreprise(idEntreprise)
                 );
             """)
@@ -71,6 +72,14 @@ class UserSqliteDAO():
         ).fetchone()
         conn.close()
         return User(**dict(user)) if user else None
+    
+    def getByEmail(self, mail):
+        conn = self._getDbConnection()
+        user = conn.execute(
+            "SELECT * FROM Users WHERE mail = ?", (mail,)
+        ).fetchone()
+        conn.close()
+        return User(**dict(user)) if user else None
 
     def verifyUser(self, username, password):
         conn = self._getDbConnection()
@@ -83,6 +92,11 @@ class UserSqliteDAO():
             return None
         
         hashed = user["password"]
+        
+        # SÉCURITÉ : Si SQLite renvoie un texte normal (str), on le convertit en octets (bytes)
+        if isinstance(hashed, str):
+            hashed = hashed.encode('utf-8')
+            
         if bcrypt.checkpw(password.encode('utf-8'), hashed):
             return User(**dict(user))
         return None
@@ -149,10 +163,10 @@ class UserSqliteDAO():
 
     def setPassword(self, username, new_password):
         conn = self._getDbConnection()
-        conn.execute(
-            "UPDATE Users SET password = ? WHERE username = ?",
-            (new_password, username)
-        )
+        
+        hashed = bcrypt.hashpw(new_password.encode('utf-8'), bcrypt.gensalt())
+        
+        conn.execute("UPDATE Users SET password = ? WHERE username = ?", (hashed, username))
         conn.commit()
         conn.close()
 

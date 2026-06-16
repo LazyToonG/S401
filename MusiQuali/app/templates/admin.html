@@ -7,6 +7,30 @@
     <link href="{{ url_for('static', filename='style.css') }}" rel="stylesheet">
     <link href="{{ url_for('static', filename='style_admin.css') }}" rel="stylesheet">
     <link href="{{ url_for('static', filename='message_alert.css') }}" rel="stylesheet">
+
+    <style>
+        /* Gestion des colonnes de la liste */
+        .col-nom {
+            flex: 1; /* Prend 1 part de l'espace */
+            min-width: 0; /* Indispensable pour que text-overflow fonctionne */
+        }
+        .col-email {
+            flex: 2; /* L'email prend plus de place (2 parts) */
+            min-width: 0;
+            white-space: nowrap;      /* Interdit au texte de passer à la ligne */
+            overflow: hidden;         /* Cache ce qui dépasse */
+            text-overflow: ellipsis;  /* Ajoute les petits points "..." */
+            padding-right: 15px;      /* Marge de sécurité pour ne pas coller au rôle */
+        }
+        .col-role {
+            flex: 1;
+            min-width: 80px;
+        }
+        .col-checkbox {
+            width: 20px;
+            margin-right: 15px;
+        }
+    </style>
 </head>
 <body>
 
@@ -139,27 +163,28 @@
 
                 <div class="users-list">
 
-                    <div class="user-list-item">
-                        <span class="item-name">Nom</span>
-                        <span class="user-role-text">E-mail</span>
-                        <span class="user-role-text">Rôle</span>
-                        <div class="item-actions">
-                            
-                        </div>
+                    <div class="user-list-item" style="font-weight: bold; padding-bottom: 15px; border-bottom: 1px solid #eee;">
+                        <span class="col-checkbox"></span> <span class="item-name col-nom">Nom</span>
+                        <span class="user-role-text col-email">E-mail</span>
+                        <span class="user-role-text col-role">Rôle</span>
+                        <div class="item-actions"></div>
                     </div>
 
                     {% for u in users %}
                     <div class="user-list-item">
-                        <input type="checkbox" class="custom-round-checkbox">
-                        <span class="item-name">{{u.username}}</span>
-                        <span class="user-role-text">{{u.mail}}</span>
-                        <span class="user-role-text">{{u.role}}</span>
+                        <input type="checkbox" class="custom-round-checkbox col-checkbox">
+                        <span class="item-name col-nom">{{u.username}}</span>
+                        
+                        <span class="user-role-text col-email" title="{{u.mail}}">{{u.mail}}</span>
+                        
+                        <span class="user-role-text col-role">{{u.role}}</span>
                         <div class="item-actions">
                             <span class="icon"><img src="{{ url_for('static', filename='img/modif.png') }}" alt="Edit" class="modif-img" onclick="openUserModal('{{u.username}}', '{{u.mail}}')"></span>
                             <span class="icon"><img src="{{ url_for('static', filename='img/delete.png') }}" alt="Delete" class="delete-img" onclick="openDeleteModal('{{u.username}}')"></span>
                         </div>
                     </div>
                     {% endfor %}
+                    
                 </div>
             </div>
 

@@ -48,33 +48,37 @@
         <div class="settings-container">
             <h2 style="margin-bottom: 25px; border-bottom: 2px solid #651b1b; padding-bottom: 10px;">Préférences de l'application</h2>
 
-            <div class="settings-section">
-                <div class="settings-title">Langue de l'interface / Interface Language</div>
-                <div class="role-options" style="display: flex; gap: 15px;">
-                    <label class="radio-label" style="flex: 1; text-align: center; cursor: pointer;">
-                        <input type="radio" name="language" value="fr" checked>
-                        <span class="radio-btn" style="display: flex; align-items: center; justify-content: center; gap: 8px;"><img src="{{ url_for('static', filename='img/icFR.png') }}" alt="Français" class="langue-img" style="height: auto; width: 20px;">Français</span>
-                    </label>
-                    <label class="radio-label" style="flex: 1; text-align: center; cursor: pointer;">
-                        <input type="radio" name="language" value="en">
-                        <span class="radio-btn" style="display: flex; align-items: center; justify-content: center; gap: 8px;"><img src="{{ url_for('static', filename='img/icUK.png') }}" alt="UK" class="langue-img" style="height: auto; width: 20px;">English (Anglais)</span>
-                    </label>
+            <form action="/settings" method="POST">
+                
+                <div class="settings-section">
+                    <div class="settings-title">Langue de l'interface / Interface Language</div>
+                    <div class="role-options" style="display: flex; gap: 15px;">
+                        <label class="radio-label" style="flex: 1; text-align: center; cursor: pointer;">
+                            <input type="radio" name="language" value="fr" checked>
+                            <span class="radio-btn" style="display: flex; align-items: center; justify-content: center; gap: 8px;"><img src="{{ url_for('static', filename='img/icFR.png') }}" alt="Français" class="langue-img" style="height: auto; width: 20px;">Français</span>
+                        </label>
+                        <label class="radio-label" style="flex: 1; text-align: center; cursor: pointer;">
+                            <input type="radio" name="language" value="en">
+                            <span class="radio-btn" style="display: flex; align-items: center; justify-content: center; gap: 8px;"><img src="{{ url_for('static', filename='img/icUK.png') }}" alt="UK" class="langue-img" style="height: auto; width: 20px;">English (Anglais)</span>
+                        </label>
+                    </div>
                 </div>
-            </div>
 
-            <div class="settings-section">
-                <div class="settings-title">Affichage</div>
-                <div class="toggle-container">
-                    <span>Activer le Mode Sombre</span>
-                    <label class="radio-label" style="width: auto;">
-                        <input type="checkbox" id="dark-mode-toggle" style="transform: scale(1.3); cursor: pointer;">
-                    </label>
+                <div class="settings-section">
+                    <div class="settings-title">Affichage</div>
+                    <div class="toggle-container">
+                        <span>Activer le Mode Sombre</span>
+                        <label class="radio-label" style="width: auto;">
+                            <input type="checkbox" name="dark_mode" id="dark-mode-toggle" style="transform: scale(1.3); cursor: pointer;">
+                        </label>
+                    </div>
                 </div>
-            </div>
 
-            <div style="text-align: right; margin-top: 20px;">
-                <button class="tab-btn active" style="border-radius: 8px; background-color: #a71e23;">Enregistrer les modifications</button>
-            </div>
+                <div style="text-align: right; margin-top: 20px;">
+                    <button type="submit" class="tab-btn active" style="border-radius: 8px; background-color: #a71e23;">Enregistrer les modifications</button>
+                </div>
+                
+            </form>
         </div>
     </main>
 

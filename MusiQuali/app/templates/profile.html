@@ -30,7 +30,6 @@
             width: 80px;
             height: 80px;
             border-radius: 50%;
-            background: #f0f2f5;
             padding: 10px;
         }
         .info-group {
@@ -98,21 +97,21 @@
                 
                 <div class="info-group">
                     <label class="info-label" for="username">Nom d'utilisateur</label>
-                    <input type="text" id="username" name="username" class="info-input" value="Admin_Musiquali" disabled required>
+                    <input type="text" id="username" name="username" class="info-input" value="{{ user_info.username }}" disabled required>
                 </div>
 
                 <div class="info-group">
                     <label class="info-label" for="email">Adresse Email</label>
-                    <input type="email" id="email" name="email" class="info-input" value="admin@musiquali.fr" disabled required>
+                    <input type="email" id="email" name="email" class="info-input" value="{{ user_info.mail if user_info.mail else '' }}" disabled required>
                 </div>
 
                 <div class="info-group">
                     <span class="info-label">Rôle Système</span>
-                    <input type="text" class="info-input" value="Administrateur" style="font-weight: bold; color: #a71e23;" disabled>
+                    <input type="text" class="info-input" value="{{ user_info.role | capitalize }}" style="font-weight: bold; color: #a71e23;" disabled>
                 </div>
 
                 <div class="action-buttons">
-                    <button type="button" class="tab-btn" style="border-radius: 8px;">Modifier le mot de passe</button>
+                    <button type="button" class="tab-btn" style="border-radius: 8px;" onclick="openPasswordModal()">Modifier le mot de passe</button>
                     
                     <div>
                         <button type="button" id="btnEdit" class="tab-btn active" style="border-radius: 8px;">Modifier les infos</button>
@@ -124,6 +123,34 @@
             </form>
         </div>
     </main>
+
+    <div id="password-modal-overlay" class="modal-overlay hidden" onclick="if(event.target === this) closePasswordModal()">
+        <div class="modal-box admin-modal-box">
+            <h3 class="modal-title">Modifier mon mot de passe</h3>
+            
+            <form action="/update_password" method="POST">
+                <div class="input-group">
+                    <label style="color: #651b1b;">Ancien mot de passe</label>
+                    <input type="password" name="old_password" class="transparent-input" required style="width: 100%; padding: 10px; border: 1px solid #b5abab; border-radius: 8px; box-sizing: border-box;">
+                </div>
+                
+                <div class="input-group">
+                    <label style="color: #651b1b;">Nouveau mot de passe</label>
+                    <input type="password" name="new_password" class="transparent-input" required style="width: 100%; padding: 10px; border: 1px solid #b5abab; border-radius: 8px; box-sizing: border-box;">
+                </div>
+                
+                <div class="input-group">
+                    <label style="color: #651b1b;">Confirmer le nouveau mot de passe</label>
+                    <input type="password" name="confirm_password" class="transparent-input" required style="width: 100%; padding: 10px; border: 1px solid #b5abab; border-radius: 8px; box-sizing: border-box;">
+                </div>
+                
+                <div class="modal-actions-row" style="display: flex; gap: 15px; margin-top: 25px;">
+                    <button type="submit" class="btn-action-red" style="flex: 1;">Enregistrer</button>
+                    <button type="button" class="btn-outline-red" style="flex: 1;" onclick="closePasswordModal()">Annuler</button>
+                </div>
+            </form>
+        </div>
+    </div>
 
     <script src="{{ url_for('static', filename='script.js') }}"></script>
     <script>
@@ -168,6 +195,15 @@
                 btnSave.classList.add('hidden');
             });
         });
+
+        // --- FONCTIONS MODALE (Mot de passe) ---
+        function openPasswordModal() {
+            document.getElementById('password-modal-overlay').classList.remove('hidden');
+        }
+
+        function closePasswordModal() {
+            document.getElementById('password-modal-overlay').classList.add('hidden');
+        }
     </script>
 </body>
 </html>

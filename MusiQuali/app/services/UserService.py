@@ -9,6 +9,9 @@ class UserService():
         if type(res) is not list:
             res = [res]
         return res
+
+    def getUserByEmail(self, mail):
+        return self.udao.getByEmail(mail)
     
     def setUsername(self, username, new_username):
         return self.udao.setUsername(username, new_username)
