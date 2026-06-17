@@ -30,8 +30,21 @@
     <main class="marketing-layout">
 
         <div class="left-panel"> <!--liste des musiques, toujours visible-->
+            <div style="display:flex; gap:8px; margin-bottom:10px;">
+                <input type="text" id="search-musiques" placeholder="Rechercher une musique..." style="flex:1; padding:4px 8px;">
+                <select id="sort-musiques" style="padding:4px 8px;">
+                    <option value="default">— Trier —</option>
+                    <option value="az">A → Z</option>
+                    <option value="za">Z → A</option>
+                    <option value="duree">Durée croissante</option>
+                    <option value="duree_desc">Durée décroissante</option>
+                </select>
+            </div>
             {% for m in musiques %}
-            <div id="music-box-{{ m.idMusique }}" class="music-box" draggable="true" data-music-id="{{ m.idMusique }}">
+            <div id="music-box-{{ m.idMusique }}" class="music-box" draggable="true"
+                 data-music-id="{{ m.idMusique }}"
+                 data-nom="{{ m.nomMusique | lower }}"
+                 data-duree="{{ m.duree }}">
                 <b>{{ m.nomMusique }}</b><br>
                 <small>Durée : {{ m.duree }}</small>
                 <form action="{{ url_for('delete_music', music_id=m.idMusique) }}" method="POST" style="display:inline;">
@@ -52,11 +65,33 @@
                     <input type="text" name="title" placeholder="Nom de la playlist" required>
                     <button type="submit">+ add playlist</button>
                 </form>
+
+                <div style="display:flex; gap:8px; margin-bottom:10px;">
+                    <input type="text" id="search-playlists" placeholder="Rechercher une playlist..." style="flex:1; padding:4px 8px;">
+                    <select id="sort-playlists" style="padding:4px 8px;">
+                        <option value="default">— Trier —</option>
+                        <option value="az">A → Z</option>
+                        <option value="za">Z → A</option>
+                        <option value="duree">Durée totale croissante</option>
+                        <option value="duree_desc">Durée totale décroissante</option>
+                        <option value="nb">Nombre de musiques croissant</option>
+                        <option value="nb_desc">Nombre de musiques décroissant</option>
+                    </select>
+                </div>
+
+                <div id="playlists-container">
                 {% for p in playlists %}
-                <div id="playlist-box-{{ p.idPlaylist }}" draggable="true" data-playlist-id="{{ p.idPlaylist }}" style="display:flex; justify-content:space-between; align-items:center; border:2px dashed #333; padding:10px; margin:5px 0; background-color:#e0e0e0; cursor:move;">
+                <div id="playlist-box-{{ p.idPlaylist }}"
+                     draggable="true"
+                     data-playlist-id="{{ p.idPlaylist }}"
+                     data-title="{{ p.title | lower }}"
+                     data-nb-musiques="{{ p.nb_musiques }}"
+                     data-duree-totale="{{ p.duree_totale }}"
+                     style="display:flex; justify-content:space-between; align-items:center; border:2px dashed #333; padding:10px; margin:5px 0; background-color:#e0e0e0; cursor:move;">
                     <div>
                         <b>{{ p.title }}</b><br>
-                        <small>{{ p.idUtilisateur }}</small>
+                        <small>{{ p.idUtilisateur }}</small><br>
+                        <small id="stats-{{ p.idPlaylist }}">{{ p.nb_musiques }} musique(s) — {{ p.duree_totale }}s</small>
                     </div>
                     <div style="display:flex; gap:8px; align-items:center;">
 
@@ -73,6 +108,7 @@
                     </div>
                 </div>
                 {% endfor %}
+                </div>
 
                 <div id="playlistMusics" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; background:rgb(255,255,255); z-index:10; padding:20px; box-sizing:border-box; overflow-y:auto;">
                     <button onclick="closeOverlay()" style="position: absolute; top: 20px; right: 20px; background: none; border: 1px solid #333; padding: 5px 10px; cursor: pointer; border-radius: 4px;">
@@ -300,7 +336,14 @@
                     headers: { 'X-Requested-With': 'XMLHttpRequest' }
                 });
                 if (res.ok) {
-                    document.getElementById(`overlay-music-${idCouple}`)?.remove();
+                    const row = document.getElementById(`overlay-music-${idCouple}`);
+                    if (row) {
+                        // Récupère la durée depuis le texte de la row avant de la supprimer
+                        const dureeMatch = row.textContent.match(/(\d+)s/);
+                        const duree = dureeMatch ? parseInt(dureeMatch[1]) : 0;
+                        updatePlaylistStats(currentOverlayPlaylistId, -1, -(duree + 1));
+                        row.remove();
+                    }
                 } else {
                     console.error('Erreur suppression relation', res.status);
                 }
@@ -392,6 +435,11 @@
                         playlistBox.style.outline = '2px solid green';
                         setTimeout(() => playlistBox.style.outline = '', 800);
 
+                        // Mise à jour du compteur en temps réel
+                        const musicBox = document.getElementById(boxId);
+                        const duree = parseInt(musicBox?.dataset.duree || 0);
+                        updatePlaylistStats(playlistId, 1, duree + 1);
+
                         // Si l'overlay est ouvert pour cette playlist, rafraîchit son contenu
                         if (currentOverlayPlaylistId === parseInt(playlistId)) {
                             await refreshOverlay(playlistId);
@@ -439,6 +487,10 @@
                     body: fd
                 });
                 if (res.ok) {
+                    // Mise à jour du compteur en temps réel
+                    const musicBox = document.getElementById(boxId);
+                    const duree = parseInt(musicBox?.dataset.duree || 0);
+                    updatePlaylistStats(currentOverlayPlaylistId, 1, duree + 1);
                     await refreshOverlay(currentOverlayPlaylistId);
                 } else {
                     console.error('Erreur ajout relation via overlay', res.status);
@@ -590,6 +642,8 @@
                         box.className = 'music-box';
                         box.draggable = true;
                         box.dataset.musicId = m.idMusique;
+                        box.dataset.nom = m.nomMusique.toLowerCase();
+                        box.dataset.duree = m.duree;
                         box.innerHTML = `
                             <b>${m.nomMusique}</b><br>
                             <small>Durée : ${m.duree}</small>
@@ -634,6 +688,65 @@
                     console.error('Erreur réseau lors de l\'upload', err);
                 }
             });
+        }
+    </script>
+    <script>
+        // --- RECHERCHE & TRI MUSIQUES ---
+        function filterAndSortMusiques() {
+            const query = document.getElementById('search-musiques').value.toLowerCase();
+            const sort = document.getElementById('sort-musiques').value;
+            const panel = document.querySelector('.left-panel');
+            const boxes = Array.from(panel.querySelectorAll('.music-box'));
+
+            boxes.forEach(b => {
+                const nom = b.dataset.nom || '';
+                b.style.display = nom.includes(query) ? '' : 'none';
+            });
+
+            const visible = boxes.filter(b => b.style.display !== 'none');
+            if (sort === 'az') visible.sort((a, b) => a.dataset.nom.localeCompare(b.dataset.nom));
+            else if (sort === 'za') visible.sort((a, b) => b.dataset.nom.localeCompare(a.dataset.nom));
+            else if (sort === 'duree') visible.sort((a, b) => parseInt(a.dataset.duree) - parseInt(b.dataset.duree));
+            else if (sort === 'duree_desc') visible.sort((a, b) => parseInt(b.dataset.duree) - parseInt(a.dataset.duree));
+            visible.forEach(b => panel.appendChild(b));
+        }
+        document.getElementById('search-musiques').addEventListener('input', filterAndSortMusiques);
+        document.getElementById('sort-musiques').addEventListener('change', filterAndSortMusiques);
+
+        // --- RECHERCHE & TRI PLAYLISTS ---
+        function filterAndSortPlaylists() {
+            const query = document.getElementById('search-playlists').value.toLowerCase();
+            const sort = document.getElementById('sort-playlists').value;
+            const container = document.getElementById('playlists-container');
+            const boxes = Array.from(container.querySelectorAll('[data-playlist-id]'));
+
+            boxes.forEach(b => {
+                const title = b.dataset.title || '';
+                b.style.display = title.includes(query) ? '' : 'none';
+            });
+
+            const visible = boxes.filter(b => b.style.display !== 'none'); //please work i've been a good boy
+            if (sort === 'az') visible.sort((a, b) => a.dataset.title.localeCompare(b.dataset.title));
+            else if (sort === 'za') visible.sort((a, b) => b.dataset.title.localeCompare(a.dataset.title));
+            else if (sort === 'duree') visible.sort((a, b) => parseInt(a.dataset.dureeTotale) - parseInt(b.dataset.dureeTotale));
+            else if (sort === 'duree_desc') visible.sort((a, b) => parseInt(b.dataset.dureeTotale) - parseInt(a.dataset.dureeTotale));
+            else if (sort === 'nb') visible.sort((a, b) => parseInt(a.dataset.nbMusiques) - parseInt(b.dataset.nbMusiques));
+            else if (sort === 'nb_desc') visible.sort((a, b) => parseInt(b.dataset.nbMusiques) - parseInt(a.dataset.nbMusiques));
+            visible.forEach(b => container.appendChild(b));
+        }
+        document.getElementById('search-playlists').addEventListener('input', filterAndSortPlaylists);
+        document.getElementById('sort-playlists').addEventListener('change', filterAndSortPlaylists);
+
+        // --- MISE À JOUR DU COMPTEUR EN TEMPS RÉEL ---
+        function updatePlaylistStats(playlistId, deltaMusiques, deltaDuree) {
+            const box = document.getElementById(`playlist-box-${playlistId}`);
+            if (!box) return;
+            const nb = parseInt(box.dataset.nbMusiques || 0) + deltaMusiques;
+            const duree = parseInt(box.dataset.dureeTotale || 0) + deltaDuree;
+            box.dataset.nbMusiques = nb;
+            box.dataset.dureeTotale = duree;
+            const statsEl = document.getElementById(`stats-${playlistId}`);
+            if (statsEl) statsEl.textContent = `${nb} musique(s) — ${duree}s`;
         }
     </script>
     <script src="{{ url_for('static', filename='script.js') }}"></script>

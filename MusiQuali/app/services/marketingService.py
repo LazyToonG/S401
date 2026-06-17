@@ -17,7 +17,7 @@ class MarketingService:
 
     def get_marketing_data(self):
         return {
-        "playlists": self.get_playlists(),
+        "playlists": self.get_playlists_with_stats(),
         "musiques": self.get_all_musics()
             
         }
@@ -26,6 +26,28 @@ class MarketingService:
 
     def get_playlists(self):
         return self.playlistDAO.get_all()
+
+    def get_playlists_with_stats(self):
+        """Retourne les playlists enrichies avec nb_musiques et duree_totale."""
+        playlists = self.playlistDAO.get_all()
+        all_musics = {m.idMusique: m for m in self.musicDAO.get_musiques()}
+        result = []
+        for p in playlists:
+            rows = self.relationDAO.get_musiques_by_playlist(p.idPlaylist)
+            nb = len(rows)
+            duree_totale = sum(
+                all_musics[r["idMusique"]].duree
+                for r in rows if r["idMusique"] in all_musics
+            ) + nb  # +1s de pause par musique
+            result.append({
+                "idPlaylist": p.idPlaylist,
+                "title": p.title,
+                "idUtilisateur": p.idUtilisateur,
+                "idPlanning": p.idPlanning,
+                "nb_musiques": nb,
+                "duree_totale": duree_totale
+            })
+        return result
 
     def get_playlist_tracks(self, playlist_id):
         """Retourne la liste des musiques associées à une playlist."""
