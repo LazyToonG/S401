@@ -651,11 +651,11 @@
                         box.innerHTML = `
                             <b>${m.nomMusique}</b><br>
                             <small>Durée : ${m.duree}</small>
-                            <button onclick="togglePlay(this, ${JSON.stringify(m.nomMusique)})" style="background:none; border:none; cursor:pointer;">
+                            <button onclick="togglePlay(this, '${m.nomMusique.replace(/'/g, "\\'")}')" style="background:none; border:none; cursor:pointer;">
                                 <img src="${playImgUrl}" alt="Jouer" style="width:20px;"></button>
                             <form action="/marketing/music/${m.idMusique}/delete" method="POST" style="display:inline;">
                                 <button type="submit" style="background:none; border:none; cursor:pointer;">
-                                    <img src="${deleteImgUrl}" alt="Supprimer"></button>
+                                    <img src="${deleteImgUrl}" alt="Supprimer" style="width:20px;"></button>
                             </form>
                         `;
 
