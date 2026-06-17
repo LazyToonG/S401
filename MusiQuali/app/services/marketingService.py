@@ -4,7 +4,7 @@ import os
 from mutagen.mp3 import MP3
 from werkzeug.utils import secure_filename
 from app import app
-from flask import session, jsonify
+from flask import session
 from app.DAO.RelationPlaylistMusicDAO import RelationPlaylistMusicDAO
 
 
@@ -122,25 +122,27 @@ class MarketingService:
 
 # --- RELATION PLAYLIST / MUSIQUE ---
 
-    def add_music_to_playlist(self, idPlaylist, idMusique):
-        """Ajoute une musique à une playlist."""
-        self.relationDAO.add(idPlaylist, idMusique)
+    def add_music_to_playlist(self, idPlaylist, idMusique, position=None):
+        """Ajoute une musique à une playlist à une position donnée."""
+        self.relationDAO.add(idPlaylist, idMusique, position)
 
-    def remove_music_from_playlist(self, idPlaylist, idMusique):
-        """Retire une musique d'une playlist."""
-        self.relationDAO.remove(idPlaylist, idMusique)
+    def remove_music_from_playlist(self, idCouple):
+        """Retire une entrée de playlist par son idCouple."""
+        self.relationDAO.remove(idCouple)
 
     def get_musiques_by_playlist(self, idPlaylist):
-        """Retourne les musiques d'une playlist."""
-        ids = self.relationDAO.get_musiques_by_playlist(idPlaylist)
+        """Retourne les musiques d'une playlist avec idCouple et position."""
+        rows = self.relationDAO.get_musiques_by_playlist(idPlaylist)
         musiques = []
-        for music_id in ids:
-            m = self.musicDAO.get_by_id(music_id)
-            if m is not None:  # filtre none
+        for row in rows:
+            m = self.musicDAO.get_by_id(row["idMusique"])
+            if m is not None:
                 musiques.append({
+                    'idCouple': row["idCouple"],
                     'idMusique': m.idMusique,
                     'nomMusique': m.nomMusique,
-                    'duree': m.duree
+                    'duree': m.duree,
+                    'position': row["position"]
                 })
         return musiques
     

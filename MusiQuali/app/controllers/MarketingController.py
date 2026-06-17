@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash, session, jsonify
+from flask import render_template, request, redirect, url_for, flash, session, jsonify
 from app.controllers.LoginController import reqrole
 from app.services.TraductionService import Traductionservice
 from app.services.marketingService import MarketingService
@@ -104,16 +104,17 @@ def upload_music():
 @app.route("/marketing/playlist/<int:playlist_id>/add_music/<int:music_id>", methods=["POST"])
 @reqrole('admin', 'marketing')
 def add_music_to_playlist(playlist_id, music_id):
-    marketingService.add_music_to_playlist(playlist_id, music_id)
+    position = request.form.get("position", type=int)
+    marketingService.add_music_to_playlist(playlist_id, music_id, position)
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
         return '', 204
     return redirect(url_for("marketing"))
 
 
-@app.route("/marketing/playlist/<int:playlist_id>/remove_music/<int:music_id>", methods=["POST"])
+@app.route("/marketing/playlist/remove_music/<int:id_couple>", methods=["POST"])
 @reqrole('admin', 'marketing')
-def remove_music_from_playlist(playlist_id, music_id):
-    marketingService.remove_music_from_playlist(playlist_id, music_id)
+def remove_music_from_playlist(id_couple):
+    marketingService.remove_music_from_playlist(id_couple)
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
         return '', 204
     return redirect(url_for("marketing"))
@@ -125,6 +126,3 @@ def get_musiques_by_playlist(playlist_id):
     """Retourne les musiques d'une playlist en JSON."""
     musiques = marketingService.get_musiques_by_playlist(playlist_id)
     return jsonify(musiques)
-
-    
-

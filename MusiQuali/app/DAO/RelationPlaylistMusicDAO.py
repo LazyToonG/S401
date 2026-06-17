@@ -29,37 +29,37 @@ class RelationPlaylistMusicDAO:
         conn.commit()
         conn.close()
 
-    def add(self, idPlaylist, idMusique):
-        """Ajoute une musique à une playlist."""
+    def add(self, idPlaylist, idMusique, position=None):
+        """Ajoute une musique à une playlist à une position donnée."""
         conn = self._getDbConnection()
         try:
             conn.execute(
-                "INSERT INTO PlaylistMusique (idPlaylist, idMusique) VALUES (?, ?)",
-                (idPlaylist, idMusique)
+                "INSERT INTO PlaylistMusique (idPlaylist, idMusique, position) VALUES (?, ?, ?)",
+                (idPlaylist, idMusique, position)
             )
             conn.commit()
         finally:
             conn.close()
 
-    def remove(self, idPlaylist, idMusique):
-        """Retire une musique d'une playlist."""
+    def remove(self, idCouple):
+        """Retire une entrée de la playlist par son idCouple (supporte les doublons)."""
         conn = self._getDbConnection()
         conn.execute(
-            "DELETE FROM PlaylistMusique WHERE idPlaylist = ? AND idMusique = ?",
-            (idPlaylist, idMusique)
+            "DELETE FROM PlaylistMusique WHERE idCouple = ?",
+            (idCouple,)
         )
         conn.commit()
         conn.close()
 
     def get_musiques_by_playlist(self, idPlaylist):
-        """Retourne la liste des idMusique pour une playlist donnée."""
+        """Retourne idCouple, idMusique et position pour une playlist, triés par position."""
         conn = self._getDbConnection()
         rows = conn.execute(
-            "SELECT idMusique FROM PlaylistMusique WHERE idPlaylist = ?",
+            "SELECT idCouple, idMusique, position FROM PlaylistMusique WHERE idPlaylist = ? ORDER BY position",
             (idPlaylist,)
         ).fetchall()
         conn.close()
-        return [row["idMusique"] for row in rows]
+        return [{"idCouple": row["idCouple"], "idMusique": row["idMusique"], "position": row["position"]} for row in rows]
 
     def get_playlists_by_musique(self, idMusique):
         """Retourne la liste des idPlaylist contenant une musique donnée."""
