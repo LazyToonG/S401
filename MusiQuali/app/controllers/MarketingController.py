@@ -137,7 +137,6 @@ def save_positions():
         return {"error": "Aucune donnée reçue"}, 400
     marketingService.save_positions(data)
     return '', 204
-
 @app.route("/marketing/playlist/<int:playlist_id>/musiques")
 @reqrole('admin', 'marketing')
 def get_musiques_by_playlist(playlist_id):

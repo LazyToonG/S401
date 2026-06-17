@@ -278,7 +278,8 @@
             const titleEl = document.getElementById('playlistTitle');
 
             // Ferme si déjà ouvert pour la même playlist
-            if (div.style.display !== 'none' && currentOverlayPlaylistId === playlistId) {
+            const playlistIdInt = parseInt(playlistId);
+            if (div.style.display !== 'none' && currentOverlayPlaylistId === playlistIdInt) {
                 div.style.display = 'none';
                 currentOverlayPlaylistId = null;
                 return;
@@ -286,7 +287,7 @@
 
             // Ouvre et charge
             div.style.display = 'block';
-            currentOverlayPlaylistId = playlistId;
+            currentOverlayPlaylistId = playlistIdInt;
             titleEl.textContent = `Musiques de : ${playlistTitle}`;
             document.getElementById('playlistMusicsContent').innerHTML = '<i>Chargement...</i>';
             await refreshOverlay(playlistId);
@@ -355,10 +356,37 @@
 
                 // Appel au serveur pour persister la relation
                 try {
-                    const res = await fetch(`/marketing/playlist/${playlistId}/add_music/${musicId}`, {
-                        method: 'POST',
+                    // 1. Récupère les idCouple existants
+                    const existingRes = await fetch(`/marketing/playlist/${playlistId}/musiques`, {
                         headers: { 'X-Requested-With': 'XMLHttpRequest' }
                     });
+                    const existingMusiques = await existingRes.json();
+
+                    // 2. Décale toutes les positions existantes de +1 en BD
+                    if (existingMusiques.length > 0) {
+                        const newPositions = existingMusiques.map((m, index) => ({
+                            idCouple: m.idCouple,
+                            position: index + 2
+                        }));
+                        await fetch('/marketing/playlist/save_positions', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-Requested-With': 'XMLHttpRequest'
+                            },
+                            body: JSON.stringify(newPositions)
+                        });
+                    }
+
+                    // 3. Insère la nouvelle musique en position 1
+                    const fd = new FormData();
+                    fd.append('position', 1);
+                    const res = await fetch(`/marketing/playlist/${playlistId}/add_music/${musicId}`, {
+                        method: 'POST',
+                        headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                        body: fd
+                    });
+
                     if (res.ok) {
                         // Feedback visuel temporaire sur la playlist box
                         playlistBox.style.outline = '2px solid green';
@@ -401,9 +429,14 @@
             if (!musicId) return;
 
             try {
+                const existingRows = document.querySelectorAll('#playlistMusicsContent [data-id-couple]');
+                const position = existingRows.length + 1;
+                const fd = new FormData();
+                fd.append('position', position);
                 const res = await fetch(`/marketing/playlist/${currentOverlayPlaylistId}/add_music/${musicId}`, {
                     method: 'POST',
-                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                    body: fd
                 });
                 if (res.ok) {
                     await refreshOverlay(currentOverlayPlaylistId);

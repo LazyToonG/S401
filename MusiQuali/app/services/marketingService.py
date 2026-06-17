@@ -46,6 +46,7 @@ class MarketingService:
         return playlist
 
     def delete_playlist(self, idPlaylist):
+        self.relationDAO.remove_all_from_playlist(idPlaylist)
         self.playlistDAO.delete(idPlaylist)
 
 
