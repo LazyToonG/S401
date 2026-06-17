@@ -80,3 +80,13 @@ class RelationPlaylistMusicDAO:
         )
         conn.commit()
         conn.close()
+
+    def update_position(self, idCouple, position):
+        """Met à jour la position d'une entrée playlist-musique."""
+        conn = self._getDbConnection()
+        conn.execute(
+            "UPDATE PlaylistMusique SET position = ? WHERE idCouple = ?",
+            (position, idCouple)
+        )
+        conn.commit()
+        conn.close()

@@ -146,6 +146,14 @@ class MarketingService:
                 })
         return musiques
     
+    def save_positions(self, positions):
+        """
+        Met à jour la position de chaque entrée playlist-musique.
+        positions : liste de dicts {idCouple, position}
+        """
+        for entry in positions:
+            self.relationDAO.update_position(entry["idCouple"], entry["position"])
+
     # def save_playlist_composition(self, idPlaylist, idMusiques):
     #     """
     #     Sauvegarde la composition complète d'une playlist.

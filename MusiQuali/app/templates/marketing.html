@@ -23,8 +23,8 @@
     {% include 'nav_bar.html' %}
 
     <div class="tabs-container">
-        <button class="tab-pill active" data-target="tab-playlists">{{t.playlist}}</button>
-        <button class="tab-pill" data-target="tab-all-music">{{t.musics}}</button>
+        <button class="tab-pill active" data-target="tab-playlists">Playlists</button>
+        <button class="tab-pill" data-target="tab-all-music">Toutes les musiques</button>
     </div>
 
     <main class="marketing-layout">
@@ -50,7 +50,7 @@
 
                 <form action="{{ url_for('add_playlist') }}" method="POST" style="display:flex; gap:8px; margin-bottom:10px;">
                     <input type="text" name="title" placeholder="Nom de la playlist" required>
-                    <button type="submit">+ {{t.ajout_play}}</button>
+                    <button type="submit">+ add playlist</button>
                 </form>
                 {% for p in playlists %}
                 <div id="playlist-box-{{ p.idPlaylist }}" draggable="true" data-playlist-id="{{ p.idPlaylist }}" style="display:flex; justify-content:space-between; align-items:center; border:2px dashed #333; padding:10px; margin:5px 0; background-color:#e0e0e0; cursor:move;">
@@ -58,27 +58,25 @@
                         <b>{{ p.title }}</b><br>
                         <small>{{ p.idUtilisateur }}</small>
                     </div>
-                    <form action="{{ url_for('delete_playlist', playlist_id=p.idPlaylist) }}" method="POST" style="display:inline;">
-                        <button type="submit" style="background:none; border:none; cursor:pointer;">
-                            <img src="{{ url_for('static', filename='img/delete.png') }}" style="width:20px;">
+                    <div style="display:flex; gap:8px; align-items:center;">
+
+                        <button onclick="toggleplaylistInfo('{{ p.idPlaylist }}', '{{ p.title }}')"
+                                style="background:none; border:none; cursor:pointer;">
+                            <img src="{{ url_for('static', filename='img/modif.png') }}" style="width:20px;">
                         </button>
-                    </form>
-                </div>
-                {% endfor %}
-            </div>
-            <div id="tab-all-music" class="panel-view"> <!--musique gauche, liste des musiques-->
-                {% for m in musiques %}
-                <div id="music-box-{{ m.idMusique }}" class="music-box" draggable="true" data-music-id="{{ m.idMusique }}">
-                    <b>{{ m.nomMusique }}</b><br>
-                    <small>{{t.duree}} {{ m.duree }}</small>
-                    <form action="{{ url_for('delete_music', music_id=m.idMusique) }}" method="POST" style="display:inline;">
-                        <button type="submit" class="btn-outline-blue"><img src="{{ url_for('static', filename='img/delete.png') }}" alt="Supprimer"></button>
-                    </form>
+
+                        <form action="{{ url_for('delete_playlist', playlist_id=p.idPlaylist) }}" method="POST" style="display:inline;">
+                            <button type="submit" style="background:none; border:none; cursor:pointer;">
+                                <img src="{{ url_for('static', filename='img/delete.png') }}" style="width:20px;">
+                            </button>
+                        </form>
+                    </div>
                 </div>
                 {% endfor %}
 
                 <div id="playlistMusics" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; background:rgb(255,255,255); z-index:10; padding:20px; box-sizing:border-box; overflow-y:auto;">
-                    <button onclick="closeOverlay()" style="position: absolute; top: 20px; right: 20px; background: none; border: 1px solid #333; padding: 5px 10px; cursor: pointer; border-radius: 4px;">Retour</button>
+                    <button onclick="closeOverlay()" style="position: absolute; top: 20px; right: 20px; background: none; border: 1px solid #333; padding: 5px 10px; cursor: pointer; border-radius: 4px;">
+                        Sauvegarder et fermer la playlist</button>
                     <h3 id="playlistTitle" style="color: #000; margin-top: 40px;"></h3>
                     <div id="playlistMusicsContent" style="color: #000;"></div>
                 </div>
@@ -91,7 +89,7 @@
                     <input type="hidden" name="playlist_id" id="playlist-id">
 
                     <label class="upload-area" id="upload-zone" for="audio-input">
-                        <p id="upload-text">{{t.h3}}</p>
+                        <p id="upload-text">Glisser-déposer ou cliquer pour sélectionner un fichier</p>
                         <input
                             type="file"
                             name="audio"
@@ -107,10 +105,10 @@
 
                     <div class="upload-actions">
                         <button type="submit" id="btn-upload" class="btn-action-blue full-width" disabled>
-                            {{t.ajout_bd}}
+                            Ajouter à la base de données
                         </button>
                         <button type="button" class="btn-outline-blue">
-                            <a href="https://notube.lol/fr" target="_blank">{{t.convertir}}</a>
+                            <a href="https://notube.lol/fr" target="_blank">Convertir en MP3</a>
                         </button>
                     </div>
                 </form>
@@ -156,10 +154,88 @@
 
         //gestion des musiques dans les playlistes
         let currentOverlayPlaylistId = null; // tracks which playlist's overlay is open
+        let overlayDragSrcEl = null; // tracks the dragged row inside the overlay
 
-        function closeOverlay() {
+        async function closeOverlay() {
+            // Sauvegarde l'ordre actuel avant de fermer
+            if (currentOverlayPlaylistId !== null) {
+                const rows = document.querySelectorAll('#playlistMusicsContent [data-id-couple]');
+                const positions = Array.from(rows).map((row, index) => ({
+                    idCouple: parseInt(row.dataset.idCouple),
+                    position: index + 1
+                }));
+
+                if (positions.length > 0) {
+                    try {
+                        await fetch('/marketing/playlist/save_positions', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-Requested-With': 'XMLHttpRequest'
+                            },
+                            body: JSON.stringify(positions)
+                        });
+                    } catch (err) {
+                        console.error('Erreur sauvegarde positions', err);
+                    }
+                }
+            }
+
             document.getElementById('playlistMusics').style.display = 'none';
             currentOverlayPlaylistId = null;
+        }
+
+        function attachOverlayRowDrag(row) {
+            row.draggable = true;
+
+            row.addEventListener('dragstart', (e) => {
+                overlayDragSrcEl = row;
+                e.dataTransfer.effectAllowed = 'move';
+                e.dataTransfer.setData('text/plain', row.dataset.idCouple);
+                setTimeout(() => row.style.opacity = '0.4', 0);
+            });
+
+            row.addEventListener('dragend', () => {
+                row.style.opacity = '';
+                document.querySelectorAll('#playlistMusicsContent [data-id-couple]')
+                    .forEach(r => r.classList.remove('drag-over'));
+            });
+
+            row.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                e.dataTransfer.dropEffect = 'move';
+                if (row !== overlayDragSrcEl) {
+                    row.style.borderTop = '2px solid #651b1b';
+                }
+            });
+
+            row.addEventListener('dragleave', () => {
+                row.style.borderTop = '';
+            });
+
+            row.addEventListener('drop', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                row.style.borderTop = '';
+
+                if (!overlayDragSrcEl || overlayDragSrcEl === row) return;
+
+                // Vérifie que c'est bien une ligne de l'overlay (pas une music-box)
+                if (!overlayDragSrcEl.dataset.idCouple) return;
+
+                const container = document.getElementById('playlistMusicsContent');
+                const rows = Array.from(container.querySelectorAll('[data-id-couple]'));
+                const srcIndex = rows.indexOf(overlayDragSrcEl);
+                const tgtIndex = rows.indexOf(row);
+
+                // Réordonne dans le DOM
+                if (srcIndex < tgtIndex) {
+                    container.insertBefore(overlayDragSrcEl, row.nextSibling);
+                } else {
+                    container.insertBefore(overlayDragSrcEl, row);
+                }
+            });
         }
 
         async function refreshOverlay(playlistId) {
@@ -169,16 +245,28 @@
                     headers: { 'X-Requested-With': 'XMLHttpRequest' }
                 });
                 const data = await response.json();
-                contentEl.innerHTML = data.length === 0
-                    ? '<p><i>Aucune musique dans cette playlist.</i></p>'
-                    : data.map(m =>
-                        `<div id="overlay-music-${m.idCouple}" style="display:flex; justify-content:space-between; align-items:center; padding:8px; border-bottom:1px solid #eee;">
-                            <span><b>${m.nomMusique}</b> — <small>${m.duree}s</small></span>
-                            <button onclick="removeMusicFromPlaylist(${m.idCouple})" style="background:none; border:none; cursor:pointer;">
-                                <img src="/static/img/delete.png" style="width:16px;">
-                            </button>
-                        </div>`
-                    ).join('');
+
+                if (data.length === 0) {
+                    contentEl.innerHTML = '<p><i>Aucune musique dans cette playlist.</i></p>';
+                    return;
+                }
+
+                contentEl.innerHTML = '';
+                data.forEach(m => {
+                    const row = document.createElement('div');
+                    row.id = `overlay-music-${m.idCouple}`;
+                    row.dataset.idCouple = m.idCouple;
+                    row.style.cssText = 'display:flex; justify-content:space-between; align-items:center; padding:8px; border-bottom:1px solid #eee; cursor:grab;';
+                    row.innerHTML = `
+                        <span>⠿ <b>${m.nomMusique}</b> — <small>${m.duree}s</small></span>
+                        <button onclick="removeMusicFromPlaylist(${m.idCouple})" style="background:none; border:none; cursor:pointer;">
+                            <img src="/static/img/delete.png" style="width:16px;">
+                        </button>
+                    `;
+                    attachOverlayRowDrag(row);
+                    contentEl.appendChild(row);
+                });
+
             } catch (err) {
                 document.getElementById('playlistMusicsContent').innerHTML = '<p>Erreur de chargement</p>';
                 console.error(err);

@@ -5,7 +5,6 @@ from app.services.marketingService import MarketingService
 from app import app
 
 marketingService = MarketingService()
-ts = Traductionservice()
 
 
 
@@ -14,18 +13,13 @@ ts = Traductionservice()
 
 @app.route("/marketing")
 def marketing():
-    trad = ts.tradMarketing()
-    langue_choisie=ts.getLangue()
-    textes = trad[langue_choisie]
-    
     data = marketingService.get_marketing_data()
     return render_template(
         "marketing.html",
         playlists=data["playlists"],
         musiques=data["musiques"],
         user=session['username'],
-        role=session['role'],
-        t=textes
+        role=session['role']
     )
 
 # PLAYLISTES
@@ -126,7 +120,18 @@ def remove_music_from_playlist(id_couple):
     return redirect(url_for("marketing"))
 
 
-@app.route("/marketing/playlist/<int:playlist_id>/musiques", methods=["GET"])
+@app.route("/marketing/playlist/save_positions", methods=["POST"])
+@reqrole('admin', 'marketing')
+def save_positions():
+    """
+    Reçoit une liste JSON [{idCouple, position}, ...]
+    et met à jour les positions en BD.
+    """
+    data = request.get_json()
+    if not data:
+        return {"error": "Aucune donnée reçue"}, 400
+    marketingService.save_positions(data)
+    return '', 204
 @reqrole('admin', 'marketing')
 def get_musiques_by_playlist(playlist_id):
     """Retourne les musiques d'une playlist en JSON."""
