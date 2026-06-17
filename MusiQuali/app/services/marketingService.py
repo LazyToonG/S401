@@ -145,7 +145,7 @@ class MarketingService:
 
 # --- RELATION PLAYLIST / MUSIQUE ---
 
-    def add_music_to_playlist(self, idPlaylist, idMusique, position=None):
+    def add_music_to_playlist(self, idPlaylist, idMusique, position):
         """Ajoute une musique à une playlist à une position donnée."""
         self.relationDAO.add(idPlaylist, idMusique, position)
 

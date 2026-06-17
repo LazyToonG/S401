@@ -29,10 +29,16 @@ class RelationPlaylistMusicDAO:
         conn.commit()
         conn.close()
 
-    def add(self, idPlaylist, idMusique, position=None):
-        """Ajoute une musique à une playlist à une position donnée."""
+    def add(self, idPlaylist, idMusique, position):
+        """Ajoute une musique à une playlist. Si position non fournie, place en dernier."""
         conn = self._getDbConnection()
         try:
+            if position is None:
+                row = conn.execute(
+                    "SELECT COALESCE(MAX(position), 0) + 1 AS next_pos FROM PlaylistMusique WHERE idPlaylist = ?",
+                    (idPlaylist,)
+                ).fetchone()
+                position = row["next_pos"]
             conn.execute(
                 "INSERT INTO PlaylistMusique (idPlaylist, idMusique, position) VALUES (?, ?, ?)",
                 (idPlaylist, idMusique, position)
