@@ -1,5 +1,5 @@
 <div class="profile-menu" id="profileMenu">
-    <a href="/profile" class="profile-link">Profil</a>
-    <a href="/settings" class="profile-link">Paramètres</a>
-    <a href="{{ url_for('logout') }}" class="btn-logout-menu" style="text-decoration: none; text-align: center; display: block; box-sizing: border-box;">Se déconnecter</a>
+    <a href="/profile" class="profile-link">{{t.profil}}</a>
+    <a href="/settings" class="profile-link">{{t.settings}}</a>
+    <a href="{{ url_for('logout') }}" class="btn-logout-menu" style="text-decoration: none; text-align: center; display: block; box-sizing: border-box;">{{t.logout}}</a>
 </div>

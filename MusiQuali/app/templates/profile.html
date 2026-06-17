@@ -88,35 +88,35 @@
             <div class="profile-header">
                 <img src="{{ url_for('static', filename='img/logo_profil.png') }}" alt="Avatar" class="profile-avatar">
                 <div>
-                    <h2>Mon Profil</h2>
-                    <p style="color: #666; margin: 5px 0 0 0;">Gérez vos informations personnelles</p>
+                    <h2>{{t.profile}}</h2>
+                    <p style="color: #666; margin: 5px 0 0 0;">{{t.infos}}</p>
                 </div>
             </div>
 
             <form action="/update_profile" method="POST" id="profileForm">
                 
                 <div class="info-group">
-                    <label class="info-label" for="username">Nom d'utilisateur</label>
+                    <label class="info-label" for="username">{{t.name_user}}</label>
                     <input type="text" id="username" name="username" class="info-input" value="{{ user_info.username }}" disabled required>
                 </div>
 
                 <div class="info-group">
-                    <label class="info-label" for="email">Adresse Email</label>
+                    <label class="info-label" for="email">{{t.mail}}</label>
                     <input type="email" id="email" name="email" class="info-input" value="{{ user_info.mail if user_info.mail else '' }}" disabled required>
                 </div>
 
                 <div class="info-group">
-                    <span class="info-label">Rôle Système</span>
+                    <span class="info-label">{{t.role}}</span>
                     <input type="text" class="info-input" value="{{ user_info.role | capitalize }}" style="font-weight: bold; color: #a71e23;" disabled>
                 </div>
 
                 <div class="action-buttons">
-                    <button type="button" class="tab-btn" style="border-radius: 8px;" onclick="openPasswordModal()">Modifier le mot de passe</button>
+                    <button type="button" class="tab-btn" style="border-radius: 8px;" onclick="openPasswordModal()">{{t.modif_mdp}}</button>
                     
                     <div>
-                        <button type="button" id="btnEdit" class="tab-btn active" style="border-radius: 8px;">Modifier les infos</button>
-                        <button type="button" id="btnCancel" class="tab-btn hidden" style="border-radius: 8px; background-color: #666; border-color: #666;">Annuler</button>
-                        <button type="submit" id="btnSave" class="tab-btn active hidden" style="border-radius: 8px; background-color: #a71e23; border-color: #a71e23;">Enregistrer</button>
+                        <button type="button" id="btnEdit" class="tab-btn active" style="border-radius: 8px;">{{t.modif_info}}</button>
+                        <button type="button" id="btnCancel" class="tab-btn hidden" style="border-radius: 8px; background-color: #666; border-color: #666;">{{t.cancel}}</button>
+                        <button type="submit" id="btnSave" class="tab-btn active hidden" style="border-radius: 8px; background-color: #a71e23; border-color: #a71e23;">{{t.enregistrer}}</button>
                     </div>
                 </div>
 
@@ -126,27 +126,27 @@
 
     <div id="password-modal-overlay" class="modal-overlay hidden" onclick="if(event.target === this) closePasswordModal()">
         <div class="modal-box admin-modal-box">
-            <h3 class="modal-title">Modifier mon mot de passe</h3>
+            <h3 class="modal-title">{{t.modif_mdp}}</h3>
             
             <form action="/update_password" method="POST">
                 <div class="input-group">
-                    <label style="color: #651b1b;">Ancien mot de passe</label>
+                    <label style="color: #651b1b;">{{t.ancien_mdp}}</label>
                     <input type="password" name="old_password" class="transparent-input" required style="width: 100%; padding: 10px; border: 1px solid #b5abab; border-radius: 8px; box-sizing: border-box;">
                 </div>
                 
                 <div class="input-group">
-                    <label style="color: #651b1b;">Nouveau mot de passe</label>
+                    <label style="color: #651b1b;">{{t.new_mdp}}</label>
                     <input type="password" name="new_password" class="transparent-input" required style="width: 100%; padding: 10px; border: 1px solid #b5abab; border-radius: 8px; box-sizing: border-box;">
                 </div>
                 
                 <div class="input-group">
-                    <label style="color: #651b1b;">Confirmer le nouveau mot de passe</label>
+                    <label style="color: #651b1b;">{{t.confirm_mdp}}</label>
                     <input type="password" name="confirm_password" class="transparent-input" required style="width: 100%; padding: 10px; border: 1px solid #b5abab; border-radius: 8px; box-sizing: border-box;">
                 </div>
                 
                 <div class="modal-actions-row" style="display: flex; gap: 15px; margin-top: 25px;">
-                    <button type="submit" class="btn-action-red" style="flex: 1;">Enregistrer</button>
-                    <button type="button" class="btn-outline-red" style="flex: 1;" onclick="closePasswordModal()">Annuler</button>
+                    <button type="submit" class="btn-action-red" style="flex: 1;">{{t.enregistrer}}</button>
+                    <button type="button" class="btn-outline-red" style="flex: 1;" onclick="closePasswordModal()">{{t.cancel}}</button>
                 </div>
             </form>
         </div>

@@ -23,8 +23,8 @@
     {% include 'nav_bar.html' %}
 
     <div class="tabs-container">
-        <button class="tab-pill active" data-target="tab-playlists">Playlists</button>
-        <button class="tab-pill" data-target="tab-all-music">Toutes les musiques</button>
+        <button class="tab-pill active" data-target="tab-playlists">{{t.playlist}}</button>
+        <button class="tab-pill" data-target="tab-all-music">{{t.musics}}</button>
     </div>
 
     <main class="marketing-layout">
@@ -50,7 +50,7 @@
 
                 <form action="{{ url_for('add_playlist') }}" method="POST" style="display:flex; gap:8px; margin-bottom:10px;">
                     <input type="text" name="title" placeholder="Nom de la playlist" required>
-                    <button type="submit">+ add playlist</button>
+                    <button type="submit">+ {{t.ajout_play}}</button>
                 </form>
                 {% for p in playlists %}
                 <div id="playlist-box-{{ p.idPlaylist }}" draggable="true" data-playlist-id="{{ p.idPlaylist }}" style="display:flex; justify-content:space-between; align-items:center; border:2px dashed #333; padding:10px; margin:5px 0; background-color:#e0e0e0; cursor:move;">
@@ -58,19 +58,22 @@
                         <b>{{ p.title }}</b><br>
                         <small>{{ p.idUtilisateur }}</small>
                     </div>
-                    <div style="display:flex; gap:8px; align-items:center;">
-
-                        <button onclick="toggleplaylistInfo('{{ p.idPlaylist }}', '{{ p.title }}')"
-                                style="background:none; border:none; cursor:pointer;">
-                            <img src="{{ url_for('static', filename='img/modif.png') }}" style="width:20px;">
+                    <form action="{{ url_for('delete_playlist', playlist_id=p.idPlaylist) }}" method="POST" style="display:inline;">
+                        <button type="submit" style="background:none; border:none; cursor:pointer;">
+                            <img src="{{ url_for('static', filename='img/delete.png') }}" style="width:20px;">
                         </button>
-
-                        <form action="{{ url_for('delete_playlist', playlist_id=p.idPlaylist) }}" method="POST" style="display:inline;">
-                            <button type="submit" style="background:none; border:none; cursor:pointer;">
-                                <img src="{{ url_for('static', filename='img/delete.png') }}" style="width:20px;">
-                            </button>
-                        </form>
-                    </div>
+                    </form>
+                </div>
+                {% endfor %}
+            </div>
+            <div id="tab-all-music" class="panel-view"> <!--musique gauche, liste des musiques-->
+                {% for m in musiques %}
+                <div id="music-box-{{ m.idMusique }}" class="music-box" draggable="true" data-music-id="{{ m.idMusique }}">
+                    <b>{{ m.nomMusique }}</b><br>
+                    <small>{{t.duree}} {{ m.duree }}</small>
+                    <form action="{{ url_for('delete_music', music_id=m.idMusique) }}" method="POST" style="display:inline;">
+                        <button type="submit" class="btn-outline-blue"><img src="{{ url_for('static', filename='img/delete.png') }}" alt="Supprimer"></button>
+                    </form>
                 </div>
                 {% endfor %}
 
@@ -90,7 +93,7 @@
                     <input type="hidden" name="playlist_id" id="playlist-id">
 
                     <label class="upload-area" id="upload-zone" for="audio-input">
-                        <p id="upload-text">Glisser-déposer ou cliquer pour sélectionner un fichier</p>
+                        <p id="upload-text">{{t.h3}}</p>
                         <input
                             type="file"
                             name="audio"
@@ -106,10 +109,10 @@
 
                     <div class="upload-actions">
                         <button type="submit" id="btn-upload" class="btn-action-blue full-width" disabled>
-                            Ajouter à la base de données
+                            {{t.ajout_bd}}
                         </button>
                         <button type="button" class="btn-outline-blue">
-                            <a href="https://notube.lol/fr" target="_blank">Convertir en MP3</a>
+                            <a href="https://notube.lol/fr" target="_blank">{{t.convertir}}</a>
                         </button>
                     </div>
                 </form>

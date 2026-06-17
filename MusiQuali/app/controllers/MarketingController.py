@@ -5,6 +5,7 @@ from app.services.marketingService import MarketingService
 from app import app
 
 marketingService = MarketingService()
+ts = Traductionservice()
 
 
 
@@ -13,13 +14,18 @@ marketingService = MarketingService()
 
 @app.route("/marketing")
 def marketing():
+    trad = ts.tradMarketing()
+    langue_choisie=ts.getLangue()
+    textes = trad[langue_choisie]
+    
     data = marketingService.get_marketing_data()
     return render_template(
         "marketing.html",
         playlists=data["playlists"],
         musiques=data["musiques"],
         user=session['username'],
-        role=session['role']
+        role=session['role'],
+        t=textes
     )
 
 # PLAYLISTES

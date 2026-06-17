@@ -37,10 +37,10 @@
     {% include 'nav_bar.html' %}
 
     <div class="tabs-container">
-        <button class="tab-btn" data-target="raspberry">Gestion des Raspberry</button>
-        <button class="tab-btn" data-target="terminal">Terminal</button>
-        <button class="tab-btn" data-target="users">Gestion des utilisateurs</button>
-        <button class="tab-btn" data-target="requests">Requêtes administrateur [1]</button>
+        <button class="tab-btn" data-target="raspberry">{{t.gestion_rasp}}</button>
+        <button class="tab-btn" data-target="terminal">{{t.terminal}}</button>
+        <button class="tab-btn" data-target="users">{{t.gestion_user}}</button>
+        <button class="tab-btn" data-target="requests">{{t.requetes}} [1]</button>
     </div>
 
     <main class="content-area">
@@ -53,20 +53,20 @@
                         
                         <div class="search-bar admin-search">
                             <span class="search-icon"><img src="{{ url_for('static', filename='img/loupe.png') }}" alt="Recherche" class="recherche-img"></span>
-                            <input type="text" id="search-rasp" placeholder="Recherche..." oninput="rechercheDynamique('raspberry')">
+                            <input type="text" id="search-rasp" placeholder="{{t.recherche}}..." oninput="rechercheDynamique('raspberry')">
                         </div>
                         
                         <div class="sort-container" style="display: flex; align-items: center; gap: 15px; position: relative;">
                             {% if current_sort_rasp %}
-                            <a href="{{ url_for('admin_dashboard', _anchor='raspberry') }}" class="clear-filter" style="color: #CE5956; text-decoration: none; font-size: 14px;">✖ Enlever les filtres</a>
+                            <a href="{{ url_for('admin_dashboard', _anchor='raspberry') }}" class="clear-filter" style="color: #CE5956; text-decoration: underline; font-size: 14px;">{{t.supp_filtres}}</a>
                             {% endif %}
                             <div style="position: relative;">
-                                <div class="sort-dropdown" onclick="toggleSortMenuRasp()" style="cursor: pointer; color: #651b1b; padding: 5px;">Trier ▼</div>
+                                <div class="sort-dropdown" onclick="toggleSortMenuRasp()" style="cursor: pointer; color: #651b1b; padding: 5px;">{{t.trier}} ▼</div>
                                 
                                 <div id="sort-menu-rasp" class="hidden" style="position: absolute; right: 0; top: 120%; background: white; border: 1px solid #b5abab; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); z-index: 100; min-width: 150px; overflow: hidden;">
-                                    <a href="{{ url_for('admin_dashboard', sort_rasp='asc', _anchor='raspberry') }}" style="display: block; padding: 10px 15px; color: #333; text-decoration: none; border-bottom: 1px solid #eee;">De A-Z</a>
-                                    <a href="{{ url_for('admin_dashboard', sort_rasp='desc', _anchor='raspberry') }}" style="display: block; padding: 10px 15px; color: #333; text-decoration: none; border-bottom: 1px solid #eee;">De Z-A</a>
-                                    <a href="{{ url_for('admin_dashboard', sort_rasp='ip', _anchor='raspberry') }}" style="display: block; padding: 10px 15px; color: #333; text-decoration: none;">Par IP</a>
+                                    <a href="{{ url_for('admin_dashboard', sort_rasp='asc', _anchor='raspberry') }}" style="display: block; padding: 10px 15px; color: #333; text-decoration: none; border-bottom: 1px solid #eee;">{{t.a_z}}</a>
+                                    <a href="{{ url_for('admin_dashboard', sort_rasp='desc', _anchor='raspberry') }}" style="display: block; padding: 10px 15px; color: #333; text-decoration: none; border-bottom: 1px solid #eee;">{{t.z_a}}</a>
+                                    <a href="{{ url_for('admin_dashboard', sort_rasp='ip', _anchor='raspberry') }}" style="display: block; padding: 10px 15px; color: #333; text-decoration: none;">{{t.ip}}</a>
                                 </div>
                             </div>
                         </div>
@@ -74,40 +74,90 @@
                     
                     <div class="actions-bar">
                         <a href="#" class="action-link hidden" id="delete-rasp-selection">
-                            Supprimer la sélection 
+                            {{t.supp_select}}
                             <img src="{{ url_for('static', filename='img/delete.png') }}" alt="Delete" class="delete-img">
                         </a>
                     </div>
                 </div>
 
-                <div class="users-list" id="rasp-list-container">
-                    {% include 'partials/admin_rasp_list.html' %}
+                <div class="users-list">
+                    <div class="user-list-item">
+                        <span class="item-name">Nom</span>
+                        <span class="user-role-text">Ip</span>
+                        <span class="user-role-text">Etat</span>
+                        <div class="item-actions">
+                            
+                        </div>
+                    </div>
+                    {% for r in raspberry %}
+                    <div class="user-list-item">
+                        <input type="checkbox" class="custom-round-checkbox">
+                        <span class="item-name">{{ r.nomLecteur }}</span>
+                        <span class="item-name">{{ r.ip }}</span>
+                        <span class="user-role-text">
+                            {% if etatPing.get(r.nomLecteur, False) %}
+                                🟢 En ligne
+                            {% else %}
+                                🔴 Hors ligne - {{ dernierOk.get(r.nomLecteur, "Jamais") }}
+                            {% endif %}
+                        </span>
+                        <button type="button" onclick="openLogsModal('{{ r.nomLecteur }}')">
+                            Voir logs
+                        </button>
+                        <div class="item-actions">
+
+                            <!-- DELETE FIX -->
+                            <form method="POST" action="/admin/action_rasp">
+                                <input type="hidden" name="action" value="delete-rasp">
+                                <input type="hidden" name="raspberry-select" value="{{ r.idLecteur }}">
+
+                                <button type="submit" style="background:none;border:none;cursor:pointer;">
+                                    <img src="{{ url_for('static', filename='img/delete.png') }}"
+                                        alt="Delete"
+                                        class="delete-img">
+                                </button>
+                            </form>
+
+                        </div>
+                    </div>
+                    {% endfor %}
                 </div>
             </div>
             
             <div class="admin-panel">
-                <h3 class="panel-title">Ajouter une raspberry</h3>
-                
-                <div class="modal-content">
-                    <span class="close" onclick="closeModal()">&times;</span>
-                    <h2>{{t.titreRasp}}</h2>
+                <h3 class="panel-title">{{t.titreRasp}}</h3>
+                <!--Info pour la procédure pour mettre son Raspberry-->
+                <div class="tooltip">
+                    <img src="{{ url_for('static', filename='img/aide.png') }}" alt="aide" class="aide-img">
+                    <span class="tooltip-text">
+                        <h3>Les étapes pour configurer votre Raspberry :</h3>
+                        <h3>Pour pouvoir connecter la Raspberry il y a 3 informations nécéssaire qui nécéssite de chercher directement dans la Raspberry :</h3>
+                        <ul>
+                            <li><strong>Utilisateur :</strong> il faut taper la commande <code>whoami</code></li>
+                            <li><strong>IP :</strong> il faut taper la commande <code>ip a</code> et chercher à la ligne 
+                                <br><code>inet <strong>IPSETROUVEICI</strong> brd ADRESSERESEAU scope global dynamic noprefixroute wlp4s0</code>
+                                <br> ou la première valeur avec la commande <code>hostname -I</code></li>
+                            <li><strong>Mot de passe :</strong> Il est défini lors de la création du Raspberry</li>
+                        </ul>
+                    </span>
+                </div>
                     <form action="/admin/add_rasp" method="POST">
                         <div class="mb-3 mt-3">
-                            <label for="nom" class="form-label">{{t.nomRasp}}</label>
+                            <label for="nomLecteur" class="form-label">{{t.nomRasp}}</label>
                             <input type="text"
                                 class="form-control"
-                                id="nom"
+                                id="nomLecteur"
                                 placeholder="{{t.form_nomRasp}}"
-                                name="nom">
+                                name="nomLecteur">
                             <br>
-                            <label for="ipRasp" class="form-label">
+                            <label for="ip" class="form-label">
                                 {{t.ipRasp}}
                             </label>
                             <input type="text"
                                 class="form-control"
-                                id="ipRasp"
+                                id="ip"
                                 placeholder="{{t.form_ipRasp}}"
-                                name="ipRasp">
+                                name="ip">
                             <br>
                             <label for="mdpRasp" class="form-label">
                                 {{t.mdpRasp}}
@@ -127,6 +177,21 @@
             </div>
         </div>
 
+        <!-- MODAL LOGS UNIQUE -->
+        <div id="logs-modal" class="modal-overlay hidden" onclick="if(event.target === this) closeLogsModal()">
+            <div class="modal-box" style="background-color: #fff; color: #000;">
+                <h3 id="logs-modal-title" style="color: #000;">Logs</h3>
+
+                <div id="logs-list" class="logs-list" style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:12px;">
+                    <!-- liste des fichiers logs, remplie en JS -->
+                </div>
+
+                <pre id="logs-content" class="logs-content" style="max-height:300px; overflow:auto; background:#f5f5f5; color:#000; padding:10px; text-align:left;"></pre>
+
+                <button type="button" onclick="closeLogsModal()">Fermer</button>
+            </div>
+        </div>
+
         <div id="terminal" class="tab-content full-box">
         </div>
 
@@ -138,22 +203,22 @@
                         
                         <div class="search-bar admin-search">
                             <span class="search-icon"><img src="{{ url_for('static', filename='img/loupe.png') }}" alt="Recherche" class="recherche-img"></span>
-                            <input type="text" id="search-users" placeholder="Recherche..." oninput="rechercheDynamique('users')">
+                            <input type="text" id="search-users" placeholder="{{t.recherche}}..." oninput="rechercheDynamique('users')">
                         </div>
                         
                         <div class="sort-container" style="display: flex; align-items: center; gap: 15px; position: relative;">
                             
                             {% if current_sort %}
-                            <a href="{{ url_for('admin_dashboard', _anchor='users') }}" class="clear-filter" style="color: #CE5956; text-decoration: none; font-size: 14px;">✖ Enlever les filtres</a>
+                            <a href="{{ url_for('admin_dashboard', _anchor='users') }}" class="clear-filter" style="color: #CE5956; text-decoration: none; font-size: 14px;">{{t.supp_filtres}}</a>
                             {% endif %}
 
                             <div style="position: relative;">
-                                <div class="sort-dropdown" onclick="toggleSortMenu()" style="cursor: pointer; color: #651b1b; padding: 5px;">Trier ▼</div>
+                                <div class="sort-dropdown" onclick="toggleSortMenu()" style="cursor: pointer; color: #651b1b; padding: 5px;">{{t.trier}} ▼</div>
                                 
                                 <div id="sort-menu" class="hidden" style="position: absolute; right: 0; top: 120%; background: white; border: 1px solid #b5abab; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); z-index: 100; min-width: 150px; overflow: hidden;">
-                                    <a href="{{ url_for('admin_dashboard', sort='asc', _anchor='users') }}" style="display: block; padding: 10px 15px; color: #333; text-decoration: none; border-bottom: 1px solid #eee;">De A-Z</a>
-                                    <a href="{{ url_for('admin_dashboard', sort='desc', _anchor='users') }}" style="display: block; padding: 10px 15px; color: #333; text-decoration: none; border-bottom: 1px solid #eee;">De Z-A</a>
-                                    <a href="{{ url_for('admin_dashboard', sort='role', _anchor='users') }}" style="display: block; padding: 10px 15px; color: #333; text-decoration: none;">Par rôle</a>
+                                    <a href="{{ url_for('admin_dashboard', sort='asc', _anchor='users') }}" style="display: block; padding: 10px 15px; color: #333; text-decoration: none; border-bottom: 1px solid #eee;">{{t.a_z}}</a>
+                                    <a href="{{ url_for('admin_dashboard', sort='desc', _anchor='users') }}" style="display: block; padding: 10px 15px; color: #333; text-decoration: none; border-bottom: 1px solid #eee;">{{t.z_a}}</a>
+                                    <a href="{{ url_for('admin_dashboard', sort='role', _anchor='users') }}" style="display: block; padding: 10px 15px; color: #333; text-decoration: none;">{{t.tri_role}}</a>
                                 </div>
                             </div>
                         </div>
@@ -161,7 +226,7 @@
                     
                     <div class="actions-bar">
                         <a href="#" class="action-link hidden" id="delete-users-selection">
-                            Supprimer la sélection 
+                            {{t.supp_select}} 
                             <img src="{{ url_for('static', filename='img/delete.png') }}" alt="Delete" class="delete-img">
                         </a>
                     </div>
@@ -173,40 +238,40 @@
             </div>
 
             <div class="admin-panel">
-                <h3 class="panel-title">Créer un utilisateur</h3>
+                <h3 class="panel-title">{{t.create_user}}</h3>
                 
                 <form class="create-user-form" action="/admin/create" method="POST">
                     <div class="form-columns">
                         
                         <div class="form-col-left">
                             <div class="input-group">
-                                <label>Nom d'utilisateur</label>
+                                <label>{{t.name_user}}</label>
                                 <input type="text" class="transparent-input" required name="username">
                             </div>
                             <div class="input-group">
-                                <label>E-mail</label>
+                                <label>{{t.mail}}</label>
                                 <input type="email" class="transparent-input" required name="email">
                             </div>
                             <div class="input-group">
-                                <label>Mot de passe</label>
+                                <label>{{t.password}}</label>
                                 <input type="password" class="transparent-input" required name="password">
                             </div>
                         </div>
 
                         <div class="form-col-right">
-                            <label>Rôle</label>
+                            <label>{{t.role}}</label>
                             <div class="role-options">
                                 <label class="role-label">
                                     <input type="radio" name="role" value="commercial" required>
-                                    <span class="role-btn">Commercial</span>
+                                    <span class="role-btn">{{t.commercial}}</span>
                                 </label>
                                 <label class="role-label">
                                     <input type="radio" name="role" value="marketing">
-                                    <span class="role-btn">Marketing</span>
+                                    <span class="role-btn">{{t.marketing}}</span>
                                 </label>
                                 <label class="role-label">
                                     <input type="radio" name="role" value="admin">
-                                    <span class="role-btn">Admin</span>
+                                    <span class="role-btn">{{t.admin}}</span>
                                 </label>
                             </div>
                         </div>
@@ -214,7 +279,7 @@
                     </div>
                     
                     <div style="text-align: center; margin-top: 30px;">
-                        <button type="submit" class="btn-action-red">Créer</button>
+                        <button type="submit" class="btn-action-red">{{t.create_user}}</button>
                     </div>
                 </form>
             </div>
@@ -265,23 +330,23 @@
 
     <div id="user-modal-overlay" class="modal-overlay hidden" onclick="if(event.target === this) closeUserModal()">
         <div class="modal-box admin-modal-box">
-            <h3 class="modal-title">Modifier</h3>
+            <h3 class="modal-title">{{t.modif}}</h3>
             <form action="/admin/edit_user" method="POST">
                 
                 <input type="hidden" id="original_username" name="original_username">
                 <input type="hidden" id="original_email" name="original_email">
 
                 <div class="input-group">
-                    <label style="color: #651b1b;">Nom d'utilisateur</label>
+                    <label style="color: #651b1b;">{{t.name_user}}</label>
                     <input type="text" id="edit_username" name="edit_username" class="transparent-input">
                 </div>
                 <div class="input-group">
-                    <label style="color: #651b1b;">E-mail</label>
+                    <label style="color: #651b1b;">{{t.mail}}</label>
                     <input type="email" id="edit_email" name="edit_email" class="transparent-input">
                 </div>
                 <div class="modal-actions-row">
-                    <button type="submit" class="btn-action-red">Enregistrer</button>
-                    <button type="button" class="btn-outline-red" onclick="closeUserModal()">Annuler</button>
+                    <button type="submit" class="btn-action-red">{{t.enregistrer}}</button>
+                    <button type="button" class="btn-outline-red" onclick="closeUserModal()">{{t.cancel}}</button>
                 </div>
             </form>
         </div>
@@ -289,18 +354,18 @@
 
     <div id="delete-modal-overlay" class="modal-overlay hidden" onclick="if(event.target === this) closeDeleteModal()">
         <div class="modal-box admin-modal-box" style="background-color: #fff; text-align: center;">
-            <h3 class="modal-title" style="color: #651b1b; margin-bottom: 15px;">Confirmer la suppression</h3>
+            <h3 class="modal-title" style="color: #651b1b; margin-bottom: 15px;">{{t.confirm_supp}}</h3>
             
             <p style="color: #333; margin-bottom: 25px; font-size: 16px;">
-                Voulez-vous vraiment supprimer l'utilisateur <strong id="delete-username-display" style="color: #a71e23;"></strong> ?
+                {{t.confirm_q}}<strong id="delete-username-display" style="color: #a71e23;"></strong>?
             </p>
             
             <form action="/admin/delete" method="POST">
                 <input type="hidden" id="delete_username_input" name="username" value="">
                 
                 <div class="modal-actions-row" style="justify-content: center; gap: 20px; margin-top: 20px;">
-                    <button type="submit" name="decision" value="cancel" class="btn-outline-red">Annuler</button>
-                    <button type="submit" name="decision" value="confirm" class="btn-action-red">Confirmer</button>
+                    <button type="submit" name="decision" value="cancel" class="btn-outline-red">{{t.cancel}}</button>
+                    <button type="submit" name="decision" value="confirm" class="btn-action-red">{{t.confirm}}</button>
                 </div>
             </form>
         </div>
@@ -367,6 +432,58 @@
         }
 
         
+        // --- FONCTIONS MODALE (Logs Raspberry) ---
+        function openLogsModal(nom) {
+            document.getElementById('logs-modal-title').innerText = 'Logs - ' + nom;
+            document.getElementById('logs-content').innerText = '';
+            document.getElementById('logs-list').innerHTML = 'Chargement...';
+            document.getElementById('logs-modal').classList.remove('hidden');
+
+            fetch('/admin/api/logs/' + encodeURIComponent(nom))
+                .then(resp => resp.json())
+                .then(data => {
+                    const listDiv = document.getElementById('logs-list');
+                    listDiv.innerHTML = '';
+
+                    if (!data.files || data.files.length === 0) {
+                        listDiv.innerHTML = '<p>Aucun fichier log.</p>';
+                        return;
+                    }
+
+                    data.files.forEach(filename => {
+                        const btn = document.createElement('button');
+                        btn.type = 'button';
+                        btn.style.display = 'block';
+                        btn.style.color = '#000';
+                        btn.style.background = '#eee';
+                        btn.innerText = filename;
+                        btn.onclick = () => loadLogContent(nom, filename);
+                        listDiv.appendChild(btn);
+                    });
+                })
+                .catch(() => {
+                    document.getElementById('logs-list').innerHTML = '<p>Erreur de chargement des logs.</p>';
+                });
+        }
+
+        function loadLogContent(nom, filename) {
+            const contentEl = document.getElementById('logs-content');
+            contentEl.innerText = 'Chargement...';
+
+            fetch('/admin/api/log/' + encodeURIComponent(nom) + '/' + encodeURIComponent(filename))
+                .then(resp => resp.json())
+                .then(data => {
+                    contentEl.innerText = data.content !== undefined ? data.content : (data.error || 'Erreur');
+                })
+                .catch(() => {
+                    contentEl.innerText = 'Erreur de chargement du fichier.';
+                });
+        }
+
+        function closeLogsModal() {
+            document.getElementById('logs-modal').classList.add('hidden');
+        }
+
         // --- FONCTIONS MODALE (Modification Utilisateur) ---
         function openUserModal(username, email) {
             document.getElementById('original_username').value = username;
@@ -463,6 +580,10 @@
             })
             .catch(error => console.error("Erreur lors de la recherche dynamique :", error));
         }
+
+        // setInterval(() => {
+        //     window.location.reload();
+        // }, 20000); // toutes les 20 secondes
     </script>
     <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>

@@ -181,3 +181,94 @@ select, input {
     width: 350px; height: 350px; background-repeat: no-repeat;
     background-size: contain; background-position: center; opacity: 0.03; z-index: -1; 
 }
+
+
+/* ==========================================================================
+   EXTENSION : MODE SOMBRE - DIRECTION ARTISTIQUE "BORDEAUX NOCTURNE"
+   ========================================================================== */
+
+body.sombre {
+    /* 1. Fond principal de l'application (Dégradé bordeaux très sombre à noir) */
+    background: linear-gradient(#1c1111, #1e0b0b) !important;
+    color: #F5E6E6 !important; /* Texte principal blanc cassé rosé doux */
+}
+
+/* Modification du filigrane en mode sombre pour ne pas qu'il flashe */
+body.sombre::after {
+    opacity: 0.05;
+}
+
+/* 2. Adaptation des cartes d'authentification et de conteneurs (Login, Signin, Settings, Profile) */
+body.sombre .auth-card,
+body.sombre .signup-card,
+body.sombre .settings-container,
+body.sombre .profile-container {
+    background-color: #241616 !important; /* Bordeaux ultra foncé */
+    color: #F5E6E6 !important;
+    border-color: #3A2525 !important; /* Bordure subtile assortie */
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5) !important;
+}
+
+/* 3. Titres et sections textuelles spécifiques */
+body.sombre .title,
+body.sombre .settings-title,
+body.sombre .profile-header h2 {
+    color: #FF8E8E !important; /* Un rouge plus clair/lumineux pour les titres importants */
+}
+
+body.sombre .settings-section {
+    border-bottom: 1px solid #3A2525 !important;
+}
+
+/* 4. Gestion des formulaires (Champs de saisie textuelle) */
+body.sombre .input-group label {
+    color: #B09898 !important; /* Labels secondaires adoucis */
+}
+
+body.sombre .input-group input[type="text"],
+body.sombre .input-group input[type="password"],
+body.sombre .input-group input[type="email"],
+body.sombre select {
+    background-color: #140c0c !important; /* Fond d'input sombre */
+    color: #F5E6E6 !important;
+    border: 1px solid #5d1b1bba !important;
+}
+
+body.sombre .input-group input:focus {
+    border-color: #CE5956 !important;
+    outline: none;
+}
+
+/* 5. Boutons radio et d'options (Boutons de choix de rôles / boutons de langues) */
+body.sombre .role-btn,
+body.sombre .radio-btn {
+    background-color: #3A2525 !important;
+    color: #B09898 !important;
+}
+
+body.sombre .role-label:hover .role-btn,
+body.sombre .radio-label:hover .radio-btn {
+    background-color: #4A3232 !important;
+    color: #F5E6E6 !important;
+}
+
+body.sombre .role-label input[type="radio"]:checked + .role-btn,
+body.sombre .radio-label input[type="radio"]:checked + .radio-btn {
+    background-color: #CE5956 !important; /* Conserve ton bordeaux d'action */
+    color: white !important;
+}
+
+/* 6. Liens secondaires (ex: Mot de passe oublié) */
+body.sombre .auth-container a,
+body.sombre .signup-card a {
+    color: #FF8E8E !important;
+}
+
+/* 7. Ajustements pour les blocs de présentation de la page d'accueil (index.html) */
+body.sombre .presentation,
+body.sombre .equipe {
+    background-color: #241616 !important;
+    color: #F5E6E6 !important;
+    border: 1px solid #5d1b1bba !important;
+    opacity: 0.9;
+}

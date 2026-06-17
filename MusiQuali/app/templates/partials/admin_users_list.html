@@ -1,8 +1,8 @@
 <div class="user-list-item" style="font-weight: bold; padding-bottom: 15px; border-bottom: 1px solid #eee;">
     <span class="col-checkbox"></span>
-    <span class="item-name col-nom">Nom</span>
-    <span class="user-role-text col-email">E-mail</span>
-    <span class="user-role-text col-role">Rôle</span>
+    <span class="item-name col-nom">{{t.nom}}</span>
+    <span class="user-role-text col-email">{{t.mail}}</span>
+    <span class="user-role-text col-role">{{t.role}}</span>
     <div class="item-actions"></div>
 </div>
 
@@ -19,6 +19,6 @@
 </div>
 {% else %}
 <div style="padding: 20px; text-align: center; color: #666; font-style: italic;">
-    Aucun utilisateur trouvé.
+    {{t.aucun_user}}
 </div>
 {% endfor %}

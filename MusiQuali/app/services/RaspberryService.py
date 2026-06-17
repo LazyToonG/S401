@@ -13,8 +13,8 @@ class RaspberryService():
     def montreToutRasp(self):
         return self.rdao.findAll()
     
-    def ajoutR(self, identifiant, ipRasp):
-        return self.rdao.createRasp(identifiant, ipRasp)
+    def ajoutR(self, identifiant, ipRasp, idEntreprise):
+        return self.rdao.createRasp(identifiant, ipRasp, idEntreprise)
     
     # def selectRIp(self, ipRasp):
     #     r = self.rdao.findByIp(ipRasp)
@@ -47,10 +47,10 @@ class RaspberryService():
             time.sleep(5)
             subprocess.run(["ssh", f"{r['nom']}@{r['ipRasp']}", "python3", f"/home/{r['nom']}/musiquali/RAS.py"])
 
-    def pingTout(self): #pour les logs
-        toutRasp = self.montreToutRasp()
-        for chaque in toutRasp:
-                subprocess.run(["ping", "-c", "1", chaque["ipRasp"]])
+    # def pingTout(self): #pour les logs
+    #     toutRasp = self.montreToutRasp()
+    #     for chaque in toutRasp:
+    #             subprocess.run(["ping", "-c", "1", chaque["ipRasp"]])
 
     def triASC(self):
         return self.rdao.triASC()

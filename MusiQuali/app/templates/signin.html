@@ -130,7 +130,7 @@
         <div class="logo"><img src="{{ url_for('static', filename='img/logo.png') }}" alt="logo"/><p>Musi-quali</p></div>
         <div class="b">
             <div class="page" id="login" onclick="window.location.href='{{ url_for('login') }}';">{{t.login}}</div>
-            <div class="page" id="index" onclick="window.location.href='{{ url_for('index') }}';">Retour à l'accueil</div>
+            <div class="page" id="index" onclick="window.location.href='{{ url_for('index') }}';">{{t.retour}}</div>
         </div>
     </div>
     {% include 'messages_alert.html' %}
@@ -141,35 +141,35 @@
             <form action="#" method="POST">
                 
                 <div class="input-group">
-                    <label for="username">Nom d'utilisateur</label>
+                    <label for="username">{{t.user}}</label>
                     <input type="text" id="username" name="username" required>
                 </div>
 
                 <div class="input-group">
-                    <label for="email">Adresse Email</label>
+                    <label for="email">{{t.mail}}</label>
                     <input type="email" id="email" name="email" required style="width: 100%; padding: 12px; border: 1px solid #5d1b1b5a; border-radius: 6px; font-size: 14px; outline: none;">
                 </div>
 
                 <div class="input-group">
-                    <label for="password">Mot de passe</label>
+                    <label for="password">{{t.password}}</label>
                     <input type="password" id="password" name="password" required>
                 </div>
 
                 <div class="input-group">
-                    <label for="confirm_password">Confirmer le mot de passe</label>
+                    <label for="confirm_password">{{t.confirm}}</label>
                     <input type="password" id="confirm_password" name="confirm_password" required style="width: 100%; padding: 12px; border: 1px solid #5d1b1b5a; border-radius: 6px; font-size: 14px; outline: none;">
                 </div>
                 
                 <div class="input-group">
-                    <label>Rôle</label>
+                    <label>{{t.role}}</label>
                     <div class="role-options" style="display: flex; flex-direction: row; gap: 15px;">
                         <label class="role-label" style="flex: 1; text-align: center;">
                             <input type="radio" name="role" value="commercial" required>
-                            <span class="role-btn">Commercial</span>
+                            <span class="role-btn">{{t.commercial}}</span>
                         </label>
                         <label class="role-label" style="flex: 1; text-align: center;">
                             <input type="radio" name="role" value="marketing">
-                            <span class="role-btn">Marketing</span>
+                            <span class="role-btn">{{t.marketing}}</span>
                         </label>
                     </div>
                 </div>

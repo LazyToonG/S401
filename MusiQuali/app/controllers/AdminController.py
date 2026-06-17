@@ -1,12 +1,15 @@
-from flask import render_template, request, session, redirect, url_for, flash
+from flask import render_template, request, session, redirect, url_for, flash, jsonify
 from app import app
 from app.controllers.LoginController import reqrole
+from app.controllers.RaspberryController import etatPing, dernierOk
+from app.services.LogsService import LogsService
 
 from app.services.UserService import UserService
 from app.services.RaspberryService import RaspberryService
 from app.services.TraductionService import Traductionservice
 
 rs = RaspberryService()
+ls = LogsService()
 ts = Traductionservice()
 user_service = UserService()
 
@@ -34,6 +37,11 @@ def admin_dashboard():
         rasp = rs.montreToutRasp()
 
     # --- TRI DES UTILISATEURS ---
+    logs_by_rasp = {}
+
+    for r in rasp:
+        logs_by_rasp[r.nomLecteur] = ls.list_log_files(r.nomLecteur)
+
     current_sort = request.args.get('sort')
     if current_sort == 'asc':
         users = user_service.triASC()
@@ -44,8 +52,39 @@ def admin_dashboard():
     else:
         users = user_service.getUsers()
 
-    return render_template("admin.html", raspberry=rasp, users=users, t=textes, current_lang=langue_choisie, user=user, role=role, current_sort=current_sort, current_sort_rasp=current_sort_rasp)
+    return render_template(
+        "admin.html",
+        raspberry=rasp,
+        users=users,
+        logs_by_rasp=logs_by_rasp,
+        t=textes,
+        current_lang=langue_choisie,
+        user=user,
+        role=role,
+        current_sort=current_sort,
+        current_sort_rasp=current_sort_rasp,
+        etatPing=etatPing,
+        dernierOk=dernierOk
+    )
 
+#LOGS
+
+@app.route("/admin/api/logs/<nom>")
+@reqrole('admin')
+def api_list_logs(nom):
+    """Retourne en JSON la liste des fichiers logs d'un lecteur."""
+    files = ls.list_log_files(nom)
+    return jsonify({"nom": nom, "files": files})
+
+
+@app.route("/admin/api/log/<nom>/<filename>")
+@reqrole('admin')
+def api_read_log(nom, filename):
+    """Retourne en JSON le contenu d'un fichier log précis."""
+    content = ls.read_log_file(nom, filename)
+    if content is None:
+        return jsonify({"error": "Fichier introuvable"}), 404
+    return jsonify({"nom": nom, "filename": filename, "content": content})
 
 # Création utilisateur
 
@@ -56,6 +95,7 @@ def create_user():
     password = request.form.get("password")
     role = request.form.get("role")
     mail = request.form.get("email")
+    entreprise = session["idEntreprise"]  # Récupère l'idEntreprise de la session, ou 2 par défaut
 
     if not username or not password or not role:
         flash("Tous les champs sont obligatoires", "error")
@@ -69,7 +109,7 @@ def create_user():
                 flash(message, "error")
                 return redirect(url_for("admin_dashboard"))
                 
-    user_service.signin(username, password, role, mail)
+    user_service.signin(username, password, role, mail, entreprise)
 
     message=ts.message_langue("Utilisateur créé avec succès","User successfully created")
     flash(message, "success")
@@ -142,6 +182,10 @@ def edit_user():
 @app.route("/admin/api/search_users", methods=["GET"])
 @reqrole('admin')
 def api_search_users():
+    traductions = ts.tradAdmin()
+    langue_choisie = ts.getLangue()
+    textes = traductions[langue_choisie]
+
     query = request.args.get('q', '')
     
     if query == '':
@@ -150,11 +194,15 @@ def api_search_users():
         users = user_service.recherche(query)
         
     # On renvoie UNIQUEMENT le morceau de HTML (le partial)
-    return render_template("partials/admin_users_list.html", users=users)
+    return render_template("partials/admin_users_list.html", users=users, t=textes)
 
 @app.route("/admin/api/search_rasp", methods=["GET"])
 @reqrole('admin')
 def api_search_rasp():
+    traductions = ts.tradAdmin()
+    langue_choisie = ts.getLangue()
+    textes = traductions[langue_choisie]
+    
     query = request.args.get('q', '')
     
     if query == '':
@@ -162,4 +210,4 @@ def api_search_rasp():
     else:
         raspberry = rs.recherche(query)
         
-    return render_template("partials/admin_rasp_list.html", raspberry=raspberry)
+    return render_template("partials/admin_rasp_list.html", raspberry=raspberry, t=textes)

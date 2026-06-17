@@ -16,8 +16,8 @@ class SettingsController:
         if not session.get('logged'):
             return redirect(url_for('login'))
 
-        traductions = ts.tradLogin()
-        langue_choisie = ts.getLangue()
+        traductions = ts.tradProfil()
+        langue_choisie = session.get('lang', 'fr')
         textes = traductions[langue_choisie]
         
         user = session['username']
@@ -94,17 +94,21 @@ class SettingsController:
         if not session.get('logged'):
             return redirect(url_for('login'))
 
-        traductions = ts.tradLogin()
-        langue_choisie = ts.getLangue()
+        traductions = ts.tradSettings() 
+        
+        langue_choisie = session.get('lang', 'fr')
         textes = traductions[langue_choisie]
         
         user = session['username']
         role = session['role']
 
         if request.method == 'POST':
-            # Ici tu pourras gérer l'enregistrement des préférences plus tard
             langue = request.form.get('language')
             dark_mode = request.form.get('dark_mode')
+            
+            # --- SAUVEGARDE DE LA LANGUE ---
+            if langue in ['fr', 'en']:
+                session['lang'] = langue  # On l'enregistre directement ici !
             
             flash("Vos préférences ont été enregistrées.", "success")
             return redirect(url_for('settings'))

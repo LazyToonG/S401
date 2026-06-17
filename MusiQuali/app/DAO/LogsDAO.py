@@ -68,12 +68,21 @@ class LogsSqliteDAO():
 
     
     def insert(self, idLecteur, nomFichierLog):
-        """Insère un nouveau log. date au format 'YYYY-MM-DD HH:MM:SS' ou maintenant par défaut"""
-        # if date is None:
-        #     date = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        """Insère ou met à jour un log si déjà existant"""
+
         with self._getDbConnection() as conn:
-            cursor = conn.execute(
-                "INSERT INTO Logs (idLecteur, nomFichierLog) VALUES (?, ?)",
-                (idLecteur, nomFichierLog)
-            )
+            cursor = conn.execute("""
+                INSERT INTO Logs (idLecteur, nomFichierLog)
+                VALUES (?, ?)
+                ON CONFLICT(nomFichierLog)
+                DO UPDATE SET
+                    idLecteur = excluded.idLecteur
+            """, (idLecteur, nomFichierLog))
+
+            conn.commit()
             return cursor.lastrowid
+        
+    def delete(self, id):
+        """Supprime un log par son id"""
+        with self._getDbConnection() as conn:
+            conn.execute("DELETE FROM Logs WHERE idLogs=?", (id,))

@@ -6,13 +6,13 @@
     
     <nav class="main-nav">
       {#  <!--{% if role=="admin" or role=="commercial" %}-->
-       <!-- <a href="{{ url_for('voir_planning') }}" class="nav-link {% if request.path == '/commercial' %}active{% endif %}" id="commercial">Commercial</a>-->
+       <!-- <a href="{{ url_for('voir_planning') }}" class="nav-link {% if request.path == '/commercial' %}active{% endif %}" id="commercial">{{t.commercial}}</a>-->
        <!-- {% endif %}-->#}
         {% if role=="admin" %}
-        <a href="{{ url_for('admin_dashboard') }}" class="nav-link {% if request.path == '/admin' %}active{% endif %}" id="admin">Admin</a>
+        <a href="{{ url_for('admin_dashboard') }}" class="nav-link {% if request.path == '/admin' %}active{% endif %}" id="admin">{{t.admin}}</a>
         {% endif %}
         {% if role=="admin" or role=="marketing" %}
-        <a href="{{ url_for('marketing') }}" class="nav-link {% if request.path == '/marketing' %}active{% endif %}" id="marketing">Marketing</a>
+        <a href="{{ url_for('marketing') }}" class="nav-link {% if request.path == '/marketing' %}active{% endif %}" id="marketing">{{t.marketing}}</a>
         {% endif %}
     </nav>
 

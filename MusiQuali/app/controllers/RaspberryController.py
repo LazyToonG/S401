@@ -1,12 +1,18 @@
-from flask import render_template, request, redirect, url_for, flash
+from pathlib import Path
+
+from flask import render_template, request, redirect, url_for, flash, session
 from app import app
 from app.controllers.LoginController import reqrole
 from app.services.RaspberryService import RaspberryService
 import subprocess, ipaddress, time
 from app.services.TraductionService import Traductionservice
+import time
+from app.services.LogsService import LogsService
+
 
 
 rs = RaspberryService()
+ls = LogsService()
 
 ts = Traductionservice()
 #import datetime
@@ -15,25 +21,27 @@ ts = Traductionservice()
 @app.route("/admin/add_rasp", methods=["POST"])
 @reqrole('admin')
 def addRaspberry():#manque trad pour les flash
-    ip = request.form.get("ipRasp")
-    nom = request.form.get("nom")
+    ip = request.form.get("ip")
+    nom = request.form.get("nomLecteur")
     mdp = request.form.get("mdpRasp")
     
 
     rasps = rs.montreToutRasp()
-    if any(r.ipRasp == ip for r in rasps):
+    if any(r.ip == ip for r in rasps):
         message=ts.message_langue("Raspberry déjà existant","Raspberry already exists")
         flash(message,"error")
         return redirect(url_for("admin_dashboard"))
     
     try:
         try:
+            print(f"Vérification de l'IP : {ip}")
             ipaddress.IPv4Address(ip)
         except ipaddress.AddressValueError:
             flash("IP invalide", "error")
             return redirect(url_for("admin_dashboard"))
         # subprocess.run(["scp", "-r", "./app/static/rasdata/*", f"{nom}@{ip}:/home/{nom}/musiquali/"])
-        subprocess.run(["sshpass", "-p", mdp, "ssh-copy-id", "-o", "StrictHostKeyChecking=no", f"{nom}@{ip}"], shell=True, check=True, timeout=8)
+        # print(f"sshpass -p {mdp} ssh-copy-id -o StrictHostKeyChecking=no {nom}@{ip}")
+        subprocess.run(["sshpass", "-p", mdp, "ssh-copy-id", "-o", "StrictHostKeyChecking=no", f"{nom}@{ip}"], check=True, timeout=8, capture_output=True, text=True)
 
     except subprocess.TimeoutExpired:
         flash("Délai dépassé : le Raspberry ne répond pas", "error")
@@ -52,7 +60,7 @@ def addRaspberry():#manque trad pour les flash
             flash("Erreur SSH inconnue", "error")
         return redirect(url_for("admin_dashboard")) 
 
-    rs.ajoutR(nom, ip)#mettre mdp <----------------------
+    rs.ajoutR(nom, ip, session["idEntreprise"])#mettre mdp <----------------------
     flash("Raspberry ajouté avec succès", "success")
     return redirect(url_for("admin_dashboard"))
 
@@ -88,30 +96,140 @@ def action_rasp():
         flash(message, "success")
 
     elif button=="envoie-ping":
-        print(ip)
-        result = subprocess.run(["ping", "-c", "4", ip], capture_output=True, text=True)
-        if result.returncode == 0:
+        if pingRasp(ip):
             message=ts.message_langue("Ping et initialisation OK","Ping and initialisation OK")
             flash(message, "success")
         else:
             message=ts.message_langue("Erreur lors de l'initialisation","Error during initialisation")
             flash(message, "error")
+        
     #tmp
-    elif button=="test":
-        if ip==None:
+    elif button == "test":
+        if envoieChangementPlanning(nom, ip):
+            flash("Envoi du planning OK", "success")
+        else:
             flash("Pas de Raspberry trouvé", "error")
-            return redirect(url_for("admin_dashboard"))
-        flash("En cours d'envoi...", "warning") #warning parceque c'est jaune, neutre
-        subprocess.run(["rsync", "-avz", "--delete", "-e", "ssh","./app/static/rasdata/",  f"{nom}@{ip}:/home/{nom}/musiquali/"])
-        flash("envoyer !", "success")
-        time.sleep(5)
-        flash("Exécution en cours...", "warning")
-        subprocess.run(["ssh", f"{nom}@{ip}", "python3", f"/home/{nom}/musiquali/RAS.py"])
-    
+
+        
     return redirect(url_for("admin_dashboard"))
 
 
-#-> déplacement dans services/RaspberryService.py
+def envoieChangementPlanning(nom, ip):
+    """
+    Envoie le contenu de ./app/static/rasdata/ vers le Raspberry distant via rsync,
+    puis lance RAS.py sur le Raspberry via SSH.
+    Retourne True si le rsync et le lancement SSH ont réussi, False sinon.
+    """
+    if not ip:
+        return False
+
+    try:
+        subprocess.run(
+            ["rsync", "-avz", "--delete", "-e", "ssh", "./app/static/rasdata/", f"{nom}@{ip}:/home/{nom}/musiquali/"],
+            check=True,
+            capture_output=True,
+            text=True,
+            timeout=60,
+        )
+        print("fini envoie")
+    except subprocess.TimeoutExpired:
+        print(f"Timeout rsync pour {nom}@{ip}")
+        return False
+    except subprocess.CalledProcessError as e:
+        print(f"Erreur rsync pour {nom}@{ip} : {(e.stderr or '').strip()}")
+        return False
+
+    time.sleep(5)
+
+    print("lancement RAS.py")
+    print(f"ssh {nom}@{ip} python3 /home/{nom}/musiquali/RAS.py")
+    try:
+        subprocess.Popen(["ssh", "-tt", f"{nom}@{ip}", "python3", "-u", f"/home/{nom}/musiquali/RAS.py"])
+    except OSError as e:
+        print(f"Erreur lancement RAS.py pour {nom}@{ip} : {e}")
+        return False
+
+    print("fini RAS.py")
+    return True
+    # subprocess.Popen([
+    #             "ssh",
+    #             f"{nom}@{ip}",
+    #             "nohup python3 -u /home/{nom}/musiquali/RAS.py > /home/{nom}/musiquali/ras.log 2>&1 &"
+    #         ])
+
+
+last_sync = {}  # mémorise le dernier rsync par raspberry
+def recupLogs(idLecteur, nom, ip):
+    dest = Path(f"./app/static/raspLogs/{nom}/logs/")
+    dest.mkdir(parents=True, exist_ok=True)
+    log = subprocess.run(["rsync", "-avz", "-e", "ssh", f"{nom}@{ip}:/home/{nom}/musiquali/logs/", str(dest)])
+    
+    #met en base de données les fichiers récupérer
+    for file in dest.iterdir():
+        if file.is_file():
+            ls.add_log(idLecteur, file.name)
+    return log
+
+def pingRasp(ip):
+    result = subprocess.run(["ping", "-c", "4", ip], capture_output=True, text=True)
+    return result.returncode == 0
+        
+dernierOk = {}
+etatPing = {}
+def pingLoop():
+    print("PING LOOP DEMARRE")
+    while True:
+        raspberrys = rs.montreToutRasp()
+        for r in raspberrys:
+            if r.ip is None or r.nomLecteur is None:
+                continue  # Ignorer les entrées avec des informations incomplètes
+
+            try:
+                ok = pingRasp(r.ip)
+            except Exception as e:
+                print(f"Erreur ping pour {r.nomLecteur} ({r.ip}) : {e}")
+                ok = False
+
+            if ok :
+                print(f"ok pour {r.nomLecteur} ({r.ip})")
+                etatPing[r.nomLecteur] = True
+                dernierOk[r.nomLecteur] = time.strftime('%Y-%m-%d %H:%M:%S')
+
+                # rajout logs(1 fois toutes les 5 minutes max)
+                now = time.time()
+                last = last_sync.get(r.nomLecteur, 0)
+
+                if now - last > 300:  # 300s = 5 min
+                    try:
+                        sync_ok = envoieChangementPlanning(r.nomLecteur, r.ip)
+                    except Exception as e:
+                        print(f"Erreur inattendue lors de l'envoi du planning pour {r.nomLecteur} : {e}")
+                        sync_ok = False
+
+                    if sync_ok:
+                        print(f"sync logs pour {r.nomLecteur}")
+                        try:
+                            recupLogs(r.idLecteur, r.nomLecteur, r.ip)
+                            last_sync[r.nomLecteur] = now
+                        except Exception as e:
+                            print(f"Erreur récupération logs pour {r.nomLecteur} : {e}")
+                    else:
+                        print(f"échec de l'envoi du planning pour {r.nomLecteur}, nouvelle tentative au prochain cycle")
+
+            else:
+                print(f"pas ok pour {r.nomLecteur} ({r.ip})")
+                etatPing[r.nomLecteur] = False
+            dernier = dernierOk.get(r.nomLecteur, "Jamais")   
+            print(f"Dernier ping : {dernier}")
+        time.sleep(30) # 300 -> 5min
+
+import threading
+
+threading.Thread(
+    target=pingLoop,
+    daemon=True
+).start()#-> déplacement dans services/RaspberryService.py
+
 
 # @app.route("/save_export", methods=["POST"])
 # @reqrole('commercial')

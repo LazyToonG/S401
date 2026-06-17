@@ -1,8 +1,8 @@
 <div class="user-list-item" style="font-weight: bold; padding-bottom: 15px; border-bottom: 1px solid #eee;">
     <span class="col-checkbox"></span>
-    <span class="item-name col-nom">Nom</span>
-    <span class="item-name col-email">Ip</span>
-    <span class="user-role-text col-role">État</span>
+    <span class="item-name col-nom">{{t.nom}}</span>
+    <span class="item-name col-email">IP</span>
+    <span class="user-role-text col-role">{{t.etat}}</span>
     <div class="item-actions"></div>
 </div>
 
@@ -17,6 +17,6 @@
 </div>
 {% else %}
 <div style="padding: 20px; text-align: center; color: #666; font-style: italic;">
-    Aucune Raspberry trouvée.
+    {{t.aucun_rasp}}
 </div>
 {% endfor %}

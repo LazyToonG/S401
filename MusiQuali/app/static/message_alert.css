@@ -1,8 +1,22 @@
 /* Message alert */
- .alert-box { padding: 15px; margin-bottom: 20px; border: 1px solid transparent; border-radius: 4px; position: relative;
+.alert-box {
+    padding: 15px;
+    border: 1px solid transparent;
+    border-radius: 8px;
     
-/* Pour positionner la croix */ 
-font-weight: bold; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); } 
+    position: fixed;
+    top: 100px;
+    left: 50%; 
+    transform: translateX(-50%);
+    width: 97%;
+    max-width: auto;
+
+    font-weight: bold;
+    text-align: center;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    z-index: 9999;
+}
+
 .alert-success { color: #155724; background-color: #d4edda; border-color: #c3e6cb; } 
 .alert-error { color: #721c24; background-color: #f8d7da; border-color: #f5c6cb; } 
 .alert-warning { color: #726b1c; background-color: #f4f4be; border-color: #f0f5c6; } 

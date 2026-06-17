@@ -14,49 +14,44 @@ class UserSqliteDAO():
         return conn
 
     def _initTable(self):
-        
-
         conn = self._getDbConnection()
         cursor = conn.cursor()
-        # verif si table exist
-        cursor.execute("""
-            SELECT 1
-            FROM sqlite_master
-            WHERE type='table' AND name='Users';
-            """)
-        table_exists = cursor.fetchone() is not None
 
-            # rajouter not null a mail et trouver une soluce
+        # Création table
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS Users(
                 idUtilisateur INTEGER PRIMARY KEY AUTOINCREMENT,
-                username VARCHAR(50) NOT NULL,
+                username VARCHAR(50) NOT NULL UNIQUE,
                 password VARCHAR(100) NOT NULL,
                 role VARCHAR(15) NOT NULL,
-                mail VARCHAR(50),
-                idEntreprise INT NOT NULL default 1,
-                UNIQUE(username),
-                UNIQUE(mail),
+                mail VARCHAR(50) NOT NULL UNIQUE,
+                idEntreprise INT NOT NULL DEFAULT 1,
                 FOREIGN KEY(idEntreprise) REFERENCES Entreprise(idEntreprise)
-                );
-            """)
+            );
+        """)
 
-            # insert admin si table vient d'etre crée
-        if not table_exists:
-            self.createUser("admin", "admin", "admin", "admin@musiquali.com")
+        # Vérifier si un admin existe déjà
+        cursor.execute("""
+            SELECT 1 FROM Users WHERE username = 'admin' LIMIT 1;
+        """)
+        admin_exists = cursor.fetchone() is not None
+
+        # Créer admin uniquement s’il n’existe pas
+        if not admin_exists:
+            self.createUser("admin", "admin", "admin", "admin@musiquali.com", 5)
 
         conn.commit()
         conn.close()
 
         #ainsi, meme si on lance une bd vide on à un admin, mais que quand la table est crée donc que 1 fois
 
-    def createUser(self, username, password, role, mail):
+    def createUser(self, username, password, role, mail, idEntreprise):
         conn = self._getDbConnection()
         hashed = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
         try:
             conn.execute(
-                "INSERT INTO Users(username, password, role, mail) VALUES (?,?,?,?)",
-                (username, hashed, role, mail)
+                "INSERT INTO Users(username, password, role, mail, idEntreprise) VALUES (?,?,?,?,?)",
+                (username, hashed, role, mail, idEntreprise)
             )
             conn.commit()
             return True
