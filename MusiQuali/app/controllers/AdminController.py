@@ -200,7 +200,7 @@ def api_search_users():
 @reqrole('admin')
 def api_search_rasp():
     traductions = ts.tradAdmin()
-    langue_choisie = ts.getLangue()
+    langue_choisie = session.get('lang', ts.getLangue()) 
     textes = traductions[langue_choisie]
     
     query = request.args.get('q', '')
@@ -210,4 +210,8 @@ def api_search_rasp():
     else:
         raspberry = rs.recherche(query)
         
-    return render_template("partials/admin_rasp_list.html", raspberry=raspberry, t=textes)
+    return render_template("partials/admin_rasp_list.html", 
+                           raspberry=raspberry, 
+                           t=textes,
+                           etatPing=etatPing,
+                           dernierOk=dernierOk)

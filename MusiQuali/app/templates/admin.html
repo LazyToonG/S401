@@ -22,6 +22,11 @@
             text-overflow: ellipsis;  /* Ajoute les petits points "..." */
             padding-right: 15px;      /* Marge de sécurité pour ne pas coller au rôle */
         }
+        .col-ip {
+            flex: 1; /* Prend exactement la même place que le nom (1 part) */
+            min-width: 120px;
+            padding-right: 15px;
+        }
         .col-role {
             flex: 1;
             min-width: 80px;
@@ -80,54 +85,56 @@
                     </div>
                 </div>
 
-                <div class="users-list">
-                    <div class="user-list-item">
-                        <span class="item-name">Nom</span>
-                        <span class="user-role-text">Ip</span>
-                        <span class="user-role-text">Etat</span>
-                        <div class="item-actions">
-                            
-                        </div>
+                <div class="users-list" id="rasp-list-container">
+                    
+                    <div class="user-list-item" style="font-weight: bold; padding-bottom: 15px; border-bottom: 1px solid #eee;">
+                        <span class="col-checkbox"></span>
+                        <span class="item-name col-nom">Nom</span>
+                        <span class="item-name col-ip">Ip</span>
+                        <span class="user-role-text col-role">État</span>
+                        <div class="item-actions" style="width: 120px;"></div>
                     </div>
+
                     {% for r in raspberry %}
                     <div class="user-list-item">
-                        <input type="checkbox" class="custom-round-checkbox">
-                        <span class="item-name">{{ r.nomLecteur }}</span>
-                        <span class="item-name">{{ r.ip }}</span>
-                        <span class="user-role-text">
+                        <input type="checkbox" class="custom-round-checkbox col-checkbox">
+                        
+                        <span class="item-name col-nom">{{ r.nomLecteur }}</span>
+                        <span class="item-name col-ip">{{ r.ip }}</span>
+                        
+                        <span class="user-role-text col-role">
                             {% if etatPing.get(r.nomLecteur, False) %}
                                 🟢 En ligne
                             {% else %}
                                 🔴 Hors ligne - {{ dernierOk.get(r.nomLecteur, "Jamais") }}
                             {% endif %}
                         </span>
-                        <button type="button" onclick="openLogsModal('{{ r.nomLecteur }}')">
-                            Voir logs
-                        </button>
-                        <div class="item-actions">
-
-                            <!-- DELETE FIX -->
-                            <form method="POST" action="/admin/action_rasp">
+                        
+                        <div class="item-actions" style="display: flex; align-items: center; gap: 15px; width: 120px; justify-content: flex-end;">
+                            <button class="btn-action-red-log" type="button" onclick="openLogsModal('{{ r.nomLecteur }}')" style="margin: 0; padding: 5px 8px;">
+                                Voir logs
+                            </button>
+                            
+                            <form method="POST" action="/admin/action_rasp" style="margin: 0; display: flex;">
                                 <input type="hidden" name="action" value="delete-rasp">
                                 <input type="hidden" name="raspberry-select" value="{{ r.idLecteur }}">
-
-                                <button type="submit" style="background:none;border:none;cursor:pointer;">
-                                    <img src="{{ url_for('static', filename='img/delete.png') }}"
-                                        alt="Delete"
-                                        class="delete-img">
+                                <button type="submit" style="background:none; border:none; cursor:pointer; padding:0; display: flex; align-items: center;">
+                                    <img src="{{ url_for('static', filename='img/delete.png') }}" alt="Delete" class="delete-img">
                                 </button>
                             </form>
-
                         </div>
+                    </div>
+                    {% else %}
+                    <div style="padding: 20px; text-align: center; color: #666; font-style: italic;">
+                        Aucune Raspberry trouvée.
                     </div>
                     {% endfor %}
                 </div>
             </div>
             
             <div class="admin-panel">
-                <h3 class="panel-title">{{t.titreRasp}}</h3>
-                <!--Info pour la procédure pour mettre son Raspberry-->
-                <div class="tooltip">
+                <h3 class="panel-title" style="display: flex; align-items: center; gap: 10px;">{{t.titreRasp}}
+                    <div class="tooltip">
                     <img src="{{ url_for('static', filename='img/aide.png') }}" alt="aide" class="aide-img">
                     <span class="tooltip-text">
                         <h3>Les étapes pour configurer votre Raspberry :</h3>
@@ -141,35 +148,43 @@
                         </ul>
                     </span>
                 </div>
-                    <form action="/admin/add_rasp" method="POST">
-                        <div class="mb-3 mt-3">
-                            <label for="nomLecteur" class="form-label">{{t.nomRasp}}</label>
-                            <input type="text"
-                                class="form-control"
-                                id="nomLecteur"
-                                placeholder="{{t.form_nomRasp}}"
-                                name="nomLecteur">
-                            <br>
-                            <label for="ip" class="form-label">
-                                {{t.ipRasp}}
-                            </label>
-                            <input type="text"
-                                class="form-control"
-                                id="ip"
-                                placeholder="{{t.form_ipRasp}}"
-                                name="ip">
-                            <br>
-                            <label for="mdpRasp" class="form-label">
-                                {{t.mdpRasp}}
-                            </label>
-                            <input type="password"
-                                class="form-control"
-                                id="mdpRasp"
-                                placeholder="{{t.form_mdpRasp}}"
-                                name="mdpRasp">
+                </h3>
+                <!--Info pour la procédure pour mettre son Raspberry-->
+                
+                    <form class="create-user-form" action="/admin/add_rasp" method="POST">
+                        <div class="input-group">
+                            <label for="nomLecteur" style="color: #651b1b;">{{t.nomRasp}}</label>
+                            <input type="text" 
+                                   class="transparent-input" 
+                                   id="nomLecteur" 
+                                   placeholder="{{t.form_nomRasp}}" 
+                                   name="nomLecteur" 
+                                   required>
                         </div>
-                        <br>
-                        <button type="submit" class="btn-action-red" style="text-align: center; margin-top: 30px;">{{t.confirm}}</button>
+                        
+                        <div class="input-group">
+                            <label for="ip" style="color: #651b1b;">{{t.ipRasp}}</label>
+                            <input type="text" 
+                                   class="transparent-input" 
+                                   id="ip" 
+                                   placeholder="{{t.form_ipRasp}}" 
+                                   name="ip" 
+                                   required>
+                        </div>
+                        
+                        <div class="input-group">
+                            <label for="mdpRasp" style="color: #651b1b;">{{t.mdpRasp}}</label>
+                            <input type="password" 
+                                   class="transparent-input" 
+                                   id="mdpRasp" 
+                                   placeholder="{{t.form_mdpRasp}}" 
+                                   name="mdpRasp" 
+                                   required>
+                        </div>
+                        
+                        <div style="text-align: center; margin-top: 30px;">
+                            <button type="submit" class="btn-action-red">{{t.confirm}}</button>
+                        </div>
                     </form>
                 </div>
 
