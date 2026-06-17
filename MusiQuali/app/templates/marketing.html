@@ -47,6 +47,9 @@
                  data-duree="{{ m.duree }}">
                 <b>{{ m.nomMusique }}</b><br>
                 <small>Durée : {{ m.duree }}</small>
+                <button onclick="togglePlay(this, '{{ m.nomMusique }}')" style="background:none; border:none; cursor:pointer;">
+                    <img src="{{ url_for('static', filename='img/logo.png') }}" style="width:20px;">
+                </button>
                 <form action="{{ url_for('delete_music', music_id=m.idMusique) }}" method="POST" style="display:inline;">
                     
                     <button type="submit" style="background:none; border:none; cursor:pointer;">
@@ -536,6 +539,7 @@
         });
 
         const deleteImgUrl = "{{ url_for('static', filename='img/delete.png') }}";
+        const playImgUrl = "{{ url_for('static', filename='img/logo.png') }}";
 
         // --- GESTION DE L'UPLOAD DE FICHIERS (Preview & Suppression) ---
         const audioInput = document.getElementById('audio-input');
@@ -647,6 +651,8 @@
                         box.innerHTML = `
                             <b>${m.nomMusique}</b><br>
                             <small>Durée : ${m.duree}</small>
+                            <button onclick="togglePlay(this, ${JSON.stringify(m.nomMusique)})" style="background:none; border:none; cursor:pointer;">
+                                <img src="${playImgUrl}" alt="Jouer" style="width:20px;"></button>
                             <form action="/marketing/music/${m.idMusique}/delete" method="POST" style="display:inline;">
                                 <button type="submit" style="background:none; border:none; cursor:pointer;">
                                     <img src="${deleteImgUrl}" alt="Supprimer"></button>
@@ -691,7 +697,35 @@
         }
     </script>
     <script>
-        // --- RECHERCHE & TRI MUSIQUES ---
+        // --- LECTURE AUDIO ---
+        let currentAudio = null;
+        let currentBtn = null;
+
+        function togglePlay(btn, nomMusique) {
+            const isSame = currentAudio && currentBtn === btn;
+
+            // Stoppe toujours l'audio en cours
+            if (currentAudio) {
+                currentAudio.pause();
+                currentAudio = null;
+                currentBtn = null;
+            }
+
+            // Si c'était le même bouton, on s'arrête là (toggle off)
+            if (isSame) return;
+
+            // Lance la nouvelle musique
+            const url = '/static/AllMusics/' + encodeURIComponent(nomMusique);
+            currentAudio = new Audio(url);
+            currentAudio.play();
+            currentBtn = btn;
+
+            // Remet currentAudio à null quand la musique se termine
+            currentAudio.addEventListener('ended', () => {
+                currentAudio = null;
+                currentBtn = null;
+            });
+        }
         function filterAndSortMusiques() {
             const query = document.getElementById('search-musiques').value.toLowerCase();
             const sort = document.getElementById('sort-musiques').value;
@@ -725,7 +759,7 @@
                 b.style.display = title.includes(query) ? '' : 'none';
             });
 
-            const visible = boxes.filter(b => b.style.display !== 'none'); //please work i've been a good boy
+            const visible = boxes.filter(b => b.style.display !== 'none');
             if (sort === 'az') visible.sort((a, b) => a.dataset.title.localeCompare(b.dataset.title));
             else if (sort === 'za') visible.sort((a, b) => b.dataset.title.localeCompare(a.dataset.title));
             else if (sort === 'duree') visible.sort((a, b) => parseInt(a.dataset.dureeTotale) - parseInt(b.dataset.dureeTotale));
