@@ -120,6 +120,9 @@
     <script>
         const deleteImgUrl = "{{ url_for('static', filename='img/delete.png') }}";
 
+        // ID de la playlist actuellement ouverte dans l'overlay (null si fermé)
+        let currentPlaylistId = null;
+
         // =============================================================================
         // 1. FONCTIONS UTILITAIRES
         // =============================================================================
@@ -179,9 +182,11 @@
             // Ferme si déjà ouvert
             if (div.style.display !== 'none') {
                 div.style.display = 'none';
+                currentPlaylistId = null;
                 return;
             }
 
+            currentPlaylistId = playlistId;
             div.style.display = 'block';
             titleEl.textContent = `Musiques de : ${playlistTitle}`;
             contentEl.innerHTML = '<i>Chargement...</i>';
@@ -248,7 +253,7 @@
 
 
         // =============================================================================
-        // 3. MUSIQUES — dragondrop, suppression
+        // 3. MUSIQUES — drag, suppression
         // =============================================================================
 
         // Attache les listeners sur toutes les music-box présentes au chargement
@@ -315,9 +320,67 @@
             });
         });
 
+        // L'overlay #playlistMusics est aussi une dropzone :
+        // dropper une musique dedans l'ajoute à la playlist actuellement ouverte
+        const playlistMusicsOverlay = document.getElementById('playlistMusics');
+        const playlistMusicsContent = document.getElementById('playlistMusicsContent');
+
+        playlistMusicsOverlay.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+        });
+
+        playlistMusicsOverlay.addEventListener('drop', async (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+
+            if (!currentPlaylistId) return;
+
+            const boxId = e.dataTransfer.getData('text/plain');
+            const draggedBox = document.getElementById(boxId);
+            if (!draggedBox) return;
+
+            const musicId = draggedBox.dataset.musicId;
+            if (!musicId) return;
+
+            const musicName = draggedBox.querySelector('b')?.textContent || '';
+            const musicDuree = draggedBox.querySelector('small')?.textContent?.replace('Durée : ', '') || '';
+
+            try {
+                const res = await fetch(`/marketing/playlist/${currentPlaylistId}/add_music/${musicId}`, {
+                    method: 'POST',
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                });
+                if (res.ok) {
+                    // Ajoute la ligne dans l'overlay immédiatement
+                    const emptyMsg = playlistMusicsContent.querySelector('p');
+                    if (emptyMsg) emptyMsg.remove();
+
+                    const row = document.createElement('div');
+                    row.id = `overlay-music-${musicId}`;
+                    row.style.cssText = 'display:flex; justify-content:space-between; align-items:center; padding:8px; border-bottom:1px solid #eee;';
+                    row.innerHTML = `
+                        <span><b>${musicName}</b> — <small>${musicDuree}</small></span>
+                        <button onclick="removeMusicFromPlaylist(${currentPlaylistId}, ${musicId})" style="background:none; border:none; cursor:pointer;">
+                            <img src="${deleteImgUrl}" style="width:16px;">
+                        </button>
+                    `;
+                    playlistMusicsContent.appendChild(row);
+
+                    // Feedback visuel sur l'overlay
+                    playlistMusicsOverlay.style.outline = '2px solid green';
+                    setTimeout(() => playlistMusicsOverlay.style.outline = '', 800);
+                } else {
+                    console.error('Erreur ajout relation via overlay', res.status);
+                }
+            } catch (err) {
+                console.error('Erreur réseau ajout relation via overlay', err);
+            }
+        });
+
 
         // =============================================================================
-        // 5. ONGLETS — (bascule le panneau droit uniquement)
+        // 5. ONGLETS — bascule le panneau droit uniquement
         // =============================================================================
 
         document.querySelectorAll('.tab-pill').forEach(btn => {

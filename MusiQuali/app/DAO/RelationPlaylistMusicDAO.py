@@ -16,14 +16,15 @@ class RelationPlaylistMusicDAO:
     def _init_db(self):
         conn = self._getDbConnection() #je veux que les doublon soient possibles.
         conn.execute("""
-            CREATE TABLE IF NOT EXISTS PlaylistMusique(
-                INTEGER PRIMARY KEY AUTOINCREMENT, 
+                CREATE TABLE IF NOT EXISTS PlaylistMusique(
+                idCouple INTEGER PRIMARY KEY AUTOINCREMENT, 
                 idPlaylist INTEGER NOT NULL,
                 idMusique  INTEGER NOT NULL,
-                
+                position INTEGER,
                 FOREIGN KEY (idPlaylist) REFERENCES Playlist(idPlaylist),
                 FOREIGN KEY (idMusique)  REFERENCES Musique(idMusique)
             );
+
         """)
         conn.commit()
         conn.close()
