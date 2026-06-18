@@ -49,3 +49,6 @@ class UserService():
     def deleteUser(self, username):
         return self.udao.deleteByUsername(username)
     
+    def deleteUserIdentreprise(self, idEntreprise):
+        return self.udao.deleteByIdEntreprise(idEntreprise)
+    

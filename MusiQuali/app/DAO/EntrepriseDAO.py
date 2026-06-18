@@ -33,16 +33,16 @@ class EntrepriseSqliteDAO():
     def createEntreprise(self, nomEntreprise):
         conn = self._getDbConnection()
         try:
-            conn.execute(
+            cursor = conn.execute(
                 "INSERT INTO Entreprise (nomEntreprise) VALUES (?)",
                 (nomEntreprise,)
             )
             conn.commit()
-            return True
+            return cursor.lastrowid
         except Exception as e:
             conn.rollback()
-            print("ERROR create Entreprise:", e)
-            return False
+            print("ERROR:", e)
+            return None
         finally:
             conn.close()
 
@@ -78,6 +78,18 @@ class EntrepriseSqliteDAO():
 
         if row:
             return Entreprise(row["idEntreprise"], row["nomEntreprise"])
+        return None
+    
+    def findIdbyName(self, nomEntreprise):
+        conn = self._getDbConnection()
+        row = conn.execute(
+            "SELECT idEntreprise FROM Entreprise WHERE nomEntreprise = ?",
+            (nomEntreprise,)
+        ).fetchone()
+        conn.close()
+
+        if row:
+            return row["idEntreprise"]
         return None
     
     def delete(self, idEntreprise):

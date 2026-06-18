@@ -189,6 +189,13 @@ class UserSqliteDAO():
         conn.close()
         return True
 
+    def deleteByIdEntreprise(self, idEntreprise):
+        conn = self._getDbConnection()
+        conn.execute("DELETE FROM Users WHERE idEntreprise = ?", (idEntreprise,))
+        conn.commit()
+        conn.close()
+        return True
+
     
 
         

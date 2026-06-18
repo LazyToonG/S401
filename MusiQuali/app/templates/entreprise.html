@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Musiquali - Entreprises</title>
+
+    <link href="{{ url_for('static', filename='style.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='style_entreprise.css') }}" rel="stylesheet">
+</head>
+
+<body>
+
+{% include 'nav_bar.html' %}
+
+<div class="page-container">
+
+    <!-- ===================== -->
+    <!-- CARTE LISTE ENTREPRISE -->
+    <!-- ===================== -->
+    <div class="card">
+
+        <div class="card-header">
+            <h2>{{ t.tousEntreprise }}</h2>
+        </div>
+
+        <div class="search-box">
+            <img class="search-img" src="{{ url_for('static', filename='img/loupe.png') }}">
+            <input type="text" placeholder="Recherche...">
+        </div>
+
+        <div class="table-header">
+            <div></div>
+            <div>Nom</div>
+            <div>ID</div>
+            <div>Info</div>
+            <div></div>
+        </div>
+
+        {% for e in entreprises %}
+        <div class="table-row">
+
+            <input type="checkbox">
+
+            <div>{{ e.nomEntreprise }}</div>
+
+            <div>{{ e.idEntreprise }}</div>
+
+            <div class="actions">
+
+                <form method="POST"
+                      action="{{ url_for('delete_entreprise', idEntreprise=e.idEntreprise) }}">
+
+                    <button type="submit" class="icon-btn">
+                        🗑
+                    </button>
+
+                </form>
+
+            </div>
+
+        </div>
+        {% else %}
+        <div class="empty">
+            Aucune entreprise trouvée
+        </div>
+        {% endfor %}
+
+    </div>
+
+    <!-- ===================== -->
+    <!-- CARTE CREATE ENTREPRISE -->
+    <!-- ===================== -->
+    <div class="card">
+
+        <div class="card-header">
+            <h2>Ajouter une entreprise</h2>
+        </div>
+
+        <form action="/entreprise/create" method="POST" class="form">
+
+            <label>Nom entreprise</label>
+            <input type="text"
+                   name="nomEntreprise"
+                   placeholder="Entrer un nom"
+                   required>
+
+            <button type="submit" class="btn-primary">
+                Ajouter
+            </button>
+
+        </form>
+
+    </div>
+
+</div>
+
+</body>
+</html>

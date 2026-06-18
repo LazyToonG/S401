@@ -476,3 +476,12 @@ class Traductionservice():
                 
             }
         }
+    
+    def tradEntreprise(self):
+        return {
+            "fr" : {
+                "tousEntreprise" : "Liste des entreprises"
+            },
+            "eng" : {
+                "tousEntreprise" : "List of all the companys"
+            }}
