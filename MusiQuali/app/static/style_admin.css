@@ -9,14 +9,14 @@
 .tab-btn:hover { background-color: #cc5f5f; }
 
 /* --- CONTENU --- */
-.content-area { padding: 0 40px 40px 40px; }
+.content-area { padding: 0 40px 40px 40px; display: flex; flex:1; }
 .tab-content { display: none; }
-.tab-content.active { display: block; }
+.tab-content.active { display: flex; }
 .full-box {
     background-color: #fff; border: 1px solid #651b1b; border-radius: 20px;
     min-height: 500px; width: 100%; position: relative; overflow: hidden;
 }
-.split-layout.active { display: flex; gap: 20px; height: 500px; }
+.split-layout.active { display: flex; gap: 20px; flex: 1; min-height: 0;}
 
 
 /* --- ONGLET REQUÊTES : COLONNE GAUCHE --- */
