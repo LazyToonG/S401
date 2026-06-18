@@ -8,14 +8,73 @@
     <link href="{{ url_for('static', filename='style_marketing.css') }}" rel="stylesheet">
     <link href="{{ url_for('static', filename='message_alert.css') }}" rel="stylesheet">
     <style>
-        .music-box {
-            border: 2px dashed #651b1b;
-            padding: 10px;
-            margin: 5px 0;
-            background-color: #EBE3E3;
-            cursor: move;
-            border-radius: 8px;
+        /* Style commun pour les musiques ET les playlists */
+        .music-box, .playlist-box {
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            padding: 15px 0; 
+            border-bottom: 1px solid #eaeaea; 
+            border-top: none;
+            border-left: none;
+            border-right: none;
+            background-color: transparent;
+            cursor: grab; 
+            font-size: 16px; 
             color: #000;
+            margin: 0;
+        }
+
+        /* Le bloc de texte à gauche (Titre, durée...) */
+        .item-info {
+            display: flex; 
+            align-items: center; 
+            gap: 12px;
+            flex: 1;         /* Prend tout l'espace libre avant les boutons */
+            min-width: 0;    /* INDISPENSABLE pour que les "..." fonctionnent en Flexbox */
+            padding-right: 15px;
+        }
+
+        /* On force le titre de la musique à se couper proprement avec "..." */
+        .item-info b {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* On interdit aux petits points ⠿ et à la durée de rétrécir ou de se déformer */
+        .item-info span {
+            flex-shrink: 0;
+        }
+
+        /* Les petits points pour glisser-déposer */
+        .grab-dots {
+            font-size: 20px; 
+            color: #555;
+        }
+
+        /* Les boutons avec l'effet de transparence (opacity) intégré ! */
+        .action-btn {
+            background: none; 
+            border: none; 
+            cursor: pointer; 
+            padding: 0;
+            display: flex;
+        }
+        .action-btn img {
+            width: 18px; 
+            opacity: 0.5; 
+            transition: opacity 0.2s ease;
+        }
+        .action-btn:hover img {
+            opacity: 1;
+        }
+
+        /* Style pour l'option de tri actuellement active */
+        .sort-menu a.active-sort {
+            background-color: #f5ebeb !important; /* Léger fond rosé/bordeaux très clair */
+            color: #651b1b !important;            /* Écrit en bordeaux foncé */
+            font-weight: bold !important;         /* Texte bien visible */
         }
     </style>
 </head>
@@ -30,32 +89,46 @@
     <main class="marketing-layout">
 
         <div class="left-panel"> <!--liste des musiques, toujours visible-->
-            <div style="display:flex; gap:8px; margin-bottom:10px;">
-                <input type="text" id="search-musiques" placeholder="Rechercher une musique..." style="flex:1; padding:4px 8px;">
-                <select id="sort-musiques" style="padding:4px 8px;">
-                    <option value="default">— Trier —</option>
-                    <option value="az">A → Z</option>
-                    <option value="za">Z → A</option>
-                    <option value="duree">Durée croissante</option>
-                    <option value="duree_desc">Durée décroissante</option>
-                </select>
+            <div class="search-sort-bar">
+                <div class="search-bar admin-search" style="margin-right: 15px;">
+                    <span class="search-icon"><img src="{{ url_for('static', filename='img/loupe.png') }}" alt="Recherche" class="recherche-img"></span>
+                    <input type="text" id="search-musiques" placeholder="Rechercher une musique...">
+                </div>
+                
+                <div class="sort-container" style="display: flex; align-items: center; position: relative;">
+                    <a href="javascript:void(0)" id="clear-sort-musiques" class="hidden" onclick="clearMarketingSort('musiques')" style="color: #CE5956; text-decoration: underline; font-size: 14px; margin-right: 15px;">Supprimer les tris</a>
+                    
+                    <div class="sort-dropdown" onclick="toggleMarketingSort('sort-menu-musiques')" style="cursor: pointer; color: #651b1b;">Trier ▼</div>
+                    
+                    <div id="sort-menu-musiques" class="sort-menu hidden" style="position: absolute; right: 0; top: 120%; background: white; border: 1px solid #b5abab; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); z-index: 100; min-width: 180px; overflow: hidden;">
+                        <a href="javascript:void(0)" data-category="name" data-dir="1" onclick="applyMarketingSort('musiques', 'name', 1)" style="display: block; padding: 10px 15px; color: #333; text-decoration: none; border-bottom: 1px solid #eee;">A → Z</a>
+                        <a href="javascript:void(0)" data-category="name" data-dir="-1" onclick="applyMarketingSort('musiques', 'name', -1)" style="display: block; padding: 10px 15px; color: #333; text-decoration: none; border-bottom: 1px solid #eee;">Z → A</a>
+                        <a href="javascript:void(0)" data-category="duree" data-dir="1" onclick="applyMarketingSort('musiques', 'duree', 1)" style="display: block; padding: 10px 15px; color: #333; text-decoration: none; border-bottom: 1px solid #eee;">Durée croissante</a>
+                        <a href="javascript:void(0)" data-category="duree" data-dir="-1" onclick="applyMarketingSort('musiques', 'duree', -1)" style="display: block; padding: 10px 15px; color: #333; text-decoration: none;">Durée décroissante</a>
+                    </div>
+                </div>
             </div>
             {% for m in musiques %}
             <div id="music-box-{{ m.idMusique }}" class="music-box" draggable="true"
-                 data-music-id="{{ m.idMusique }}"
-                 data-nom="{{ m.nomMusique | lower }}"
-                 data-duree="{{ m.duree }}">
-                <b>{{ m.nomMusique }}</b><br>
-                <small>Durée : {{ m.duree }}</small>
-                <button onclick="togglePlay(this, '{{ m.nomMusique }}')" style="background:none; border:none; cursor:pointer;">
-                    <img src="{{ url_for('static', filename='img/logo.png') }}" style="width:20px;">
-                </button>
-                <form action="{{ url_for('delete_music', music_id=m.idMusique) }}" method="POST" style="display:inline;">
-                    
-                    <button type="submit" style="background:none; border:none; cursor:pointer;">
-                                <img src="{{ url_for('static', filename='img/delete.png') }}" style="width:20px;">
+                 data-music-id="{{ m.idMusique }}" data-nom="{{ m.nomMusique | lower }}" data-duree="{{ m.duree }}">
+                
+                <span class="item-info">
+                    <span class="grab-dots">⠿</span> 
+                    <b>{{ m.nomMusique }}</b> 
+                    <span style="white-space: nowrap;">— {{ m.duree }}s</span>
+                </span>
+                
+                <div style="display: flex; align-items: center; gap: 20px;">
+                    <button class="action-btn" onclick="togglePlay(this, '{{ m.nomMusique }}')">
+                        <img src="{{ url_for('static', filename='img/pause_noir.png') }}" alt="Play">
                     </button>
-                </form>
+                    <form action="{{ url_for('delete_music', music_id=m.idMusique) }}" method="POST" style="margin: 0;">
+                        <button type="submit" class="action-btn">
+                            <img src="{{ url_for('static', filename='img/delete.png') }}" alt="Delete">
+                        </button>
+                    </form>
+                </div>
+
             </div>
             {% endfor %}
         </div>
@@ -64,60 +137,69 @@
 
             <div id="tab-playlists" class="panel-view active"> <!--gestion des playlistes-->
 
-                <form action="{{ url_for('add_playlist') }}" method="POST" style="display:flex; gap:8px; margin-bottom:10px;">
-                    <input type="text" name="title" placeholder="Nom de la playlist" required>
-                    <button type="submit">+ add playlist</button>
+                <form action="{{ url_for('add_playlist') }}" method="POST" style="display: flex; gap: 15px; margin-bottom: 20px; border-bottom: 1px solid #b5abab; padding: 15px 0px; align-items: center;">
+                    <input type="text" name="title" class="playlist-input" placeholder="Nom de la nouvelle playlist..." required>
+                    <button type="submit" class="btn-action-red">+ Ajouter la playlist</button>
                 </form>
 
-                <div style="display:flex; gap:8px; margin-bottom:10px;">
-                    <input type="text" id="search-playlists" placeholder="Rechercher une playlist..." style="flex:1; padding:4px 8px;">
-                    <select id="sort-playlists" style="padding:4px 8px;">
-                        <option value="default">— Trier —</option>
-                        <option value="az">A → Z</option>
-                        <option value="za">Z → A</option>
-                        <option value="duree">Durée totale croissante</option>
-                        <option value="duree_desc">Durée totale décroissante</option>
-                        <option value="nb">Nombre de musiques croissant</option>
-                        <option value="nb_desc">Nombre de musiques décroissant</option>
-                    </select>
+                <div class="search-sort-bar">
+                    <div class="search-bar admin-search" style="margin-right: 15px;">
+                        <span class="search-icon"><img src="{{ url_for('static', filename='img/loupe.png') }}" alt="Recherche" class="recherche-img"></span>
+                        <input type="text" id="search-playlists" placeholder="Rechercher une playlist...">
+                    </div>
+                    
+                    <div class="sort-container" style="display: flex; align-items: center; position: relative;">
+                        <a href="javascript:void(0)" id="clear-sort-playlists" class="hidden" onclick="clearMarketingSort('playlists')" style="color: #CE5956; text-decoration: underline; font-size: 14px; margin-right: 15px;">Supprimer les tris</a>
+
+                        <div class="sort-dropdown" onclick="toggleMarketingSort('sort-menu-playlists')" style="cursor: pointer; color: #651b1b;">Trier ▼</div>
+                        
+                        <div id="sort-menu-playlists" class="sort-menu hidden" style="position: absolute; right: 0; top: 120%; background: white; border: 1px solid #b5abab; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); z-index: 100; min-width: 220px; overflow: hidden;">
+                            <a href="javascript:void(0)" data-category="name" data-dir="1" onclick="applyMarketingSort('playlists', 'name', 1)" style="display: block; padding: 10px 15px; color: #333; text-decoration: none; border-bottom: 1px solid #eee;">A → Z</a>
+                            <a href="javascript:void(0)" data-category="name" data-dir="-1" onclick="applyMarketingSort('playlists', 'name', -1)" style="display: block; padding: 10px 15px; color: #333; text-decoration: none; border-bottom: 1px solid #eee;">Z → A</a>
+                            <a href="javascript:void(0)" data-category="duree" data-dir="1" onclick="applyMarketingSort('playlists', 'duree', 1)" style="display: block; padding: 10px 15px; color: #333; text-decoration: none; border-bottom: 1px solid #eee;">Durée totale croissante</a>
+                            <a href="javascript:void(0)" data-category="duree" data-dir="-1" onclick="applyMarketingSort('playlists', 'duree', -1)" style="display: block; padding: 10px 15px; color: #333; text-decoration: none; border-bottom: 1px solid #eee;">Durée totale décroissante</a>
+                            <a href="javascript:void(0)" data-category="nb" data-dir="1" onclick="applyMarketingSort('playlists', 'nb', 1)" style="display: block; padding: 10px 15px; color: #333; text-decoration: none; border-bottom: 1px solid #eee;">Nb musiques croissant</a>
+                            <a href="javascript:void(0)" data-category="nb" data-dir="-1" onclick="applyMarketingSort('playlists', 'nb', -1)" style="display: block; padding: 10px 15px; color: #333; text-decoration: none;">Nb musiques décroissant</a>
+                        </div>
+                    </div>
                 </div>
 
                 <div id="playlists-container">
                 {% for p in playlists %}
-                <div id="playlist-box-{{ p.idPlaylist }}"
-                     draggable="true"
-                     data-playlist-id="{{ p.idPlaylist }}"
-                     data-title="{{ p.title | lower }}"
-                     data-nb-musiques="{{ p.nb_musiques }}"
-                     data-duree-totale="{{ p.duree_totale }}"
-                     style="display:flex; justify-content:space-between; align-items:center; border:2px dashed #333; padding:10px; margin:5px 0; background-color:#e0e0e0; cursor:move;">
-                    <div>
-                        <b>{{ p.title }}</b><br>
-                        <small>{{ p.idUtilisateur }}</small><br>
-                        <small id="stats-{{ p.idPlaylist }}">{{ p.nb_musiques }} musique(s) — {{ p.duree_totale }}s</small>
-                    </div>
-                    <div style="display:flex; gap:8px; align-items:center;">
-
-                        <button onclick="toggleplaylistInfo('{{ p.idPlaylist }}', '{{ p.title }}')"
-                                style="background:none; border:none; cursor:pointer;">
-                            <img src="{{ url_for('static', filename='img/modif.png') }}" style="width:20px;">
+                <div id="playlist-box-{{ p.idPlaylist }}" class="playlist-box" draggable="true"
+                     data-playlist-id="{{ p.idPlaylist }}" data-title="{{ p.title | lower }}"
+                     data-nb-musiques="{{ p.nb_musiques }}" data-duree-totale="{{ p.duree_totale }}">
+                    
+                    <span class="item-info">
+                        <span class="grab-dots">⠿</span> 
+                        <b>{{ p.title }}</b> 
+                        <span id="stats-{{ p.idPlaylist }}">— {{ p.nb_musiques }} musique(s) — {{ p.duree_totale }}s</span>
+                    </span>
+                    
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <button class="action-btn" onclick="toggleplaylistInfo('{{ p.idPlaylist }}', '{{ p.title }}')">
+                            <img src="{{ url_for('static', filename='img/modif.png') }}" alt="Modifier">
                         </button>
-
-                        <form action="{{ url_for('delete_playlist', playlist_id=p.idPlaylist) }}" method="POST" style="display:inline;">
-                            <button type="submit" style="background:none; border:none; cursor:pointer;">
-                                <img src="{{ url_for('static', filename='img/delete.png') }}" style="width:20px;">
+                        <form action="{{ url_for('delete_playlist', playlist_id=p.idPlaylist) }}" method="POST" style="margin: 0;">
+                            <button type="submit" class="action-btn">
+                                <img src="{{ url_for('static', filename='img/delete.png') }}" alt="Delete">
                             </button>
                         </form>
                     </div>
+
                 </div>
                 {% endfor %}
                 </div>
 
-                <div id="playlistMusics" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; background:rgb(255,255,255); z-index:10; padding:20px; box-sizing:border-box; overflow-y:auto;">
-                    <button onclick="closeOverlay()" style="position: absolute; top: 20px; right: 20px; background: none; border: 1px solid #333; padding: 5px 10px; cursor: pointer; border-radius: 4px;">
-                        Sauvegarder et fermer la playlist</button>
-                    <h3 id="playlistTitle" style="color: #000; margin-top: 40px;"></h3>
-                    <div id="playlistMusicsContent" style="color: #000;"></div>
+                <div id="playlistMusics" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; background:#ffffff; z-index:10; padding:40px; box-sizing:border-box; overflow-y:auto;">
+                    
+                    <button onclick="closeOverlay()" onmouseover="this.style.backgroundColor='#f5f5f5'" onmouseout="this.style.backgroundColor='white'" style="position: absolute; top: 20px; right: 20px; background: white; border: 1px solid #333; padding: 8px 15px; cursor: pointer; border-radius: 4px; font-family: inherit; font-size: 14px; transition: background-color 0.2s;">
+                        Sauvegarder et fermer la playlist
+                    </button>
+                    
+                    <h2 id="playlistTitle" style="color: #000; margin-top: 10px; margin-bottom: 30px; font-size: 24px;"></h2>
+                    
+                    <div id="playlistMusicsContent" style="color: #000; display: flex; flex-direction: column;"></div>
                 </div>
 
 
@@ -295,11 +377,15 @@
                     const row = document.createElement('div');
                     row.id = `overlay-music-${m.idCouple}`;
                     row.dataset.idCouple = m.idCouple;
-                    row.style.cssText = 'display:flex; justify-content:space-between; align-items:center; padding:8px; border-bottom:1px solid #eee; cursor:grab;';
+                    row.style.cssText = 'display:flex; justify-content:space-between; align-items:center; padding:15px 0; border-bottom:1px solid #eaeaea; cursor:grab; font-size:16px; font-family: "Times New Roman", Times, serif;';
                     row.innerHTML = `
-                        <span>⠿ <b>${m.nomMusique}</b> — <small>${m.duree}s</small></span>
-                        <button onclick="removeMusicFromPlaylist(${m.idCouple})" style="background:none; border:none; cursor:pointer;">
-                            <img src="/static/img/delete.png" style="width:16px;">
+                        <span style="display:flex; align-items:center; gap:12px; color:#000;">
+                            <span style="font-size:20px; color:#555;">⠿</span> 
+                            <b>${m.nomMusique}</b> 
+                            <span style="white-space: nowrap;">— ${m.duree}s</span>
+                        </span>
+                        <button onclick="removeMusicFromPlaylist(${m.idCouple})" style="background:none; border:none; cursor:pointer; padding:0;">
+                            <img src="/static/img/delete.png" style="width:18px; opacity:0.5; transition:0.2s;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.5">
                         </button>
                     `;
                     attachOverlayRowDrag(row);
@@ -539,7 +625,7 @@
         });
 
         const deleteImgUrl = "{{ url_for('static', filename='img/delete.png') }}";
-        const playImgUrl = "{{ url_for('static', filename='img/logo.png') }}";
+        const playImgUrl = "{{ url_for('static', filename='img/pause_noir.png') }}";
 
         // --- GESTION DE L'UPLOAD DE FICHIERS (Preview & Suppression) ---
         const audioInput = document.getElementById('audio-input');
@@ -649,14 +735,21 @@
                         box.dataset.nom = m.nomMusique.toLowerCase();
                         box.dataset.duree = m.duree;
                         box.innerHTML = `
-                            <b>${m.nomMusique}</b><br>
-                            <small>Durée : ${m.duree}</small>
-                            <button onclick="togglePlay(this, '${m.nomMusique.replace(/'/g, "\\'")}')" style="background:none; border:none; cursor:pointer;">
-                                <img src="${playImgUrl}" alt="Jouer" style="width:20px;"></button>
-                            <form action="/marketing/music/${m.idMusique}/delete" method="POST" style="display:inline;">
-                                <button type="submit" style="background:none; border:none; cursor:pointer;">
-                                    <img src="${deleteImgUrl}" alt="Supprimer" style="width:20px;"></button>
-                            </form>
+                            <span class="item-info">
+                                <span class="grab-dots">⠿</span> 
+                                <b>${m.nomMusique}</b> 
+                                <span style="white-space: nowrap;">— ${m.duree}s</span>
+                            </span>
+                            <div style="display: flex; align-items: center; gap: 20px;">
+                                <button class="action-btn" onclick="togglePlay(this, '${m.nomMusique.replace(/'/g, "\\'")}')">
+                                    <img src="${playImgUrl}" alt="Jouer">
+                                </button>
+                                <form action="/marketing/music/${m.idMusique}/delete" method="POST" style="margin: 0;">
+                                    <button type="submit" class="action-btn">
+                                        <img src="${deleteImgUrl}" alt="Supprimer">
+                                    </button>
+                                </form>
+                            </div>
                         `;
 
                         // Réattache les écouteurs drag & delete sur la nouvelle boîte
@@ -703,11 +796,17 @@
 
         function togglePlay(btn, nomMusique) {
             const isSame = currentAudio && currentBtn === btn;
+            const iconImg = btn.querySelector('img');
 
             // Stoppe toujours l'audio en cours
             if (currentAudio) {
                 currentAudio.pause();
                 currentAudio = null;
+                currentBtn = null;
+
+                if (currentBtn) {
+                    currentBtn.querySelector('img').src = '/static/img/pause_noir.png';
+                }
                 currentBtn = null;
             }
 
@@ -720,15 +819,100 @@
             currentAudio.play();
             currentBtn = btn;
 
+            iconImg.src = '/static/img/encours_noir.png';
+
             // Remet currentAudio à null quand la musique se termine
             currentAudio.addEventListener('ended', () => {
                 currentAudio = null;
                 currentBtn = null;
+                iconImg.src="/static/img/pause_noir.png";
             });
         }
+        // =========================================================
+        // --- MOTEUR DE RECHERCHE ET DE TRI MULTI-CRITÈRES ---
+        // =========================================================
+        
+        let sortsMusiques = [];
+        let sortsPlaylists = [];
+
+        function toggleMarketingSort(menuId) {
+            document.getElementById(menuId).classList.toggle('hidden');
+        }
+
+        // --- GESTION DES MENUS DÉROULANTS DE TRI (Multi-critères avec reflets visuels) ---
+        function toggleMarketingSort(menuId) {
+            document.getElementById(menuId).classList.toggle('hidden');
+        }
+
+        // Met à jour l'apparence des options du menu (allume les filtres actifs)
+        function updateSortVisuals(type) {
+            const menuId = type === 'musiques' ? 'sort-menu-musiques' : 'sort-menu-playlists';
+            const activeSorts = type === 'musiques' ? sortsMusiques : sortsPlaylists;
+            const menu = document.getElementById(menuId);
+            if (!menu) return;
+
+            // On parcourt tous les liens du menu déroulant
+            const links = menu.querySelectorAll('a');
+            links.forEach(link => {
+                const cat = link.dataset.category;
+                const dir = parseInt(link.dataset.dir);
+
+                // On vérifie si ce tri précis se trouve dans notre tableau de critères actifs
+                const isActive = activeSorts.some(s => s.category === cat && s.dir === dir);
+
+                if (isActive) {
+                    link.classList.add('active-sort');
+                } else {
+                    link.classList.remove('active-sort');
+                }
+            });
+        }
+
+        // Applique le tri, ferme le menu et rafraîchit l'affichage visuel
+        function applyMarketingSort(type, category, direction) {
+            let activeSorts = type === 'musiques' ? sortsMusiques : sortsPlaylists;
+
+            // Supprime l'ancien tri de la même catégorie s'il existe pour éviter les contradictions
+            activeSorts = activeSorts.filter(s => s.category !== category);
+
+            // Ajoute le nouveau tri au début de la pile (priorité numéro 1)
+            activeSorts.unshift({ category: category, dir: direction });
+
+            if (type === 'musiques') {
+                sortsMusiques = activeSorts;
+                document.getElementById('clear-sort-musiques').classList.remove('hidden');
+                document.getElementById('sort-menu-musiques').classList.add('hidden');
+                filterAndSortMusiques();
+            } else {
+                sortsPlaylists = activeSorts;
+                document.getElementById('clear-sort-playlists').classList.remove('hidden');
+                document.getElementById('sort-menu-playlists').classList.add('hidden');
+                filterAndSortPlaylists();
+            }
+
+            // Mettre à jour les couleurs du menu !
+            updateSortVisuals(type);
+        }
+
+        // Réinitialise tout à zéro
+        function clearMarketingSort(type) {
+            if (type === 'musiques') {
+                sortsMusiques = [];
+                document.getElementById('clear-sort-musiques').classList.add('hidden');
+                filterAndSortMusiques();
+            } else {
+                sortsPlaylists = [];
+                document.getElementById('clear-sort-playlists').classList.add('hidden');
+                filterAndSortPlaylists();
+            }
+
+            // Nettoyer les couleurs du menu !
+            updateSortVisuals(type);
+        }
+
+        // --- TRAITEMENT MUSIQUES ---
         function filterAndSortMusiques() {
             const query = document.getElementById('search-musiques').value.toLowerCase();
-            const sort = document.getElementById('sort-musiques').value;
             const panel = document.querySelector('.left-panel');
             const boxes = Array.from(panel.querySelectorAll('.music-box'));
 
@@ -738,21 +922,29 @@
             });
 
             const visible = boxes.filter(b => b.style.display !== 'none');
-            if (sort === 'az') visible.sort((a, b) => a.dataset.nom.localeCompare(b.dataset.nom));
-            else if (sort === 'za') visible.sort((a, b) => b.dataset.nom.localeCompare(a.dataset.nom));
-            else if (sort === 'duree') visible.sort((a, b) => parseInt(a.dataset.duree) - parseInt(b.dataset.duree));
-            else if (sort === 'duree_desc') visible.sort((a, b) => parseInt(b.dataset.duree) - parseInt(a.dataset.duree));
+
+            visible.sort((a, b) => {
+                for (let sort of sortsMusiques) {
+                    if (sort.category === 'name') {
+                        const comp = a.dataset.nom.localeCompare(b.dataset.nom);
+                        if (comp !== 0) return comp * sort.dir;
+                    } else if (sort.category === 'duree') {
+                        const valA = parseInt(a.dataset.duree) || 0;
+                        const valB = parseInt(b.dataset.duree) || 0;
+                        if (valA !== valB) return (valA - valB) * sort.dir;
+                    }
+                }
+                return 0;
+            });
             visible.forEach(b => panel.appendChild(b));
         }
         document.getElementById('search-musiques').addEventListener('input', filterAndSortMusiques);
-        document.getElementById('sort-musiques').addEventListener('change', filterAndSortMusiques);
 
-        // --- RECHERCHE & TRI PLAYLISTS ---
+        // --- TRAITEMENT PLAYLISTS ---
         function filterAndSortPlaylists() {
             const query = document.getElementById('search-playlists').value.toLowerCase();
-            const sort = document.getElementById('sort-playlists').value;
             const container = document.getElementById('playlists-container');
-            const boxes = Array.from(container.querySelectorAll('[data-playlist-id]'));
+            const boxes = Array.from(container.querySelectorAll('.playlist-box'));
 
             boxes.forEach(b => {
                 const title = b.dataset.title || '';
@@ -760,28 +952,39 @@
             });
 
             const visible = boxes.filter(b => b.style.display !== 'none');
-            if (sort === 'az') visible.sort((a, b) => a.dataset.title.localeCompare(b.dataset.title));
-            else if (sort === 'za') visible.sort((a, b) => b.dataset.title.localeCompare(a.dataset.title));
-            else if (sort === 'duree') visible.sort((a, b) => parseInt(a.dataset.dureeTotale) - parseInt(b.dataset.dureeTotale));
-            else if (sort === 'duree_desc') visible.sort((a, b) => parseInt(b.dataset.dureeTotale) - parseInt(a.dataset.dureeTotale));
-            else if (sort === 'nb') visible.sort((a, b) => parseInt(a.dataset.nbMusiques) - parseInt(b.dataset.nbMusiques));
-            else if (sort === 'nb_desc') visible.sort((a, b) => parseInt(b.dataset.nbMusiques) - parseInt(a.dataset.nbMusiques));
+
+            visible.sort((a, b) => {
+                for (let sort of sortsPlaylists) {
+                    if (sort.category === 'name') {
+                        const comp = a.dataset.title.localeCompare(b.dataset.title);
+                        if (comp !== 0) return comp * sort.dir;
+                    } else if (sort.category === 'duree') {
+                        const valA = parseInt(a.dataset.dureeTotale) || 0;
+                        const valB = parseInt(b.dataset.dureeTotale) || 0;
+                        if (valA !== valB) return (valA - valB) * sort.dir;
+                    } else if (sort.category === 'nb') {
+                        const valA = parseInt(a.dataset.nbMusiques) || 0;
+                        const valB = parseInt(b.dataset.nbMusiques) || 0;
+                        if (valA !== valB) return (valA - valB) * sort.dir;
+                    }
+                }
+                return 0;
+            });
             visible.forEach(b => container.appendChild(b));
         }
         document.getElementById('search-playlists').addEventListener('input', filterAndSortPlaylists);
-        document.getElementById('sort-playlists').addEventListener('change', filterAndSortPlaylists);
 
-        // --- MISE À JOUR DU COMPTEUR EN TEMPS RÉEL ---
-        function updatePlaylistStats(playlistId, deltaMusiques, deltaDuree) {
-            const box = document.getElementById(`playlist-box-${playlistId}`);
-            if (!box) return;
-            const nb = parseInt(box.dataset.nbMusiques || 0) + deltaMusiques;
-            const duree = parseInt(box.dataset.dureeTotale || 0) + deltaDuree;
-            box.dataset.nbMusiques = nb;
-            box.dataset.dureeTotale = duree;
-            const statsEl = document.getElementById(`stats-${playlistId}`);
-            if (statsEl) statsEl.textContent = `${nb} musique(s) — ${duree}s`;
-        }
+        // --- FERMETURE DES MENUS (clic extérieur) ---
+        window.addEventListener('click', function(e) {
+            if (!e.target.matches('.sort-dropdown')) {
+                const menus = [document.getElementById('sort-menu-musiques'), document.getElementById('sort-menu-playlists')];
+                menus.forEach(menu => {
+                    if (menu && !menu.classList.contains('hidden')) {
+                        menu.classList.add('hidden');
+                    }
+                });
+            }
+        });
     </script>
     <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
