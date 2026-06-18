@@ -33,7 +33,7 @@ class SigninController:
 
             # 1. Vérification des mots de passe
             if password_1 != confirm_password:
-                message = ts.message_langue("Les mots de pa sse ne correspondent pas", "Passwords do not match")
+                message = ts.message_langue("Les mots de passe ne correspondent pas", "Passwords do not match")
                 flash(message, "error")
                 return render_template("signin.html", msg_error="password mismatch", t=textes, current_lang=langue_choisie)
 
