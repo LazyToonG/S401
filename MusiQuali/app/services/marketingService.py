@@ -78,7 +78,7 @@ class MarketingService:
     def get_all_musics(self):
         return self.musicDAO.get_musiques()
 
-    def add_music(self, nomMusique, duree, idEntreprise=1):
+    def add_music(self, nomMusique, duree, idEntreprise):
         return self.musicDAO.create(nomMusique, duree, idEntreprise)
 
     def delete_music(self, idMusique):
@@ -92,16 +92,16 @@ class MarketingService:
         self.musicDAO.delete(idMusique) #rm objet de la bd
 
     
-    def save_music_files(self, files):
+    def save_music_files(self, files, idEntreprise):
     #Sauvegarde plusieurs fichiers mp3, retourne la liste des Music créées.
         created = []
         for file in files:
             if file and file.filename:
-                created.append(self.save_music_file(file))
+                created.append(self.save_music_file(file, idEntreprise))
         return created
 
 
-    def save_music_file(self, file):
+    def save_music_file(self, file, idEntreprise):
     
    # Sauvegarde le fichier mp3 dans app/static/AllMusics
     #et enregistre la musique en base de données.
@@ -139,7 +139,7 @@ class MarketingService:
         except Exception:
             duree = 0
 
-        return self.musicDAO.create(nomMusique, duree)
+        return self.musicDAO.create(nomMusique, duree, idEntreprise)
 
 
 

@@ -87,7 +87,7 @@ def upload_music():
         flash("Aucun fichier sélectionné", "error")
         return redirect(url_for("marketing"))
 
-    created = marketingService.save_music_files(files)
+    created = marketingService.save_music_files(files, session['idEntreprise'])
 
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest': # async
         return {

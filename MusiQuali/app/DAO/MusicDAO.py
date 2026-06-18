@@ -48,7 +48,7 @@ class MusicDAO():
         conn.close()
         return Music(row["idMusique"], row["nomMusique"], row["duree"], row["idEntreprise"]) if row else None
 
-    def create(self, nomMusique, duree, idEntreprise=1):
+    def create(self, nomMusique, duree, idEntreprise):
         conn = self.get_connection()
         cur = conn.cursor()
         cur.execute(
