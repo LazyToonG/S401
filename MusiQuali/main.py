@@ -1,6 +1,6 @@
 from app import app
 
 if __name__ == '__main__':
-    app.run(host="127.0.0.1", port=8000, debug=True, use_reloader=False, ssl_context=('nginx/cert.pem', 'nginx/key.pem'))  # use_reloader=False pour éviter le double lancement du script
+    app.run(host="0.0.0.0", port=8000, debug=True, use_reloader=False, ssl_context=('nginx/cert.pem', 'nginx/key.pem'))  # use_reloader=False pour éviter le double lancement du script
 
 # , ssl_context="adhoc"
