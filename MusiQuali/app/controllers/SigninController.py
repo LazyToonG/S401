@@ -2,10 +2,15 @@ from flask import render_template, redirect, url_for, request
 from flask import session, flash, abort
 from app import app
 from app.services.UserService import UserService
+from app.services.EntrepriseService import EntrepriseService
 from app.services.TraductionService import Traductionservice
+
+from app.DAO.RequeteDAO import RequeteDAO
+req_dao = RequeteDAO()
 
 ts = Traductionservice()
 
+es = EntrepriseService()
 us = UserService()
 
 class SigninController:
@@ -16,7 +21,8 @@ class SigninController:
         langue_choisie = ts.getLangue()
         textes = traductions[langue_choisie]
 
-        # Initialisation par défaut pour éviter l'erreur "variable referenced before assignment"
+        entreprises = es.getAllEntreprises()
+
         user = None
         role = None
 
@@ -27,56 +33,57 @@ class SigninController:
         if request.method == "POST":
             user_1 = request.form.get("username")
             password_1 = request.form.get("password")
-            confirm_password = request.form.get("confirm_password") # On récupère la confirmation
+            confirm_password = request.form.get("confirm_password")
             role_1 = request.form.get("role", "commercial")
             mail_1 = request.form.get("email")
+            entreprise_1 = request.form.get("entreprise") # <-- 1. On récupère l'entreprise
 
-            # 1. Vérification des mots de passe
+            # Vérification des mots de passe
             if password_1 != confirm_password:
                 message = ts.message_langue("Les mots de passe ne correspondent pas", "Passwords do not match")
                 flash(message, "error")
-                return render_template("signin.html", msg_error="password mismatch", t=textes, current_lang=langue_choisie)
+                return render_template("signin.html", msg_error="password mismatch", t=textes, current_lang=langue_choisie, entreprises=entreprises)
 
-            # 2. Tentative de création dans la base de données
-            result = us.signin(user_1, password_1, role_1, mail_1)
-            
-            if not result and session.get('logged'):
-                # Un admin tente de créer mais échoue
-                flash("Erreur : Impossible de créer l'utilisateur.", "error")
-                return render_template("admin.html", msg_error="creation error", t=textes, current_lang=langue_choisie, user=user, role=role)
-            
-            elif result and session.get('logged'):
-                # Un admin réussit à créer
-                flash("Utilisateur créé avec succès !", "success")
-                if role_1 == "admin":
-                    return render_template("admin.html", msg_error="user created", t=textes, current_lang=langue_choisie, user=user, role=role)
-                if role_1 == "marketing":
-                    return render_template("marketing.html", msg_error="user created", t=textes, current_lang=langue_choisie, user=user, role=role)
-                if role_1 == "commercial":
-                    return render_template("commercial.html", msg_error="user created", t=textes, current_lang=langue_choisie, user=user, role=role)
-            
-            elif not result:
-                # Un visiteur tente de s'inscrire mais échoue (pseudo/mail déjà pris)
-                message = ts.message_langue("Erreur : Nom d'utilisateur ou email déjà existant.", "Error: Username or email already exists.")
-                flash(message, "error")
-                return render_template("signin.html", msg_error="creation error", t=textes, current_lang=langue_choisie)
-            
-            else:
-                # Un visiteur s'inscrit avec succès !
-                session["logged"] = True
-                session["username"] = user_1
-                session["role"] = role_1
+            # --- CAS 1 : UN ADMINISTRATEUR CRÉE LE COMPTE DIRECTEMENT ---
+            if session.get('logged') and role == "admin":
+                # On crée l'utilisateur de suite (avec entreprise_1)
+                result = us.signin(user_1, password_1, role_1, mail_1, entreprise_1)
                 
-                # On utilise role_1 ici (et non user.role)
-                if role_1 == "admin":
-                    return redirect(url_for("admin_dashboard"))
-                elif role_1 == "marketing":
-                    return redirect(url_for("marketing"))
-                elif role_1 == "commercial":
-                    return redirect(url_for("voir_planning"))
+                if result:
+                    flash("Utilisateur créé avec succès !", "success")
+                    return render_template("admin.html", msg_error="user created", t=textes, current_lang=langue_choisie, user=user, role=role)
+                else:
+                    flash("Erreur : Impossible de créer l'utilisateur.", "error")
+                    return render_template("admin.html", msg_error="creation error", t=textes, current_lang=langue_choisie, user=user, role=role)
+
+            # --- CAS 2 : UN VISITEUR DEMANDE À S'INSCRIRE ---
+            else:
+                # 1. On prépare le message
+                sujet_req = "inscription"
+                contenu_req = f"L'utilisateur {user_1} souhaite rejoindre l'entreprise {entreprise_1} avec le rôle {role_1}."
+                
+                # 2. On sauvegarde dans le JSON !
+                req_dao.ajouter_requete(
+                    demandeur=user_1, 
+                    mail=mail_1, 
+                    type_req=sujet_req, 
+                    message=contenu_req, 
+                    role=role_1, 
+                    entreprise=entreprise_1, 
+                    mdp=password_1 # Idéalement, crypte-le avant de le stocker ici !
+                )
+
+                # 3. Message de succès pour le visiteur
+                message = ts.message_langue(
+                    "Votre demande d'inscription a bien été envoyée à l'administrateur.", 
+                    "Your registration request has been sent."
+                )
+                flash(message, "success")
+                
+                return redirect(url_for("signin"))
                     
         else:
             if session.get('logged'):
                 return render_template('admin.html', msg_error=None, t=textes, current_lang=langue_choisie, user=user, role=role)
             else:
-                return render_template('signin.html', msg_error=None, t=textes, current_lang=langue_choisie)
+                return render_template('signin.html', msg_error=None, t=textes, current_lang=langue_choisie, entreprises=entreprises)

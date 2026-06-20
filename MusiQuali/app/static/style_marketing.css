@@ -12,6 +12,7 @@ body.no-scroll {
 .tabs-container { display: flex; gap: 20px; padding: 15px 40px; }
 
 .tab-pill {
+    font-family: Times, "Times New Roman", Georgia, serif;
     background-color: #fff; 
     border: 1px solid #651b1b; 
     color: #333; 
@@ -41,7 +42,7 @@ body.no-scroll {
 
 .left-panel, .right-panel {
     background-color: #fff; border: 1px solid #651b1b; border-radius: 20px; padding: 25px;
-    flex: 1; display: flex; flex-direction: column; position: relative;
+    flex: 1; display: flex; flex-direction: column; position: relative; min-width: 0;
 }
 
 .panel-view { 

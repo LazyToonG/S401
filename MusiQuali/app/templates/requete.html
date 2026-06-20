@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Musiquali - Envoyer une requête</title>
     <link href="{{ url_for('static', filename='style.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='message_alert.css') }}" rel="stylesheet">
     <link href="{{ url_for('static', filename='style_requete.css') }}" rel="stylesheet">
 </head>
 <body>
@@ -16,21 +17,21 @@
         <div class="request-card">
             <h1 class="title">Envoyer une requête à<br>l'administrateur</h1>
             
-            <form action="#" method="POST">
+            <form action="{{ url_for('submit_requete') }}" method="POST">
                 
                 <div class="input-group">
                     <label class="group-label">Type de requête</label>
                     <div class="radio-options">
                         <label class="radio-label">
-                            <input type="radio" name="request_type" value="role" required>
+                            <input type="radio" name="request_type" value="Changement de rôle" required>
                             <span class="radio-btn">Changement de rôle</span>
                         </label>
                         <label class="radio-label">
-                            <input type="radio" name="request_type" value="email">
+                            <input type="radio" name="request_type" value="Modification de l'e-mail">
                             <span class="radio-btn">Modification de l'e-mail</span>
                         </label>
                         <label class="radio-label">
-                            <input type="radio" name="request_type" value="other">
+                            <input type="radio" name="request_type" value="Autre">
                             <span class="radio-btn">Autre</span>
                         </label>
                     </div>
@@ -41,12 +42,7 @@
                     <textarea id="description" name="description" rows="4" required></textarea>
                 </div>
                 
-                <button type="submit" class="submit-btn">Envoyer</button>
-                
-                <p class="legal-text">
-                    Le nom de votre profil Canva sera partagé. Ne n'indiquez jamais de mots de passe.<br>
-                    <a href="#">Découvrez comment nous traitons vos données</a>
-                </p>
+                <button type="submit" class="submit-btn-requete">Envoyer</button>
                 
             </form>
         </div>

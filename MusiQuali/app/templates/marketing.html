@@ -30,8 +30,8 @@
             display: flex; 
             align-items: center; 
             gap: 12px;
-            flex: 1;         /* Prend tout l'espace libre avant les boutons */
-            min-width: 0;    /* INDISPENSABLE pour que les "..." fonctionnent en Flexbox */
+            flex: 1;
+            min-width: 0;
             padding-right: 15px;
         }
 
@@ -42,7 +42,7 @@
             text-overflow: ellipsis;
         }
 
-        /* On interdit aux petits points ⠿ et à la durée de rétrécir ou de se déformer */
+        /* On interdit aux petits points ⠿ et à la durée de rétrécir ou de s'écraser */
         .item-info span {
             flex-shrink: 0;
         }
@@ -114,7 +114,7 @@
                 
                 <span class="item-info">
                     <span class="grab-dots">⠿</span> 
-                    <b>{{ m.nomMusique }}</b> 
+                    <b title="{{ m.nomMusique }}">{{ m.nomMusique }}</b> 
                     <span style="white-space: nowrap;">— {{ m.duree }}s</span>
                 </span>
                 
@@ -172,7 +172,7 @@
                     
                     <span class="item-info">
                         <span class="grab-dots">⠿</span> 
-                        <b>{{ p.title }}</b> 
+                        <b title="{{ p.title }}">{{ p.title }}</b> 
                         <span id="stats-{{ p.idPlaylist }}">— {{ p.nb_musiques }} musique(s) — {{ p.duree_totale }}s</span>
                     </span>
                     
@@ -381,7 +381,7 @@
                     row.innerHTML = `
                         <span style="display:flex; align-items:center; gap:12px; color:#000;">
                             <span style="font-size:20px; color:#555;">⠿</span> 
-                            <b>${m.nomMusique}</b> 
+                            <b title="${m.nomMusique}">${m.nomMusique}</b> 
                             <span style="white-space: nowrap;">— ${m.duree}s</span>
                         </span>
                         <button onclick="removeMusicFromPlaylist(${m.idCouple})" style="background:none; border:none; cursor:pointer; padding:0;">
@@ -737,7 +737,7 @@
                         box.innerHTML = `
                             <span class="item-info">
                                 <span class="grab-dots">⠿</span> 
-                                <b>${m.nomMusique}</b> 
+                                <b title="${m.nomMusique}">${m.nomMusique}</b> 
                                 <span style="white-space: nowrap;">— ${m.duree}s</span>
                             </span>
                             <div style="display: flex; align-items: center; gap: 20px;">
