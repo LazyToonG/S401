@@ -3,21 +3,110 @@
 <head>
     <meta charset="UTF-8">
     <title>Weekly Calendar (Drag and Drop)</title>
+    <style>
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-overlay.open {
+            display: flex;
+        }
+        .modal-box {
+            background: #fff;
+            border-radius: 8px;
+            width: 360px;
+            max-width: 90%;
+            max-height: 70vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+            overflow: hidden;
+        }
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            border-bottom: 1px solid #ddd;
+        }
+        .modal-header h2 {
+            margin: 0;
+            font-size: 1.1em;
+        }
+        .modal-close-btn {
+            background: none;
+            border: none;
+            font-size: 1.4em;
+            line-height: 1;
+            cursor: pointer;
+            color: #555;
+        }
+        .modal-close-btn:hover {
+            color: #000;
+        }
+        .modal-list {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            overflow-y: auto;
+        }
+        .modal-list li {
+            padding: 10px 16px;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+        }
+        .modal-list li:hover {
+            background: #f2f2f2;
+        }
+        .modal-empty {
+            color: #888;
+            cursor: default !important;
+        }
+        .modal-empty:hover {
+            background: none !important;
+        }
+        .commercial-box .time-input {
+            margin-top: 4px;
+            font-size: 0.85em;
+            cursor: default;
+        }
+    </style>
 </head>
 <body>
 
 
     <select id="tabSelect" onchange="switchTab()">
-        <option value="tab1">Gestion des playlistes</option>
+        <option value="tab1">Gestion des playlist</option>
         <option value="tab2">Gestion des messages</option>
     </select>
 
 <div id="tab1" class="tab-content">
-    <h1>Calendrier des playlistes</h1>
+    <h1>Calendrier des playlist</h1>
     
     <button id="add-box-btn">+ add playlist</button>
    
     <br>
+
+    <!-- Modal de sélection de commercial -->
+    <div id="commercial-modal" class="modal-overlay">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h2>Choisir un commercial</h2>
+                <button id="commercial-modal-close" class="modal-close-btn">&times;</button>
+            </div>
+            <ul id="commercial-modal-list" class="modal-list">
+                <li class="modal-empty">Chargement...</li>
+            </ul>
+        </div>
+    </div>
 
     <table border="1" cellpadding="10" cellspacing="0" width="100%">
         <thead>
@@ -50,7 +139,7 @@
 <div id="tab2" class="tab-content">
     <h1>Calendrier des messages</h1>
     
-    <button id="add-message-btn">+ add playlist</button>
+    <button id="add-message-btn">+ add commercial</button>
     
     
     <br>
@@ -84,12 +173,11 @@
 
 
 
-    <script>//crée des boites pour faire bouger les playlistes
-        
-        // #TODO 
-        // faire remplir les characteristiques avant de créer la boite
-        // l'heure de start et de fin + titre de la playliste + liste des musiques dedans.
-        //automatiquement créer des boites selon ce qu'il y a dans la bd.
+    <script>//crée des boites pour faire bouger les commerciaux
+
+        // #TODO
+        // automatiquement créer des boites selon ce qu'il y a dans la bd (planning existant au chargement).
+        // gérer l'heure de start/fin de chaque créneau.
 
 
         // compteur de boites
@@ -99,18 +187,88 @@
         const addBoxBtn = document.getElementById('add-box-btn');
         const dropzones = document.querySelectorAll('.dropzone');
 
+        // -------------------- modal de sélection de commercial
+        const commercialModal = document.getElementById('commercial-modal');
+        const commercialModalList = document.getElementById('commercial-modal-list');
+        const commercialModalClose = document.getElementById('commercial-modal-close');
+
+        function openCommercialModal() {
+            commercialModal.classList.add('open');
+            loadCommerciauxIntoModal();
+        }
+
+        function closeCommercialModal() {
+            commercialModal.classList.remove('open');
+        }
+
+        commercialModalClose.addEventListener('click', closeCommercialModal);
+        // fermer si on clique en dehors de la boite
+        commercialModal.addEventListener('click', (e) => {
+            if (e.target === commercialModal) {
+                closeCommercialModal();
+            }
+        });
+
+        async function loadCommerciauxIntoModal() {
+            commercialModalList.innerHTML = '<li class="modal-empty">Chargement...</li>';
+
+            try {
+                const response = await fetch('commerciaux');
+                if (!response.ok) {
+                    throw new Error('Erreur lors du chargement des commerciaux');
+                }
+                const commerciaux = await response.json();
+
+                if (!commerciaux.length) {
+                    commercialModalList.innerHTML = '<li class="modal-empty">Aucun commercial disponible</li>';
+                    return;
+                }
+
+                commercialModalList.innerHTML = '';
+                commerciaux.forEach(commercial => {
+                    const item = document.createElement('li');
+                    item.textContent = commercial.title;
+                    item.addEventListener('click', () => {
+                        createCommercialBox(commercial);
+                        closeCommercialModal();
+                    });
+                    commercialModalList.appendChild(item);
+                });
+            } catch (err) {
+                commercialModalList.innerHTML = '<li class="modal-empty">Erreur de chargement</li>';
+                console.error(err);
+            }
+        }
+
         // -------------------- logique des boites
-        addBoxBtn.addEventListener('click', () => {
+        function sortColumnByTime(column) {
+            const boxes = Array.from(column.children).filter(el => el.classList.contains('commercial-box'));
+            boxes.sort((a, b) => {
+                const timeA = a.dataset.time || '99:99';
+                const timeB = b.dataset.time || '99:99';
+                return timeA.localeCompare(timeB);
+            });
+            boxes.forEach(box => column.appendChild(box));
+        }
+
+        function createCommercialBox(commercial) {
             boxCounter++;
-            
+
             // create box
             const newBox = document.createElement('div');
             newBox.id = `box-${boxCounter}`;
+            newBox.className = 'commercial-box';
             newBox.draggable = true;
-            
-            // nom des boites
-            newBox.innerHTML = `<b>Box ${boxCounter}</b><br><small>Drag me</small>`; //modifier nom selon playliste choisie
-            
+            newBox.dataset.idCommercial = commercial.idCommercial;
+            newBox.dataset.time = '';
+
+            // nom des boites = titre du commercial choisi + sélecteur d'heure
+            newBox.innerHTML = `
+                <b>${commercial.title}</b><br>
+                <small>Drag me</small><br>
+                <input type="time" class="time-input">
+            `;
+
             // Using basic JS inline styles *only* to simulate basic HTML box borders/padding 
             // so you can actually see and grab the empty boxes.
             newBox.style.border = "2px dashed #333";
@@ -119,6 +277,20 @@
             newBox.style.backgroundColor = "#e0e0e0";
             newBox.style.cursor = "move";
 
+            // Met à jour l'heure stockée et re-trie la colonne quand on change le champ
+            const timeInput = newBox.querySelector('.time-input');
+            timeInput.addEventListener('mousedown', (e) => {
+                e.stopPropagation();
+            });
+            timeInput.addEventListener('click', (e) => {
+                // empêche le drag de partir quand on clique dans le champ
+                e.stopPropagation();
+            });
+            timeInput.addEventListener('change', (e) => {
+                newBox.dataset.time = e.target.value;
+                sortColumnByTime(newBox.parentElement);
+            });
+
             // Attach drag start event to the new box
             newBox.addEventListener('dragstart', (e) => {
                 e.dataTransfer.setData('text/plain', e.target.id);
@@ -126,6 +298,10 @@
 
             // Automatically place the newly created box into Monday to start
             document.getElementById('mon-tab1').appendChild(newBox);
+        }
+
+        addBoxBtn.addEventListener('click', () => {
+            openCommercialModal();
         });
 
         // --- DragonDrop
@@ -142,12 +318,15 @@
                 const draggedBox = document.getElementById(boxId);
                 
                 // Ensure we are appending to the column (TD), not inside another box
+                let targetColumn;
                 if (e.target.classList.contains('dropzone')) {
-                    e.target.appendChild(draggedBox);
+                    targetColumn = e.target;
                 } else {
                     // If dropped onto an existing box, append to its parent column instead
-                    e.target.closest('.dropzone').appendChild(draggedBox);
+                    targetColumn = e.target.closest('.dropzone');
                 }
+                targetColumn.appendChild(draggedBox);
+                sortColumnByTime(targetColumn);
             });
         });
 
@@ -172,7 +351,7 @@
             newBox.draggable = true;
             
             // nom des boites
-            newBox.innerHTML = `<b>Box ${MessageCounter}</b><br><small>Drag me</small>`; //modifier nom selon playliste choisie
+            newBox.innerHTML = `<b>Box ${MessageCounter}</b><br><small>Drag me</small>`; //modifier nom selon commercial choisi
             
             // Using basic JS inline styles *only* to simulate basic HTML box borders/padding 
             // so you can actually see and grab the empty boxes.
