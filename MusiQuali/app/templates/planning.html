@@ -709,6 +709,62 @@
             updateMessageFilePreview(); // Rafraîchit l'affichage
         }
 
+        // --- Création d'une boite de message dans la liste (réutilisée au chargement et après upload) ---
+        function createMessageListBox(m) {
+            const box = document.createElement('div');
+            box.id = `message-box-${m.idMusique}`;
+            box.className = 'message-box';
+            box.dataset.musicId = m.idMusique;
+            box.innerHTML = `
+                <span class="item-info">
+                    <b>${m.nomMusique}</b>
+                    <span style="white-space: nowrap;">— ${m.duree}s</span>
+                </span>
+                <form action="/marketing/music/${m.idMusique}/delete" method="POST" style="margin: 0;">
+                    <button type="submit" class="action-btn">&times;</button>
+                </form>
+            `;
+
+            box.querySelector('form').addEventListener('submit', async (ev) => {
+                ev.preventDefault();
+                const f = ev.target;
+                const b = f.closest('.message-box');
+                try {
+                    const r = await fetch(f.action, {
+                        method: 'POST',
+                        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                    });
+                    if (r.ok) {
+                        b.remove();
+                    } else {
+                        console.error('Erreur lors de la suppression', r.status);
+                    }
+                } catch (err) {
+                    console.error('Erreur réseau lors de la suppression', err);
+                }
+            });
+
+            messagesList.appendChild(box);
+        }
+
+        // --- Charge les messages déjà en bd au chargement de la page (même méthode que marketing.html) ---
+        async function loadExistingMessages() {
+            try {
+                const response = await fetch('/marketing/musiques?prefix=MSG_');
+                if (!response.ok) {
+                    throw new Error('Erreur lors du chargement des messages existants');
+                }
+                const messages = await response.json();
+                messages.forEach(m => createMessageListBox(m));
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        if (messagesList) {
+            loadExistingMessages();
+        }
+
         // --- UPLOAD EN AJAX (pas de rechargement de page) ---
         const uploadFormMessage = document.getElementById('upload-form-message');
 
@@ -732,42 +788,7 @@
 
                     const data = await res.json();
 
-                    (data.musiques || []).forEach(m => {
-                        const box = document.createElement('div');
-                        box.id = `message-box-${m.idMusique}`;
-                        box.className = 'message-box';
-                        box.dataset.musicId = m.idMusique;
-                        box.innerHTML = `
-                            <span class="item-info">
-                                <b>${m.nomMusique}</b>
-                                <span style="white-space: nowrap;">— ${m.duree}s</span>
-                            </span>
-                            <form action="/marketing/music/${m.idMusique}/delete" method="POST" style="margin: 0;">
-                                <button type="submit" class="action-btn">&times;</button>
-                            </form>
-                        `;
-
-                        box.querySelector('form').addEventListener('submit', async (ev) => {
-                            ev.preventDefault();
-                            const f = ev.target;
-                            const b = f.closest('.message-box');
-                            try {
-                                const r = await fetch(f.action, {
-                                    method: 'POST',
-                                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
-                                });
-                                if (r.ok) {
-                                    b.remove();
-                                } else {
-                                    console.error('Erreur lors de la suppression', r.status);
-                                }
-                            } catch (err) {
-                                console.error('Erreur réseau lors de la suppression', err);
-                            }
-                        });
-
-                        messagesList.appendChild(box);
-                    });
+                    (data.musiques || []).forEach(m => createMessageListBox(m));
 
                     // Réinitialise le formulaire et la prévisualisation
                     selectedMessageFilesTransfer = new DataTransfer();
