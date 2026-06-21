@@ -184,6 +184,9 @@
         <option value="tab3">Enregistrement de messages</option>
     </select>
 
+    <button id="save-planning-btn" style="margin-left: 10px;">💾 Save</button>
+    <span id="save-status" style="margin-left: 10px; color: #555;"></span>
+
 <div id="tab1" class="tab-content">
     <h1>Calendrier des commerciaux</h1>
     
@@ -393,8 +396,10 @@
             boxes.forEach(box => column.appendChild(box));
         }
 
-        function createCommercialBox(commercial) {
+        function createCommercialBox(commercial, options = {}) {
             boxCounter++;
+
+            const { idPlanning = null, time = '', dayId = 'mon-tab1' } = options;
 
             // create box
             const newBox = document.createElement('div');
@@ -402,13 +407,14 @@
             newBox.className = 'commercial-box';
             newBox.draggable = true;
             newBox.dataset.idPlaylist = commercial.idPlaylist;
-            newBox.dataset.time = '';
+            newBox.dataset.idPlanning = idPlanning !== null ? idPlanning : '';
+            newBox.dataset.time = time;
 
             // nom des boites = titre du commercial choisi + sélecteur d'heure
             newBox.innerHTML = `
                 <b>${commercial.title}</b><br>
                 <small>Drag me</small><br>
-                <input type="time" class="time-input">
+                <input type="time" class="time-input" value="${time}">
             `;
 
             // Using basic JS inline styles *only* to simulate basic HTML box borders/padding 
@@ -438,8 +444,9 @@
                 e.dataTransfer.setData('text/plain', e.target.id);
             });
 
-            // Automatically place the newly created box into Monday to start
-            document.getElementById('mon-tab1').appendChild(newBox);
+            // Place la boite dans la bonne colonne (Monday par défaut pour une nouvelle boite)
+            document.getElementById(dayId).appendChild(newBox);
+            return newBox;
         }
 
         addBoxBtn.addEventListener('click', () => {
@@ -536,8 +543,10 @@
         }
 
         // -------------------- logique des boites
-        function createMessageBox(message) {
+        function createMessageBox(message, options = {}) {
             MessageCounter++;
+
+            const { idPlanning = null, time = '', dayId = 'mon-tab2' } = options;
 
             // create box
             const newBox = document.createElement('div');
@@ -545,13 +554,14 @@
             newBox.className = 'message-calendar-box';
             newBox.draggable = true;
             newBox.dataset.idMusique = message.idMusique;
-            newBox.dataset.time = '';
+            newBox.dataset.idPlanning = idPlanning !== null ? idPlanning : '';
+            newBox.dataset.time = time;
 
             // nom des boites = titre du message choisi + sélecteur d'heure
             newBox.innerHTML = `
                 <b>${message.nomMusique}</b><br>
                 <small>Drag me</small><br>
-                <input type="time" class="time-input">
+                <input type="time" class="time-input" value="${time}">
             `;
 
             // Using basic JS inline styles *only* to simulate basic HTML box borders/padding 
@@ -581,8 +591,9 @@
                 e.dataTransfer.setData('text/plain', e.target.id);
             });
 
-            // Automatically place the newly created box into Monday to start
-            document.getElementById('mon-tab2').appendChild(newBox);
+            // Place la boite dans la bonne colonne (Monday par défaut pour une nouvelle boite)
+            document.getElementById(dayId).appendChild(newBox);
+            return newBox;
         }
 
         function sortMessageColumnByTime(column) {
@@ -624,6 +635,181 @@
                 sortMessageColumnByTime(targetColumn);
             });
         });
+
+
+        // -------------------- Sauvegarde / chargement du planning (bd) --------------------
+
+        // Mapping des colonnes vers un offset de jour (0 = lundi de la semaine courante)
+        const DAY_OFFSETS = {
+            'mon': 0, 'tue': 1, 'wed': 2, 'thu': 3, 'fri': 4, 'sat': 5, 'sun': 6
+        };
+
+        // Retourne le lundi de la semaine courante (à minuit, heure locale)
+        function getCurrentMonday() {
+            const now = new Date();
+            const day = now.getDay(); // 0 = dimanche, 1 = lundi, ...
+            const diffToMonday = (day === 0) ? -6 : 1 - day;
+            const monday = new Date(now.getFullYear(), now.getMonth(), now.getDate() + diffToMonday);
+            return monday;
+        }
+
+        // Construit un ISO datetime local (YYYY-MM-DDTHH:MM:SS) à partir d'un id de colonne (ex: "mon-tab1") + heure HH:MM
+        function buildStartTime(dayId, time) {
+            if (!time) return null;
+            const dayCode = dayId.split('-')[0]; // "mon", "tue", ...
+            const offset = DAY_OFFSETS[dayCode];
+            if (offset === undefined) return null;
+
+            const monday = getCurrentMonday();
+            const target = new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() + offset);
+            const [hours, minutes] = time.split(':').map(Number);
+            target.setHours(hours, minutes, 0, 0);
+
+            const pad = (n) => String(n).padStart(2, '0');
+            return `${target.getFullYear()}-${pad(target.getMonth() + 1)}-${pad(target.getDate())}T${pad(target.getHours())}:${pad(target.getMinutes())}:00`;
+        }
+
+        // Convertit un StartTime ISO en {dayId, time} pour replacer une boite au chargement
+        function startTimeToDayAndTime(startTime, suffix) {
+            const dt = new Date(startTime);
+            const monday = getCurrentMonday();
+            const diffDays = Math.round((new Date(dt.getFullYear(), dt.getMonth(), dt.getDate()) - monday) / 86400000);
+
+            const dayCodes = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
+            const dayCode = dayCodes[((diffDays % 7) + 7) % 7]; // sécurité si la date sort de la semaine affichée
+
+            const pad = (n) => String(n).padStart(2, '0');
+            const time = `${pad(dt.getHours())}:${pad(dt.getMinutes())}`;
+
+            return { dayId: `${dayCode}-${suffix}`, time };
+        }
+
+        const savePlanningBtn = document.getElementById('save-planning-btn');
+        const saveStatus = document.getElementById('save-status');
+
+        async function savePlanning() {
+            saveStatus.textContent = 'Sauvegarde en cours...';
+
+            const boxes = [];
+
+            // Boites commerciales (tab1)
+            document.querySelectorAll('#tab1 .commercial-box').forEach(box => {
+                const time = box.dataset.time;
+                if (!time) return; // une boite sans heure n'est pas envoyée (incomplète)
+
+                const dayId = box.parentElement.id; // ex: "mon-tab1"
+                const startTime = buildStartTime(dayId, time);
+                if (!startTime) return;
+
+                boxes.push({
+                    idPlanning: box.dataset.idPlanning ? parseInt(box.dataset.idPlanning, 10) : null,
+                    idPlaylist: parseInt(box.dataset.idPlaylist, 10),
+                    idMSG: null,
+                    StartTime: startTime,
+                    _box: box // référence locale, retirée avant l'envoi
+                });
+            });
+
+            // Boites messages (tab2)
+            document.querySelectorAll('#tab2 .message-calendar-box').forEach(box => {
+                const time = box.dataset.time;
+                if (!time) return;
+
+                const dayId = box.parentElement.id; // ex: "mon-tab2"
+                const startTime = buildStartTime(dayId, time);
+                if (!startTime) return;
+
+                boxes.push({
+                    idPlanning: box.dataset.idPlanning ? parseInt(box.dataset.idPlanning, 10) : null,
+                    idPlaylist: null,
+                    idMSG: parseInt(box.dataset.idMusique, 10),
+                    StartTime: startTime,
+                    _box: box
+                });
+            });
+
+            const payloadBoxes = boxes.map(({ _box, ...rest }) => rest);
+
+            try {
+                const res = await fetch('/planning/save', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ idEntreprise: 1, boxes: payloadBoxes })
+                });
+
+                if (!res.ok) {
+                    saveStatus.textContent = 'Erreur lors de la sauvegarde.';
+                    console.error('Erreur save', res.status);
+                    return;
+                }
+
+                const saved = await res.json();
+
+                // Réassigne idPlanning à chaque boite locale (utile pour les nouvelles boites créées)
+                saved.forEach((row, i) => {
+                    if (boxes[i] && boxes[i]._box) {
+                        boxes[i]._box.dataset.idPlanning = row.idPlanning;
+                    }
+                });
+
+                saveStatus.textContent = 'Sauvegardé ✓';
+                setTimeout(() => { saveStatus.textContent = ''; }, 2000);
+
+            } catch (err) {
+                saveStatus.textContent = 'Erreur réseau lors de la sauvegarde.';
+                console.error(err);
+            }
+        }
+
+        if (savePlanningBtn) {
+            savePlanningBtn.addEventListener('click', savePlanning);
+        }
+
+        // Charge le planning existant et reconstruit les deux calendriers
+        async function loadPlanning() {
+            try {
+                const [planningRes, playlistsRes, musiquesRes] = await Promise.all([
+                    fetch('/planning/data?idEntreprise=1'),
+                    fetch('/marketing/playlists'),
+                    fetch('/marketing/musiques?prefix=MSG_')
+                ]);
+
+                if (!planningRes.ok) {
+                    throw new Error('Erreur lors du chargement du planning');
+                }
+
+                const rows = await planningRes.json();
+                const playlists = playlistsRes.ok ? await playlistsRes.json() : [];
+                const messages = musiquesRes.ok ? await musiquesRes.json() : [];
+
+                const playlistById = new Map(playlists.map(p => [p.idPlaylist, p]));
+                const messageById = new Map(messages.map(m => [m.idMusique, m]));
+
+                for (const row of rows) {
+                    if (row.idPlaylist !== null && row.idPlaylist !== undefined) {
+                        const { dayId, time } = startTimeToDayAndTime(row.StartTime, 'tab1');
+                        const playlist = playlistById.get(row.idPlaylist) || { idPlaylist: row.idPlaylist, title: `Playlist #${row.idPlaylist}` };
+                        const box = createCommercialBox(
+                            playlist,
+                            { idPlanning: row.idPlanning, time, dayId }
+                        );
+                        sortColumnByTime(box.parentElement);
+                    } else if (row.idMSG !== null && row.idMSG !== undefined) {
+                        const { dayId, time } = startTimeToDayAndTime(row.StartTime, 'tab2');
+                        const message = messageById.get(row.idMSG) || { idMusique: row.idMSG, nomMusique: `Message #${row.idMSG}` };
+                        const box = createMessageBox(
+                            message,
+                            { idPlanning: row.idPlanning, time, dayId }
+                        );
+                        sortMessageColumnByTime(box.parentElement);
+                    }
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        loadPlanning();
 
 
         //pour le 3e tab : upload des messages (copié/adapté de marketing.html, préfixe MSG_ ajouté)
