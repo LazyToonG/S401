@@ -5,12 +5,7 @@ from app.DAO.PlaylistDAO import PlaylisteDAO
 
 class CommercialService:
     """
-    Couche service : contient la logique métier liée aux commerciaux.
-    Le contrôleur ne doit jamais appeler le DAO directement, il passe par ici.
 
-    NB: le DAO et le modèle sous-jacents n'ont pas été renommés (classe Playliste /
-    Playlist, table SQL "Playlist", colonne "idPlaylist") -- on garde le nommage
-    "commercial" uniquement côté service/contrôleur/HTML.
     """
 
     def __init__(self):
