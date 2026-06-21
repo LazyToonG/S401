@@ -51,6 +51,7 @@ def save_planning():
 
     try:
         results = planningService.sync(boxes, idEntreprise)
+        planningService.export_planning(idEntreprise)
     except ValueError as e:
         return jsonify({"error": str(e)}), 400
 

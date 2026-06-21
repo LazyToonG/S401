@@ -1,0 +1,27 @@
+{
+  "monday": [
+    {
+      "time": "06:00",
+      "musics": [
+        "fbi-open-up_dwLhIFf.mp3",
+        "emotional-damage-meme.mp3",
+        "spiderman-meme-song.mp3"
+      ]
+    }
+  ],
+  "tuesday": [],
+  "wednesday": [
+    {
+      "time": "08:00",
+      "musics": [
+        "tmp_7901-951678082.mp3",
+        "tf_nemesis.mp3",
+        "error_CDOxCYm.mp3"
+      ]
+    }
+  ],
+  "thursday": [],
+  "friday": [],
+  "saturday": [],
+  "sunday": []
+}

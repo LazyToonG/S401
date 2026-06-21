@@ -104,3 +104,58 @@ class PlanningDAO:
         )
         conn.commit()
         conn.close()
+
+    # -------------------- Requêtes d'export (MU.json / MSG.json) --------------------
+
+    def get_message_slots(self, idEntreprise=1):
+        """
+        Retourne chaque créneau "message" planifié, avec le nom de fichier de la musique
+        associée (jointure directe Planning.idMSG = Musique.idMusique).
+        """
+        conn = self._getDbConnection()
+        rows = conn.execute("""
+            SELECT pl.idPlanning, pl.StartTime, m.nomMusique
+            FROM Planning pl
+            JOIN Musique m ON pl.idMSG = m.idMusique
+            WHERE pl.idEntreprise = ? AND pl.idMSG IS NOT NULL
+            ORDER BY pl.StartTime
+        """, (idEntreprise,)).fetchall()
+        conn.close()
+
+        return [
+            {"idPlanning": row["idPlanning"], "StartTime": row["StartTime"], "nomMusique": row["nomMusique"]}
+            for row in rows
+        ]
+
+    def get_playlist_slots(self, idEntreprise=1):
+        """
+        Retourne chaque créneau "playlist" planifié, avec la liste ordonnée (par position)
+        des noms de fichiers des musiques qu'elle contient (jointure via PlaylistMusique).
+        """
+        conn = self._getDbConnection()
+        slot_rows = conn.execute("""
+            SELECT pl.idPlanning, pl.StartTime, pl.idPlaylist
+            FROM Planning pl
+            WHERE pl.idEntreprise = ? AND pl.idPlaylist IS NOT NULL
+            ORDER BY pl.StartTime
+        """, (idEntreprise,)).fetchall()
+
+        slots = []
+        for slot in slot_rows:
+            track_rows = conn.execute("""
+                SELECT m.nomMusique
+                FROM PlaylistMusique pm
+                JOIN Musique m ON pm.idMusique = m.idMusique
+                WHERE pm.idPlaylist = ?
+                ORDER BY pm.position
+            """, (slot["idPlaylist"],)).fetchall()
+
+            slots.append({
+                "idPlanning": slot["idPlanning"],
+                "StartTime": slot["StartTime"],
+                "idPlaylist": slot["idPlaylist"],
+                "musics": [t["nomMusique"] for t in track_rows]
+            })
+
+        conn.close()
+        return slots
