@@ -3,19 +3,7 @@ from app.DAO.PlanningDAO import PlanningDAO
 
 
 class PlanningService:
-    """
-    Couche service pour le planning (calendrier des commerciaux/playlists
-    et calendrier des messages).
-
-    Le front envoie l'état complet du calendrier au moment du Save :
-    une liste de "boxes", chacune avec soit idPlaylist soit idMSG (jamais les
-    deux), un StartTime (ISO 8601), et optionnellement idPlanning si la box
-    existe déjà en bd (auquel cas c'est un update, sinon une création).
-
-    Le service calcule le diff par rapport à ce qui est en bd : les lignes
-    absentes du payload sont supprimées, les nouvelles sont insérées, celles
-    avec idPlanning connu sont mises à jour.
-    """
+ 
 
     def __init__(self):
         self.dao = PlanningDAO()
@@ -26,14 +14,7 @@ class PlanningService:
 
     def sync(self, boxes, idEntreprise=1):
         """
-        boxes: liste de dicts, chacun avec les clés possibles:
-            - idPlanning (int ou None) : None si la box n'existe pas encore en bd
-            - idPlaylist (int ou None)
-            - idMSG (int ou None)
-            - StartTime (str ISO 8601)
-
-        Retourne la liste des Planning à jour (avec idPlanning rempli pour les
-        nouvelles entrées), pour que le front puisse re-synchroniser ses boxes.
+    
         """
         existing = self.dao.get_all(idEntreprise)
         existing_ids = {p.idPlanning for p in existing}
