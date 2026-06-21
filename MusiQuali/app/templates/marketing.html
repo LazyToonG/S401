@@ -109,6 +109,7 @@
                 </div>
             </div>
             {% for m in musiques %}
+            {% if not m.nomMusique.startswith('MSG_') %}
             <div id="music-box-{{ m.idMusique }}" class="music-box" draggable="true"
                  data-music-id="{{ m.idMusique }}" data-nom="{{ m.nomMusique | lower }}" data-duree="{{ m.duree }}">
                 
@@ -130,6 +131,7 @@
                 </div>
 
             </div>
+            {% endif %}
             {% endfor %}
         </div>
 
@@ -727,6 +729,11 @@
                     const data = await res.json();
 
                     (data.musiques || []).forEach(m => {
+                        // Les messages (préfixe MSG_) ne s'affichent pas dans "Toutes les musiques"
+                        if (m.nomMusique.startsWith('MSG_')) {
+                            return;
+                        }
+
                         const box = document.createElement('div');
                         box.id = `music-box-${m.idMusique}`;
                         box.className = 'music-box';
