@@ -42,6 +42,17 @@ def playlist_tracks(playlist_id):
     }
 
 
+@app.route("/marketing/playlists", methods=["GET"])
+@reqrole('admin', 'marketing')
+def get_playlists_json():
+    """Retourne la liste des playlists en JSON (pour le calendrier des commerciaux)."""
+    data = marketingService.get_marketing_data()
+    return jsonify([
+        {"idPlaylist": p.idPlaylist, "title": p.title}
+        for p in data["playlists"]
+    ])
+
+
 @app.route("/marketing/playlist/add", methods=["POST"])
 @reqrole('admin', 'marketing')
 def add_playlist():
@@ -58,6 +69,26 @@ def delete_playlist(playlist_id):
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
         return '', 204
     return redirect(url_for("marketing"))
+
+
+@app.route("/marketing/musiques", methods=["GET"])
+@reqrole('admin', 'marketing')
+def get_musiques_json():
+    """
+    Retourne la liste des musiques en JSON. Filtre optionnel via ?prefix=MSG_
+    (utilisé par le calendrier des messages pour n'afficher que les MSG_*).
+    """
+    data = marketingService.get_marketing_data()
+    musiques = data["musiques"]
+
+    prefix = request.args.get("prefix")
+    if prefix:
+        musiques = [m for m in musiques if m.nomMusique.startswith(prefix)]
+
+    return jsonify([
+        {"idMusique": m.idMusique, "nomMusique": m.nomMusique, "duree": m.duree}
+        for m in musiques
+    ])
 
 
 #------ Musiques

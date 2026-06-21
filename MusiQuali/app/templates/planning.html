@@ -78,20 +78,116 @@
             font-size: 0.85em;
             cursor: default;
         }
+        .message-calendar-box .time-input {
+            margin-top: 4px;
+            font-size: 0.85em;
+            cursor: default;
+        }
+
+        /* --- Styles pour l'onglet "Enregistrement de messages" (équivalent minimal de marketing.html) --- */
+        .upload-area {
+            display: block;
+            border: 2px dashed #999;
+            border-radius: 8px;
+            padding: 30px;
+            text-align: center;
+            cursor: pointer;
+            color: #555;
+            background-color: #fafafa;
+            margin-bottom: 15px;
+        }
+        .upload-area:hover {
+            background-color: #f0f0f0;
+        }
+        .file-preview-container {
+            margin-bottom: 15px;
+        }
+        .file-preview-container.hidden {
+            display: none;
+        }
+        .file-preview-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 12px;
+            border: 1px solid #eee;
+            border-radius: 6px;
+            margin-bottom: 6px;
+            background: #fff;
+        }
+        .file-preview-item .item-name {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .remove-file-btn {
+            cursor: pointer;
+            color: #c0392b;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+        .upload-actions {
+            display: flex;
+            gap: 10px;
+        }
+        .btn-action-blue {
+            background-color: #2563eb;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            padding: 10px 16px;
+            cursor: pointer;
+            font-size: 0.95em;
+        }
+        .btn-action-blue:disabled {
+            background-color: #9ab4ea;
+            cursor: not-allowed;
+        }
+        .btn-action-blue.full-width {
+            flex: 1;
+        }
+        .messages-list-container {
+            margin-top: 25px;
+        }
+        .message-box {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #eaeaea;
+        }
+        .message-box .item-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-width: 0;
+        }
+        .message-box .item-info b {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .message-box .action-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #c0392b;
+        }
     </style>
 </head>
 <body>
 
 
     <select id="tabSelect" onchange="switchTab()">
-        <option value="tab1">Gestion des playlist</option>
+        <option value="tab1">Gestion des commerciaux</option>
         <option value="tab2">Gestion des messages</option>
+        <option value="tab3">Enregistrement de messages</option>
     </select>
 
 <div id="tab1" class="tab-content">
-    <h1>Calendrier des playlist</h1>
+    <h1>Calendrier des commerciaux</h1>
     
-    <button id="add-box-btn">+ add playlist</button>
+    <button id="add-box-btn">+ add commercial</button>
    
     <br>
 
@@ -139,10 +235,22 @@
 <div id="tab2" class="tab-content">
     <h1>Calendrier des messages</h1>
     
-    <button id="add-message-btn">+ add commercial</button>
-    
-    
+    <button id="add-message-btn">+ add message</button>
+
     <br>
+
+    <!-- Modal de sélection de message -->
+    <div id="message-modal" class="modal-overlay">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h2>Choisir un message</h2>
+                <button id="message-modal-close" class="modal-close-btn">&times;</button>
+            </div>
+            <ul id="message-modal-list" class="modal-list">
+                <li class="modal-empty">Chargement...</li>
+            </ul>
+        </div>
+    </div>
 
     <table border="1" cellpadding="10" cellspacing="0" width="100%">
         <thead>
@@ -170,6 +278,40 @@
     </table>
 
 </div>
+
+
+<div id="tab3" class="tab-content">
+    <h1>Enregistrement de messages</h1>
+
+    <form action="/upload" method="POST" enctype="multipart/form-data" id="upload-form-message">
+
+        <label class="upload-area" id="upload-zone-message" for="audio-input-message">
+            <p id="upload-text-message">Glisser-déposer ou cliquer pour sélectionner un fichier</p>
+            <input
+                type="file"
+                name="audio"
+                id="audio-input-message"
+                accept=".mp3"
+                multiple
+                required
+                style="display: none;"
+            >
+        </label>
+
+        <div id="file-preview-container-message" class="file-preview-container hidden"></div>
+
+        <div class="upload-actions">
+            <button type="submit" id="btn-upload-message" class="btn-action-blue full-width" disabled>
+                Ajouter à la base de données
+            </button>
+        </div>
+    </form>
+
+    <div id="messages-list" class="messages-list-container">
+        <!-- les messages déjà uploadés apparaitront ici dynamiquement après upload -->
+    </div>
+</div>
+
 
 
 
@@ -213,7 +355,7 @@
             commercialModalList.innerHTML = '<li class="modal-empty">Chargement...</li>';
 
             try {
-                const response = await fetch('commerciaux');
+                const response = await fetch('/marketing/playlists');
                 if (!response.ok) {
                     throw new Error('Erreur lors du chargement des commerciaux');
                 }
@@ -259,7 +401,7 @@
             newBox.id = `box-${boxCounter}`;
             newBox.className = 'commercial-box';
             newBox.draggable = true;
-            newBox.dataset.idCommercial = commercial.idCommercial;
+            newBox.dataset.idPlaylist = commercial.idPlaylist;
             newBox.dataset.time = '';
 
             // nom des boites = titre du commercial choisi + sélecteur d'heure
@@ -332,8 +474,7 @@
 
 
     
-        //pour le 2e tab
-
+        //pour le 2e tab : calendrier des messages (même fonctionnement que l'onglet 1)
 
         let MessageCounter = 0;
 
@@ -341,18 +482,78 @@
         const messageBoxBtn = document.getElementById('add-message-btn');
         const messageszones = document.querySelectorAll('.messageszone');
 
+        // -------------------- modal de sélection de message
+        const messageModal = document.getElementById('message-modal');
+        const messageModalList = document.getElementById('message-modal-list');
+        const messageModalClose = document.getElementById('message-modal-close');
+
+        function openMessageModal() {
+            messageModal.classList.add('open');
+            loadMessagesIntoModal();
+        }
+
+        function closeMessageModal() {
+            messageModal.classList.remove('open');
+        }
+
+        messageModalClose.addEventListener('click', closeMessageModal);
+        // fermer si on clique en dehors de la boite
+        messageModal.addEventListener('click', (e) => {
+            if (e.target === messageModal) {
+                closeMessageModal();
+            }
+        });
+
+        async function loadMessagesIntoModal() {
+            messageModalList.innerHTML = '<li class="modal-empty">Chargement...</li>';
+
+            try {
+                const response = await fetch('/marketing/musiques?prefix=MSG_');
+                if (!response.ok) {
+                    throw new Error('Erreur lors du chargement des messages');
+                }
+                const messages = await response.json();
+
+                if (!messages.length) {
+                    messageModalList.innerHTML = '<li class="modal-empty">Aucun message disponible</li>';
+                    return;
+                }
+
+                messageModalList.innerHTML = '';
+                messages.forEach(message => {
+                    const item = document.createElement('li');
+                    item.textContent = message.nomMusique;
+                    item.addEventListener('click', () => {
+                        createMessageBox(message);
+                        closeMessageModal();
+                    });
+                    messageModalList.appendChild(item);
+                });
+            } catch (err) {
+                messageModalList.innerHTML = '<li class="modal-empty">Erreur de chargement</li>';
+                console.error(err);
+            }
+        }
+
         // -------------------- logique des boites
-        messageBoxBtn.addEventListener('click', () => {
+        function createMessageBox(message) {
             MessageCounter++;
-            
+
             // create box
             const newBox = document.createElement('div');
             newBox.id = `msgbox-${MessageCounter}`;
+            newBox.className = 'message-calendar-box';
             newBox.draggable = true;
-            
-            // nom des boites
-            newBox.innerHTML = `<b>Box ${MessageCounter}</b><br><small>Drag me</small>`; //modifier nom selon commercial choisi
-            
+            newBox.dataset.idMusique = message.idMusique;
+            newBox.dataset.time = '';
+
+            // nom des boites = titre du message choisi + sélecteur d'heure
+            newBox.innerHTML = `
+                <b>${message.nomMusique}</b><br>
+                <small>Drag me</small><br>
+                <input type="time" class="time-input">
+            `;
+
             // Using basic JS inline styles *only* to simulate basic HTML box borders/padding 
             // so you can actually see and grab the empty boxes.
             newBox.style.border = "2px dashed #333";
@@ -361,6 +562,20 @@
             newBox.style.backgroundColor = "#e0e0e0";
             newBox.style.cursor = "move";
 
+            // Met à jour l'heure stockée et re-trie la colonne quand on change le champ
+            const timeInput = newBox.querySelector('.time-input');
+            timeInput.addEventListener('mousedown', (e) => {
+                e.stopPropagation();
+            });
+            timeInput.addEventListener('click', (e) => {
+                // empêche le drag de partir quand on clique dans le champ
+                e.stopPropagation();
+            });
+            timeInput.addEventListener('change', (e) => {
+                newBox.dataset.time = e.target.value;
+                sortMessageColumnByTime(newBox.parentElement);
+            });
+
             // Attach drag start event to the new box
             newBox.addEventListener('dragstart', (e) => {
                 e.dataTransfer.setData('text/plain', e.target.id);
@@ -368,6 +583,20 @@
 
             // Automatically place the newly created box into Monday to start
             document.getElementById('mon-tab2').appendChild(newBox);
+        }
+
+        function sortMessageColumnByTime(column) {
+            const boxes = Array.from(column.children).filter(el => el.classList.contains('message-calendar-box'));
+            boxes.sort((a, b) => {
+                const timeA = a.dataset.time || '99:99';
+                const timeB = b.dataset.time || '99:99';
+                return timeA.localeCompare(timeB);
+            });
+            boxes.forEach(box => column.appendChild(box));
+        }
+
+        messageBoxBtn.addEventListener('click', () => {
+            openMessageModal();
         });
 
         // --- DragonDrop
@@ -382,17 +611,174 @@
                 e.preventDefault();
                 const boxId = e.dataTransfer.getData('text/plain');
                 const draggedBox = document.getElementById(boxId);
-                
+
                 // Ensure we are appending to the column (TD), not inside another box
+                let targetColumn;
                 if (e.target.classList.contains('messageszone')) {
-                    e.target.appendChild(draggedBox);
+                    targetColumn = e.target;
                 } else {
                     // If dropped onto an existing box, append to its parent column instead
-                    e.target.closest('.messageszone').appendChild(draggedBox);
+                    targetColumn = e.target.closest('.messageszone');
                 }
+                targetColumn.appendChild(draggedBox);
+                sortMessageColumnByTime(targetColumn);
             });
         });
 
+
+        //pour le 3e tab : upload des messages (copié/adapté de marketing.html, préfixe MSG_ ajouté)
+
+        const audioInputMessage = document.getElementById('audio-input-message');
+        const filePreviewContainerMessage = document.getElementById('file-preview-container-message');
+        const btnUploadMessage = document.getElementById('btn-upload-message');
+        const uploadTextMessage = document.getElementById('upload-text-message');
+        const messagesList = document.getElementById('messages-list');
+
+        // Objet magique pour manipuler les FileList en JavaScript
+        let selectedMessageFilesTransfer = new DataTransfer();
+
+        // Ajoute le préfixe MSG_ au nom d'un fichier (sans le dupliquer si déjà présent)
+        function withMsgPrefix(file) {
+            const alreadyPrefixed = file.name.startsWith('MSG_');
+            const newName = alreadyPrefixed ? file.name : `MSG_${file.name}`;
+            return new File([file], newName, { type: file.type });
+        }
+
+        if (audioInputMessage) {
+            audioInputMessage.addEventListener('change', function() {
+                // Ajoute les nouveaux fichiers sélectionnés (préfixés) à notre liste virtuelle
+                for (let i = 0; i < this.files.length; i++) {
+                    selectedMessageFilesTransfer.items.add(withMsgPrefix(this.files[i]));
+                }
+                // Met à jour le vrai input pour l'envoi Flask
+                this.files = selectedMessageFilesTransfer.files;
+                updateMessageFilePreview();
+            });
+        }
+
+        function updateMessageFilePreview() {
+            filePreviewContainerMessage.innerHTML = ''; // On vide l'affichage
+
+            if (selectedMessageFilesTransfer.files.length > 0) {
+                filePreviewContainerMessage.classList.remove('hidden');
+                btnUploadMessage.disabled = false; // Active le bouton d'envoi
+                uploadTextMessage.innerText = "Ajouter d'autres fichiers (.mp3)";
+
+                // Génère le HTML pour chaque fichier
+                Array.from(selectedMessageFilesTransfer.files).forEach((file, index) => {
+                    const fileItem = document.createElement('div');
+                    fileItem.className = 'file-preview-item';
+
+                    const fileName = document.createElement('span');
+                    fileName.className = 'item-name';
+                    fileName.innerText = file.name;
+
+                    const removeBtn = document.createElement('span');
+                    removeBtn.className = 'remove-file-btn';
+                    removeBtn.innerHTML = '&times;';
+
+                    removeBtn.addEventListener('click', function(e) {
+                        e.preventDefault(); // Évite d'ouvrir l'explorateur de fichiers
+                        removeMessageFile(index);
+                    });
+
+                    fileItem.appendChild(fileName);
+                    fileItem.appendChild(removeBtn);
+                    filePreviewContainerMessage.appendChild(fileItem);
+                });
+            } else {
+                // S'il n'y a plus de fichiers, on cache tout
+                filePreviewContainerMessage.classList.add('hidden');
+                btnUploadMessage.disabled = true;
+                uploadTextMessage.innerText = "Glisser-déposer ou cliquer pour sélectionner un fichier";
+            }
+        }
+
+        function removeMessageFile(indexToRemove) {
+            const newTransfer = new DataTransfer();
+
+            // On recrée la liste en ignorant le fichier supprimé
+            Array.from(selectedMessageFilesTransfer.files).forEach((file, index) => {
+                if (index !== indexToRemove) {
+                    newTransfer.items.add(file);
+                }
+            });
+
+            selectedMessageFilesTransfer = newTransfer;
+            audioInputMessage.files = selectedMessageFilesTransfer.files; // Met à jour le vrai input
+            updateMessageFilePreview(); // Rafraîchit l'affichage
+        }
+
+        // --- UPLOAD EN AJAX (pas de rechargement de page) ---
+        const uploadFormMessage = document.getElementById('upload-form-message');
+
+        if (uploadFormMessage) {
+            uploadFormMessage.addEventListener('submit', async (e) => {
+                e.preventDefault();
+
+                const formData = new FormData(uploadFormMessage);
+
+                try {
+                    const res = await fetch(uploadFormMessage.action, {
+                        method: 'POST',
+                        headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                        body: formData
+                    });
+
+                    if (!res.ok) {
+                        console.error('Erreur lors de l\'upload', res.status);
+                        return;
+                    }
+
+                    const data = await res.json();
+
+                    (data.musiques || []).forEach(m => {
+                        const box = document.createElement('div');
+                        box.id = `message-box-${m.idMusique}`;
+                        box.className = 'message-box';
+                        box.dataset.musicId = m.idMusique;
+                        box.innerHTML = `
+                            <span class="item-info">
+                                <b>${m.nomMusique}</b>
+                                <span style="white-space: nowrap;">— ${m.duree}s</span>
+                            </span>
+                            <form action="/marketing/music/${m.idMusique}/delete" method="POST" style="margin: 0;">
+                                <button type="submit" class="action-btn">&times;</button>
+                            </form>
+                        `;
+
+                        box.querySelector('form').addEventListener('submit', async (ev) => {
+                            ev.preventDefault();
+                            const f = ev.target;
+                            const b = f.closest('.message-box');
+                            try {
+                                const r = await fetch(f.action, {
+                                    method: 'POST',
+                                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                                });
+                                if (r.ok) {
+                                    b.remove();
+                                } else {
+                                    console.error('Erreur lors de la suppression', r.status);
+                                }
+                            } catch (err) {
+                                console.error('Erreur réseau lors de la suppression', err);
+                            }
+                        });
+
+                        messagesList.appendChild(box);
+                    });
+
+                    // Réinitialise le formulaire et la prévisualisation
+                    selectedMessageFilesTransfer = new DataTransfer();
+                    audioInputMessage.value = '';
+                    updateMessageFilePreview();
+
+                } catch (err) {
+                    console.error('Erreur réseau lors de l\'upload', err);
+                }
+            });
+        }
 
 
         function switchTab() { // handle the tabs.
