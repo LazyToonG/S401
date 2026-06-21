@@ -93,7 +93,7 @@ def admin_dashboard():
     elif current_sort_rasp == 'ip':
         rasp = rs.triIP()
     else:
-        rasp = rs.montreToutRasp()
+        rasp = rs.montreToutRasp(session["idEntreprise"])
 
     # --- TRI DES UTILISATEURS ---
     logs_by_rasp = {}
@@ -279,7 +279,7 @@ def api_search_rasp():
     query = request.args.get('q', '')
     
     if query == '':
-        raspberry = rs.montreToutRasp()
+        raspberry = rs.montreToutRasp(session["idEntreprise"])
     else:
         raspberry = rs.recherche(query)
         

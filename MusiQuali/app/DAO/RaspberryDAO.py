@@ -42,13 +42,24 @@ class RaspberrySqliteDAO():
 	# 	conn.commit()
 	# 	conn.close()
 
-	def findAll(self):
-		""" trouve tous les raspberry """
+	def findAll(self, idEntreprise):
+		""" trouve tous les raspberry d'une entreprise """
+		conn = self._getDbConnection()
+		raspberry = conn.execute('SELECT * FROM Lecteur WHERE idEntreprise = ?', (idEntreprise,)).fetchall()
+		raspberry_instances = list()
+		for r in raspberry:
+			raspberry_instances.append(
+				Raspberry(r["idLecteur"], r["nomLecteur"], r["ip"])
+				)
+		conn.close()
+		return raspberry_instances
+
+	def findAllGlobal(self):
+		""" trouve tous les raspberry, toutes entreprises confondues """
 		conn = self._getDbConnection()
 		raspberry = conn.execute('SELECT * FROM Lecteur').fetchall()
 		raspberry_instances = list()
 		for r in raspberry:
-			# Ici on crée l'objet Raspberry avec les colonnes de la DB
 			raspberry_instances.append(
 				Raspberry(r["idLecteur"], r["nomLecteur"], r["ip"])
 				)

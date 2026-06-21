@@ -26,7 +26,7 @@ def addRaspberry():#manque trad pour les flash
     mdp = request.form.get("mdpRasp")
     
 
-    rasps = rs.montreToutRasp()
+    rasps = rs.montreToutRaspGlobal()
     if any(r.ip == ip for r in rasps):
         message=ts.message_langue("Raspberry déjà existant","Raspberry already exists")
         flash(message,"error")
@@ -179,7 +179,7 @@ etatPing = {}
 def pingLoop():
     print("PING LOOP DEMARRE")
     while True:
-        raspberrys = rs.montreToutRasp()
+        raspberrys = rs.montreToutRaspGlobal()
         for r in raspberrys:
             if r.ip is None or r.nomLecteur is None:
                 continue  # Ignorer les entrées avec des informations incomplètes
