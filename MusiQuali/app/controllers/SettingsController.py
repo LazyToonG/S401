@@ -4,9 +4,13 @@ from app.controllers.LoginController import reqrole
 
 from app.services.UserService import UserService
 from app.services.TraductionService import Traductionservice
+from app.DAO.RequeteDAO import RequeteDAO
+
 
 ts = Traductionservice()
 us = UserService()
+req_dao = RequeteDAO()
+
 
 class SettingsController:
 
@@ -22,9 +26,10 @@ class SettingsController:
         
         user = session['username']
         role = session['role']
+        id_entreprise = session.get('idEntreprise', 1)
 
         # On récupère toutes les infos de l'utilisateur (dont l'email)
-        user_info_list = us.getUserByUsername(user)
+        user_info_list = us.getUserByUsername(user, id_entreprise)
         user_info = user_info_list[0] if user_info_list else None
 
         # On passe 'user_info' à notre template HTML
@@ -41,8 +46,9 @@ class SettingsController:
         
         nouveau_username = request.form.get('username')
         nouvel_email = request.form.get('email')
+        id_entreprise = session.get('idEntreprise', 1)
 
-        user_info_list = us.getUserByUsername(ancien_username)
+        user_info_list = us.getUserByUsername(ancien_username, id_entreprise)
         user_info = user_info_list[0] if user_info_list else None
 
         if user_info:
@@ -114,3 +120,51 @@ class SettingsController:
             return redirect(url_for('settings'))
 
         return render_template('settings.html', user=user, role=role, t=textes, current_lang=langue_choisie)
+
+
+    @app.route('/requete_form', methods=['GET','POST'])
+    def requete_form():
+        if not session.get('logged'):
+            return redirect(url_for('login'))
+
+        traductions = ts.tradSettings() 
+        
+        langue_choisie = session.get('lang', 'fr')
+        textes = traductions[langue_choisie]
+        
+        user = session['username']
+        role = session['role']
+
+        return render_template('requete.html', user=user, role=role, t=textes, current_lang=langue_choisie)
+
+    
+
+    @app.route('/submit_requete', methods=['POST'])
+    def submit_requete():
+        # 1. On récupère les infos du formulaire
+        type_req = request.form.get('request_type')
+        description = request.form.get('description')
+        
+        # 2. On récupère les infos de l'utilisateur connecté depuis la session
+        demandeur = session.get('username')
+        role = session.get('role')
+        id_entreprise = session.get('idEntreprise', 1)
+
+        user_info_list = us.getUserByUsername(demandeur, id_entreprise)
+        user_obj = user_info_list[0] if user_info_list else None
+        mail = user_obj.mail if user_obj else "email@inconnu.com"
+
+        # 3. On enregistre dans le fichier JSON !
+        req_dao.ajouter_requete(
+            demandeur=demandeur,
+            mail=mail,
+            type_req=type_req,
+            message=description,
+            role=role,
+            entreprise=id_entreprise
+        )
+        
+        flash("Votre requête a bien été envoyée à l'administrateur.", "success")
+        
+        # Redirige vers la page d'accueil ou l'historique des requêtes
+        return redirect(url_for('requete_form'))

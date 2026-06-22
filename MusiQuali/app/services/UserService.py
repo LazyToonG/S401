@@ -4,41 +4,41 @@ class UserService():
     def __init__(self):
         self.udao = UserDAO()
 
-    def getUserByUsername(self, username):
-        res = self.udao.getByUsername(username)
+    def getUserByUsername(self, username, idEntreprise):
+        res = self.udao.getByUsername(username, idEntreprise)
         if type(res) is not list:
             res = [res]
         return res
 
-    def getUserByEmail(self, mail):
-        return self.udao.getByEmail(mail)
+    def getUserByEmail(self, mail, idEntreprise):
+        return self.udao.getByEmail(mail, idEntreprise)
     
-    def setUsername(self, username, new_username):
-        return self.udao.setUsername(username, new_username)
+    def setUsername(self, username, new_username, idEntreprise):
+        return self.udao.setUsername(username, new_username, idEntreprise)
     
-    def setEmail(self, username, new_mail):
-        return self.udao.setEmail(username, new_mail)
+    def setEmail(self, username, new_mail, idEntreprise):
+        return self.udao.setEmail(username, new_mail, idEntreprise)
     
-    def setPassword(self, username, new_password):
-        return self.udao.setPassword(username, new_password)
+    def setPassword(self, username, new_password, idEntreprise):
+        return self.udao.setPassword(username, new_password, idEntreprise)
     
-    def setRole(self, username, new_role):
-        return self.udao.setRole(username, new_role)
+    def setRole(self, username, new_role, idEntreprise):
+        return self.udao.setRole(username, new_role, idEntreprise)
 
-    def getUsers(self):
-        return self.udao.findAll()
+    def getUsers(self, idEntreprise):
+        return self.udao.findAll(idEntreprise)
     
-    def recherche(self, query):
-        return self.udao.recherche(query)
+    def recherche(self, query, idEntreprise):
+        return self.udao.recherche(query, idEntreprise)
     
-    def triASC(self):
-        return self.udao.triASC()
+    def triASC(self, idEntreprise):
+        return self.udao.triASC(idEntreprise)
     
-    def triDESC(self):
-        return self.udao.triDESC()
+    def triDESC(self, idEntreprise):
+        return self.udao.triDESC(idEntreprise)
     
-    def triRole(self):
-        return self.udao.triRole()
+    def triRole(self, idEntreprise):
+        return self.udao.triRole(idEntreprise)
     
     def signin(self, username, password, role, mail, idEntreprise):
         return self.udao.createUser(username, password, role, mail, idEntreprise)
@@ -46,8 +46,8 @@ class UserService():
     def login(self, username, password):
         return self.udao.verifyUser(username, password)
     
-    def deleteUser(self, username):
-        return self.udao.deleteByUsername(username)
+    def deleteUser(self, username, idEntreprise):
+        return self.udao.deleteByUsername(username, idEntreprise)
     
     def deleteUserIdentreprise(self, idEntreprise):
         return self.udao.deleteByIdEntreprise(idEntreprise)

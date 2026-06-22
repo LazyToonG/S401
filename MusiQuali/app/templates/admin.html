@@ -45,7 +45,7 @@
         <button class="tab-btn" data-target="raspberry">{{t.gestion_rasp}}</button>
         <button class="tab-btn" data-target="terminal">{{t.terminal}}</button>
         <button class="tab-btn" data-target="users">{{t.gestion_user}}</button>
-        <button class="tab-btn" data-target="requests">{{t.requetes}} [1]</button>
+        <button class="tab-btn" data-target="requests">{{t.requetes}}{% if requetes|length>0 %} [{{requetes|length}}]{% endif %}</button>
     </div>
 
     <main class="content-area">
@@ -293,7 +293,7 @@
 
                     </div>
                     
-                    <div style="text-align: center; margin-top: 30px;">
+                    <div style="text-align: center; margin-top: auto; padding-top: 20px;">
                         <button type="submit" class="btn-action-red">{{t.create_user}}</button>
                     </div>
                 </form>
@@ -305,39 +305,51 @@
             <div class="requests-sidebar">
                 <h2 class="sidebar-title">Requêtes :</h2>
                 <div class="requests-list">
-                    <div class="request-item active">
-                        <div class="req-row"><b>Sujet :</b> <span>-------------------------</span></div>
-                        <div class="req-row right"><b>De :</b> <span>----------------</span></div>
+                    {% for req_id, req in requetes.items() %}
+                    <div class="request-item" onclick="showRequestDetails('{{ req_id }}', this)">
+                        <div class="req-row"><b>Sujet :</b> <span>{{ req.type | capitalize }}</span></div>
+                        <div class="req-row right"><b>De :</b> <span>{{ req.mail }}</span></div>
                     </div>
-                    <div class="request-item">
-                        <div class="req-row"><b>Sujet :</b> <span>-------------------------</span></div>
-                        <div class="req-row right"><b>De :</b> <span>----------------</span></div>
+                    {% else %}
+                    <div style="padding: 20px; text-align: center; color: #666; font-style: italic;">
+                        Aucune requête en attente.
                     </div>
-                    <div class="request-item"></div>
-                    <div class="request-item"></div>
-                    <div class="request-item"></div>
-                    <div class="request-item"></div>
+                    {% endfor %}
                 </div>
             </div>
 
-            <div class="requests-details">
+            <div class="requests-details" id="req-placeholder">
+                <p style="text-align: center; color: #666; margin-top: 50px; font-style: italic;">
+                    Sélectionnez une requête à gauche pour voir les détails.
+                </p>
+            </div>
+
+            {% for req_id, req in requetes.items() %}
+            <div class="requests-details hidden req-detail-box" id="req-detail-{{ req_id }}">
                 <div class="details-header">
-                    <p>Sujet : ----------------------------------------------------</p>
-                    <p>De : --------------------</p>
+                    <p><b>Sujet :</b> {{ req.type | capitalize }}</p>
+                    <p><b>De :</b> {{ req.mail }} ({{ req.demandeur }})</p>
+                    <p><b>Rôle demandeur :</b> {{ req.role }} &nbsp;|&nbsp; <b>ID Entreprise :</b> {{ req.entreprise }}</p>
                 </div>
                 
                 <div class="details-body">
-                    <p>--------------------------------------------------------------------------------------------------------------------------------</p>
-                    <p>--------------------------------------------------------------------------------------------------------------------------------</p>
-                    <p>--------------------------------------------------------------------------------------------------------------------------------</p>
-                    <p>----------------------------------------------------------------------------------------</p>
+                    <p>{{ req.message }}</p>
                 </div>
 
                 <div class="details-actions">
-                    <button class="btn-accept">Accepter</button>
-                    <button class="btn-refuse">Refuser</button>
+                    <form method="POST" action="/admin/action_requete" style="margin: 0;">
+                        <input type="hidden" name="req_id" value="{{ req_id }}">
+                        <input type="hidden" name="action" value="accept">
+                        <button type="submit" class="btn-accept">Accepter</button>
+                    </form>
+                    <form method="POST" action="/admin/action_requete" style="margin: 0;">
+                        <input type="hidden" name="req_id" value="{{ req_id }}">
+                        <input type="hidden" name="action" value="refuse">
+                        <button type="submit" class="btn-refuse" onclick="return confirm('Voulez-vous vraiment refuser cette requête ?');">Refuser</button>
+                    </form>
                 </div>
             </div>
+            {% endfor %}
 
         </div>
 
@@ -594,6 +606,26 @@
                 document.getElementById(containerId).innerHTML = html;
             })
             .catch(error => console.error("Erreur lors de la recherche dynamique :", error));
+        }
+
+        // --- GESTION DE L'AFFICHAGE DES REQUÊTES ---
+        function showRequestDetails(reqId, elementClicked) {
+            // 1. Cache tous les panneaux de détails
+            document.getElementById('req-placeholder').classList.add('hidden');
+            document.querySelectorAll('.req-detail-box').forEach(box => {
+                box.classList.add('hidden');
+            });
+            
+            // 2. Affiche le bon panneau
+            document.getElementById('req-detail-' + reqId).classList.remove('hidden');
+            
+            // 3. Enlève la couleur rouge (active) de tous les onglets
+            document.querySelectorAll('.request-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            // 4. Met en surbrillance l'onglet cliqué
+            elementClicked.classList.add('active');
         }
 
         // setInterval(() => {
