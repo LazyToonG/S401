@@ -1,14 +1,28 @@
-from flask import request, jsonify, render_template
+from flask import request, jsonify, render_template, session
 from app import app
+from app.services.TraductionService import Traductionservice
 from app.services.PlanningService import PlanningService
 
 planningService = PlanningService()
+
+ts = Traductionservice()
+
 
 
 @app.route("/commercial", methods=["GET"])
 def commercial_page():
     """Sert la page planning.html (calendriers commerciaux + messages)."""
-    return render_template("planning.html")
+    traductions=ts.tradMarketing()
+
+    langue_choisie=ts.getLangue()
+    textes = traductions[langue_choisie]
+
+    return render_template(
+        "planning.html",
+        user=session['username'],
+        role=session['role'],
+        t=textes
+    )
 
 
 def _to_dict(planning):

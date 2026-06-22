@@ -48,7 +48,7 @@ def get_playlists_json():
     """Retourne la liste des playlists en JSON (pour le calendrier des commerciaux)."""
     data = marketingService.get_marketing_data()
     return jsonify([
-        {"idPlaylist": p["idPlaylist"], "title": p["title"]}
+        {"idPlaylist": p["idPlaylist"], "title": p["title"], "duree_totale": p["duree_totale"]}
         for p in data["playlists"]
     ])
 

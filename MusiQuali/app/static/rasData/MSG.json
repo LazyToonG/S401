@@ -1,40 +1,7 @@
 {
-  "monday": [
-    {
-      "time": "03:34",
-      "musics": [
-        "MSG_fbi-open-up_dwLhIFf.mp3"
-      ]
-    },
-    {
-      "time": "04:05",
-      "musics": [
-        "MSG_emotional-damage-meme(1).mp3"
-      ]
-    },
-    {
-      "time": "05:00",
-      "musics": [
-        "MSG_error_CDOxCYm(1).mp3"
-      ]
-    }
-  ],
-  "tuesday": [
-    {
-      "time": "06:07",
-      "musics": [
-        "MSG_tf_nemesis.mp3"
-      ]
-    }
-  ],
-  "wednesday": [
-    {
-      "time": "05:06",
-      "musics": [
-        "MSG_fbi-open-up_dwLhIFf.mp3"
-      ]
-    }
-  ],
+  "monday": [],
+  "tuesday": [],
+  "wednesday": [],
   "thursday": [],
   "friday": [],
   "saturday": [],
