@@ -2,6 +2,7 @@ from flask import request, jsonify, render_template, session
 from app import app
 from app.services.TraductionService import Traductionservice
 from app.services.PlanningService import PlanningService
+from app.controllers.LoginController import reqrole
 
 planningService = PlanningService()
 
@@ -10,6 +11,7 @@ ts = Traductionservice()
 
 
 @app.route("/commercial", methods=["GET"])
+@reqrole("admin","commercial")
 def commercial_page():
     """Sert la page planning.html (calendriers commerciaux + messages)."""
     traductions=ts.tradMarketing()
@@ -36,6 +38,7 @@ def _to_dict(planning):
 
 
 @app.route("/planning/data", methods=["GET"])
+@reqrole("admin","commercial")
 def get_planning_data():
     """Retourne tout le planning (les deux calendriers) pour reconstruire l'état au chargement."""
     idEntreprise = request.args.get("idEntreprise", 1, type=int)
@@ -44,6 +47,7 @@ def get_planning_data():
 
 
 @app.route("/planning/save", methods=["POST"])
+@reqrole("admin","commercial")
 def save_planning():
     """
     Reçoit l'état complet des deux calendriers et synchronise la bd
@@ -73,6 +77,7 @@ def save_planning():
 
 
 @app.route("/planning/<int:planning_id>", methods=["DELETE"])
+@reqrole("admin","commercial")
 def delete_planning(planning_id):
     """Supprime une entrée précise du planning."""
     planningService.delete(planning_id)

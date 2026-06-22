@@ -12,6 +12,7 @@ ts = Traductionservice()
 
 
 @app.route("/marketing")
+@reqrole("admin","marketing")
 def marketing():
     traductions = ts.tradMarketing()
     langue_choisie = ts.getLangue()

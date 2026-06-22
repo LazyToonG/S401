@@ -109,7 +109,7 @@ class LoginController:
                 elif user.role == "marketing":
                     return redirect(url_for("marketing"))
                 elif user.role == "commercial":
-                    return redirect(url_for("voir_planning"))
+                    return redirect(url_for("commercial_page"))
                 else:
                     return redirect(url_for("index"))
             else:
