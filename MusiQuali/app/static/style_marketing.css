@@ -8,6 +8,120 @@ body.no-scroll {
 
 
 
+.music-box, .playlist-box {
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            padding: 15px 0; 
+            border-bottom: 1px solid #eaeaea; 
+            border-top: none;
+            border-left: none;
+            border-right: none;
+            background-color: transparent;
+            cursor: grab; 
+            font-size: 16px; 
+            color: #000;
+            margin: 0;
+        }
+
+        /* Le bloc de texte à gauche (Titre, durée...) */
+        .item-info {
+            display: flex; 
+            align-items: center; 
+            gap: 12px;
+            flex: 1;
+            min-width: 0;
+            padding-right: 15px;
+        }
+
+        /* On force le titre de la musique à se couper proprement avec "..." */
+        .item-info b {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* On interdit aux petits points ⠿ et à la durée de rétrécir ou de s'écraser */
+        .item-info span {
+            flex-shrink: 0;
+        }
+
+        /* Les petits points pour glisser-déposer */
+        .grab-dots {
+            font-size: 20px; 
+            color: #555;
+        }
+
+        /* Les boutons avec l'effet de transparence (opacity) intégré ! */
+        .action-btn {
+            background: none; 
+            border: none; 
+            cursor: pointer; 
+            padding: 0;
+            display: flex;
+        }
+        .action-btn img {
+            width: 18px; 
+            opacity: 0.5; 
+            transition: opacity 0.2s ease;
+        }
+        .action-btn:hover img {
+            opacity: 1;
+        }
+
+        /* ===== SCROLLBARS ===== */
+
+        /* Panneau gauche : liste des musiques */
+        .left-panel {
+            overflow-y: auto;
+            max-height: calc(100vh - 120px); /* ajuste selon la hauteur de ta nav */
+        }
+
+        /* Conteneur des playlists */
+        #playlists-container {
+            overflow-y: auto;
+            max-height: calc(100vh - 280px);
+        }
+
+        /* Scrollbar personnalisée (WebKit : Chrome, Edge, Safari) */
+        .left-panel::-webkit-scrollbar,
+        #playlists-container::-webkit-scrollbar {
+            width: 6px;
+        }
+        .left-panel::-webkit-scrollbar-track,
+        #playlists-container::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .left-panel::-webkit-scrollbar-thumb,
+        #playlists-container::-webkit-scrollbar-thumb {
+            background-color: #b5abab;
+            border-radius: 10px;
+        }
+        .left-panel::-webkit-scrollbar-thumb:hover,
+        #playlists-container::-webkit-scrollbar-thumb:hover {
+            background-color: #651b1b;
+        }
+
+        /* Firefox */
+        .left-panel,
+        #playlists-container {
+            scrollbar-width: thin;
+            scrollbar-color: #b5abab transparent;
+        }
+
+        /* Style pour l'option de tri actuellement active */
+        .sort-menu a.active-sort {
+            background-color: #f5ebeb !important; /* Léger fond rosé/bordeaux très clair */
+            color: #651b1b !important;            /* Écrit en bordeaux foncé */
+            font-weight: bold !important;         /* Texte bien visible */
+        }
+
+
+
+
+
+
+
 /* --- ONGLETS MARKETING --- */
 .tabs-container { display: flex; gap: 20px; padding: 15px 40px; }
 

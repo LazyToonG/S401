@@ -9,73 +9,7 @@
     <link href="{{ url_for('static', filename='message_alert.css') }}" rel="stylesheet">
     <style>
         /* Style commun pour les musiques ET les playlists */
-        .music-box, .playlist-box {
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            padding: 15px 0; 
-            border-bottom: 1px solid #eaeaea; 
-            border-top: none;
-            border-left: none;
-            border-right: none;
-            background-color: transparent;
-            cursor: grab; 
-            font-size: 16px; 
-            color: #000;
-            margin: 0;
-        }
-
-        /* Le bloc de texte à gauche (Titre, durée...) */
-        .item-info {
-            display: flex; 
-            align-items: center; 
-            gap: 12px;
-            flex: 1;
-            min-width: 0;
-            padding-right: 15px;
-        }
-
-        /* On force le titre de la musique à se couper proprement avec "..." */
-        .item-info b {
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        /* On interdit aux petits points ⠿ et à la durée de rétrécir ou de s'écraser */
-        .item-info span {
-            flex-shrink: 0;
-        }
-
-        /* Les petits points pour glisser-déposer */
-        .grab-dots {
-            font-size: 20px; 
-            color: #555;
-        }
-
-        /* Les boutons avec l'effet de transparence (opacity) intégré ! */
-        .action-btn {
-            background: none; 
-            border: none; 
-            cursor: pointer; 
-            padding: 0;
-            display: flex;
-        }
-        .action-btn img {
-            width: 18px; 
-            opacity: 0.5; 
-            transition: opacity 0.2s ease;
-        }
-        .action-btn:hover img {
-            opacity: 1;
-        }
-
-        /* Style pour l'option de tri actuellement active */
-        .sort-menu a.active-sort {
-            background-color: #f5ebeb !important; /* Léger fond rosé/bordeaux très clair */
-            color: #651b1b !important;            /* Écrit en bordeaux foncé */
-            font-weight: bold !important;         /* Texte bien visible */
-        }
+        
     </style>
 </head>
 <body class="no-scroll"> 
