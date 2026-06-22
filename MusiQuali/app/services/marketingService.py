@@ -23,12 +23,12 @@ class MarketingService:
 
  # Playlistes       
 
-    def get_playlists(self):
-        return self.playlistDAO.get_all()
+    def get_playlists(self, idEntreprise):
+        return self.playlistDAO.get_all(idEntreprise)
 
     def get_playlists_with_stats(self, idEntreprise):
         """Retourne les playlists enrichies avec nb_musiques et duree_totale."""
-        playlists = self.playlistDAO.get_all()
+        playlists = self.playlistDAO.get_all(idEntreprise)
         all_musics = {m.idMusique: m for m in self.musicDAO.get_musiques(idEntreprise)}
         result = []
         for p in playlists:
