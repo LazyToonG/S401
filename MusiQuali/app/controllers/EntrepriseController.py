@@ -13,7 +13,7 @@ us = UserService()
 
 
 @app.route("/entreprise", methods=["GET"])
-# @reqrole('moderateur')
+@reqrole('modo')
 def entreprise_dashboard():
     traductions = ts.tradEntreprise()
     langue_choisie = ts.getLangue()
@@ -25,10 +25,13 @@ def entreprise_dashboard():
     return render_template(
         "entreprise.html",
         entreprises=allEntreprises,
-        t=textes
+        t=textes,
+        user=session['username'],
+        role=session['role'] 
     )
 
 @app.route("/entreprise/delete/<int:idEntreprise>", methods=["POST"])
+@reqrole('modo')
 def delete_entreprise(idEntreprise):
     try:
         us.deleteUserIdentreprise(idEntreprise)
@@ -43,6 +46,7 @@ def delete_entreprise(idEntreprise):
     return redirect(url_for("entreprise_dashboard"))
 
 @app.route("/entreprise/create", methods=["POST"])
+@reqrole('modo')
 def create_entreprise():
     try:
         nomEntreprise = request.form.get("nomEntreprise")

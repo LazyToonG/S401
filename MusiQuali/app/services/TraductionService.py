@@ -489,8 +489,16 @@ class Traductionservice():
     def tradEntreprise(self):
         return {
             "fr" : {
-                "tousEntreprise" : "Liste des entreprises"
+                "tousEntreprise" : "Liste des entreprises",
+                "profil" : "Profil",
+                "settings" : "Paramètres",
+                "logout" : "Se déconnecter",
+                "requete" : "Envoyer une requête",
             },
             "eng" : {
-                "tousEntreprise" : "List of all the companys"
+                "tousEntreprise" : "List of all the companys",
+                "profil" : "Profile",
+                "settings" : "Settings",
+                "logout" : "Log out",
+                "requete" : "Send a request",
             }}
