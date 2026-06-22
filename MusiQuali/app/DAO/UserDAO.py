@@ -70,11 +70,18 @@ class UserSqliteDAO():
         conn.close()
         return User(**dict(user)) if user else None
     
-    def getByEmail(self, mail, idEntreprise):
+    def getByEmail(self, mail, idEntreprise=None):
         conn = self._getDbConnection()
-        user = conn.execute(
-            "SELECT * FROM Users WHERE mail = ? AND idEntreprise = ?", (mail, idEntreprise)
-        ).fetchone()
+        if idEntreprise:
+            user = conn.execute(
+                "SELECT * FROM Users WHERE mail = ? AND idEntreprise = ?",
+                (mail, idEntreprise)
+            ).fetchone()
+        else:
+            user = conn.execute(
+                "SELECT * FROM Users WHERE mail = ?",
+                (mail,)
+            ).fetchone()
         conn.close()
         return User(**dict(user)) if user else None
 

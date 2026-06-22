@@ -136,7 +136,7 @@ class LoginController:
             email = request.form.get('email')
             
             # 1. On cherche si l'utilisateur existe avec cet e-mail
-            user = us.getUserByEmail(email)
+            user = us.getUserByEmail(email, idEntreprise=None)
             
             if user:
                 # 2. On crée le sérialiseur avec la clé secrète de l'application
