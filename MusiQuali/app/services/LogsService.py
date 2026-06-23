@@ -29,7 +29,7 @@ class LogsService:
     # ---------------- FILE SYSTEM ----------------
 
     def list_log_files(self, nom_lecteur):
-        base = Path("./app/static/raspLogs").resolve()
+        base = Path(__file__).resolve().parent.parent / "static" / "raspLogs"
         path = (base / nom_lecteur / "logs").resolve()
 
         if base not in path.parents and path != base:
@@ -40,7 +40,7 @@ class LogsService:
         return sorted([f.name for f in path.iterdir() if f.is_file()])
 
     def read_log_file(self, nom_lecteur, filename):
-        base = Path("./app/static/raspLogs").resolve()
+        base = Path(__file__).resolve().parent.parent / "static" / "raspLogs"
         path = (base / nom_lecteur / "logs" / filename).resolve()
 
         if base not in path.parents:

@@ -1,3 +1,0 @@
-[2026-06-23 12:50:41] === Lecteur MusiQuali démarré ===
-[2026-06-23 12:50:41] >>> MU slot 12:28 : ['Five_Nights_at_Freddys_Big_Band_Version_-_The8BitBigBand_Lyric_Video(1).mp3', 'MEGALOVANIA.mp3']
-[2026-06-23 12:50:41] --- MESSAGE slot 12:30 : ['MSG_Les_meilleurs_memes_-_Il_fait_tarpin_chaud_-_Anyme_Grandingo_-_meme.mp3'] ---
