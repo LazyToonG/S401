@@ -47,15 +47,45 @@ class SigninController:
             # --- CAS 1 : UN ADMINISTRATEUR CRÉE LE COMPTE DIRECTEMENT ---
             if session.get('logged') and role == "admin":
                 # On crée l'utilisateur de suite (avec entreprise_1)
-                result = us.signin(user_1, password_1, role_1, mail_1, entreprise_1)
-                
+                result = us.signin(user_1, password_1, role_1, mail_1, entreprise_1)   
+
+                # CAS 1 - succès création
                 if result:
                     flash("Utilisateur créé avec succès !", "success")
-                    return render_template("admin.html", msg_error="user created", t=textes, current_lang=langue_choisie, user=user, role=role)
+                    return render_template("admin.html",
+                        msg_error="user created",
+                        t=textes,
+                        current_lang=langue_choisie,
+                        user=user,
+                        role=role,
+                        requetes=req_dao.lire_json(),
+                        raspberry=[],
+                        users=[],
+                        logs_by_rasp={},
+                        current_sort=None,
+                        current_sort_rasp=None,
+                        etatPing={},
+                        dernierOk={}
+                    )
+                # CAS 1 - erreur création
                 else:
                     flash("Erreur : Impossible de créer l'utilisateur.", "error")
-                    return render_template("admin.html", msg_error="creation error", t=textes, current_lang=langue_choisie, user=user, role=role)
-
+                    return render_template("admin.html",
+                        msg_error="creation error",
+                        t=textes,
+                        current_lang=langue_choisie,
+                        user=user,
+                        role=role,
+                        requetes=req_dao.lire_json(),
+                        raspberry=[],
+                        users=[],
+                        logs_by_rasp={},
+                        current_sort=None,
+                        current_sort_rasp=None,
+                        etatPing={},
+                        dernierOk={}
+                    )
+                
             # --- CAS 2 : UN VISITEUR DEMANDE À S'INSCRIRE ---
             else:
                 # 1. On prépare le message
@@ -84,6 +114,20 @@ class SigninController:
                     
         else:
             if session.get('logged'):
-                return render_template('admin.html', msg_error=None, t=textes, current_lang=langue_choisie, user=user, role=role)
+                return render_template('admin.html',
+                    msg_error=None,
+                    t=textes,
+                    current_lang=langue_choisie,
+                    user=user,
+                    role=role,
+                    requetes=req_dao.lire_json(),  # <-- ajout
+                    raspberry=[],
+                    users=[],
+                    logs_by_rasp={},
+                    current_sort=None,
+                    current_sort_rasp=None,
+                    etatPing={},
+                    dernierOk={}
+                )
             else:
                 return render_template('signin.html', msg_error=None, t=textes, current_lang=langue_choisie, entreprises=entreprises)
