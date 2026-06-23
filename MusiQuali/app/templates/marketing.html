@@ -66,6 +66,10 @@
 
             </div>
             {% endif %}
+            {% else %}
+                <div style="padding: 20px; text-align: center; color: #666; font-style: italic;">
+                    Aucune musique enregistrée.
+                </div>
             {% endfor %}
         </div>
 
@@ -123,6 +127,10 @@
                         </form>
                     </div>
 
+                </div>
+                {% else %}
+                <div style="padding: 20px; text-align: center; color: #666; font-style: italic;">
+                    Aucune playlist créée.
                 </div>
                 {% endfor %}
                 </div>

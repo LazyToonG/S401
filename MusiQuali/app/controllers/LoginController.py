@@ -121,6 +121,7 @@ class LoginController:
                     return redirect(url_for("index"))
             else:
                 msg_error = ts.message_langue('Identifiants non valides','Invalid Credentials')
+                flash(msg_error,"error")
         return render_template('login.html', msg_error=msg_error, t=textes, current_lang=langue_choisie)
 
     
