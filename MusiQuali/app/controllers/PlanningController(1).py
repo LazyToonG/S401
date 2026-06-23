@@ -41,7 +41,7 @@ def _to_dict(planning):
 @reqrole("admin","commercial")
 def get_planning_data():
     """Retourne tout le planning (les deux calendriers) pour reconstruire l'état au chargement."""
-    idEntreprise = request.args.get("idEntreprise", 1, type=int)
+    idEntreprise = session['idEntreprise']
     planning = planningService.get_all(idEntreprise)
     return jsonify([_to_dict(p) for p in planning])
 
@@ -65,7 +65,7 @@ def save_planning():
     """
     data = request.get_json(silent=True) or {}
     boxes = data.get("boxes", [])
-    idEntreprise = data.get("idEntreprise", 1)
+    idEntreprise = session['idEntreprise']
 
     try:
         results = planningService.sync(boxes, idEntreprise)
