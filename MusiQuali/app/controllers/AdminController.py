@@ -20,6 +20,14 @@ import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
+def get_requetes_entreprise():
+    toutes_requetes = req_dao.lire_json()
+    id_entreprise = session.get('idEntreprise')
+    return {
+        k: v for k, v in toutes_requetes.items()
+        if str(v.get('entreprise')) == str(id_entreprise)
+    }
+
 def envoyer_email_decision(destinataire, pseudo, type_requete, accepte=True):
     expediteur = "akihito.mishima2@gmail.com"
     mot_de_passe = "bpnlamgunnehrxxz"
@@ -111,7 +119,7 @@ def admin_dashboard():
     else:
         users = user_service.getUsers(id_entreprise)
 
-    requetes = req_dao.lire_json()
+    requetes = get_requetes_entreprise()
 
     return render_template(
         "admin.html",
@@ -270,7 +278,7 @@ def api_search_users():
 
     id_entreprise = session.get('idEntreprise', 1)
 
-    requetes = req_dao.lire_json()
+    requetes = get_requetes_entreprise()
 
     query = request.args.get('q', '')
     
@@ -289,8 +297,8 @@ def api_search_rasp():
     langue_choisie = session.get('lang', ts.getLangue()) 
     textes = traductions[langue_choisie]
 
-    requetes = req_dao.lire_json()
-    
+    requetes = get_requetes_entreprise()
+
     query = request.args.get('q', '')
     
     if query == '':
@@ -323,20 +331,28 @@ def action_requete():
     type_req = req.get('type')
     mail_dest = req.get('mail')
     pseudo_dest = req.get('demandeur')
+    id_entreprise_cible = req.get('entreprise')  # <-- entreprise de la requête
+
+    # Récupère l'admin de l'entreprise concernée
+    admin_entreprise = user_service.getAdminByEntreprise(id_entreprise_cible)
     
-    if action == "accept" :
+    if action == "accept":
         if type_req == "inscription":
-            user_service.signin(req.get('demandeur'), req.get('mdp'), req.get('role'), req.get('mail'), req.get('entreprise'))
+            user_service.signin(req.get('demandeur'), req.get('mdp'), req.get('role'), req.get('mail'), id_entreprise_cible)
             flash(f"La requête a été acceptée et le compte de {req.get('demandeur')} a été créé !", "success")
         else:
-            flash(f"La requête a été marquée comme traitée. Pensez à appliquer les changements pour {req.get('demandeur')} dans 'Gestion des utilisateurs'.", "success")
+            flash(f"La requête a été marquée comme traitée.", "success")
 
         envoyer_email_decision(mail_dest, pseudo_dest, type_req, accepte=True)
-        
+        # Notifie l'admin de l'entreprise
+        if admin_entreprise and admin_entreprise.mail:
+            envoyer_email_decision(admin_entreprise.mail, admin_entreprise.username, type_req, accepte=True)
+
     elif action == "refuse":
         flash(f"La requête de {req.get('demandeur')} a été refusée.", "success")
-
         envoyer_email_decision(mail_dest, pseudo_dest, type_req, accepte=False)
+        if admin_entreprise and admin_entreprise.mail:
+            envoyer_email_decision(admin_entreprise.mail, admin_entreprise.username, type_req, accepte=False)
     
     del requetes[req_id]
     req_dao.ecrire_json(requetes)

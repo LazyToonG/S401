@@ -51,4 +51,7 @@ class UserService():
     
     def deleteUserIdentreprise(self, idEntreprise):
         return self.udao.deleteByIdEntreprise(idEntreprise)
+
+    def getAdminByEntreprise(self, idEntreprise):
+        return self.udao.findAdminByEntreprise(idEntreprise)
     

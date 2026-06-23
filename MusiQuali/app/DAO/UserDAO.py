@@ -201,6 +201,15 @@ class UserSqliteDAO():
         ).fetchall()
         conn.close()
         return [User(**dict(u)) for u in users]
+    
+    def findAdminByEntreprise(self, idEntreprise):
+        conn = self._getDbConnection()
+        row = conn.execute(
+            "SELECT * FROM Users WHERE role = 'admin' AND idEntreprise = ? LIMIT 1",
+            (idEntreprise,)
+        ).fetchone()
+        conn.close()
+        return User(**dict(row)) if row else None
 
     def deleteByUsername(self, username, idEntreprise):
         conn = self._getDbConnection()
