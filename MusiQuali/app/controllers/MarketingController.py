@@ -62,7 +62,10 @@ def add_playlist():
     if not title:
         return redirect(url_for("marketing"))
     marketingService.add_playlist(title)
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return '', 204
     return redirect(url_for("marketing"))
+    
 
 @app.route("/marketing/playlist/<int:playlist_id>/delete", methods=["POST"])
 @reqrole('admin', 'marketing')
