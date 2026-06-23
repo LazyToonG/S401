@@ -313,6 +313,7 @@
                     const row = document.createElement('div');
                     row.id = `overlay-music-${m.idCouple}`;
                     row.dataset.idCouple = m.idCouple;
+                    row.dataset.duree = m.duree;
                     row.style.cssText = 'display:flex; justify-content:space-between; align-items:center; padding:15px 0; border-bottom:1px solid #eaeaea; cursor:grab; font-size:16px; font-family: "Times New Roman", Times, serif;';
                     row.innerHTML = `
                         <span style="display:flex; align-items:center; gap:12px; color:#000;">
@@ -363,10 +364,8 @@
                 if (res.ok) {
                     const row = document.getElementById(`overlay-music-${idCouple}`);
                     if (row) {
-                        // Récupère la durée depuis le texte de la row avant de la supprimer
-                        const dureeMatch = row.textContent.match(/(\d+)s/);
-                        const duree = dureeMatch ? parseInt(dureeMatch[1]) : 0;
-                        updatePlaylistStats(currentOverlayPlaylistId, -1, -(duree + 1));
+                        const duree = parseInt(row.dataset.duree) || 0;
+                        updatePlaylistStats(currentOverlayPlaylistId, -1, -duree);
                         row.remove();
                     }
                 } else {
@@ -377,6 +376,18 @@
             }
         }
 
+
+        // --- MISE À JOUR IMMÉDIATE DES STATS D'UNE PLAYLIST ---
+        function updatePlaylistStats(playlistId, deltaNb, deltaDuree) {
+            const box = document.getElementById(`playlist-box-${playlistId}`);
+            if (!box) return;
+            const nbNew = Math.max(0, (parseInt(box.dataset.nbMusiques) || 0) + deltaNb);
+            const dureeNew = Math.max(0, (parseInt(box.dataset.dureeTotale) || 0) + deltaDuree);
+            box.dataset.nbMusiques = nbNew;
+            box.dataset.dureeTotale = dureeNew;
+            const statsEl = document.getElementById(`stats-${playlistId}`);
+            if (statsEl) statsEl.textContent = `— ${nbNew} musique(s) — ${dureeNew}s`;
+        }
 
         // --- BOÎTES MUSIQUE & DRAG AND DROP ---
         // Une boîte par musique (panneau gauche, toujours visible).
@@ -463,7 +474,7 @@
                         // Mise à jour du compteur en temps réel
                         const musicBox = document.getElementById(boxId);
                         const duree = parseInt(musicBox?.dataset.duree || 0);
-                        updatePlaylistStats(playlistId, 1, duree + 1);
+                        updatePlaylistStats(playlistId, 1, duree);
 
                         // Si l'overlay est ouvert pour cette playlist, rafraîchit son contenu
                         if (currentOverlayPlaylistId === parseInt(playlistId)) {
@@ -515,7 +526,7 @@
                     // Mise à jour du compteur en temps réel
                     const musicBox = document.getElementById(boxId);
                     const duree = parseInt(musicBox?.dataset.duree || 0);
-                    updatePlaylistStats(currentOverlayPlaylistId, 1, duree + 1);
+                    updatePlaylistStats(currentOverlayPlaylistId, 1, duree);
                     await refreshOverlay(currentOverlayPlaylistId);
                 } else {
                     console.error('Erreur ajout relation via overlay', res.status);
