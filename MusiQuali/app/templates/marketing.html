@@ -33,7 +33,47 @@
             padding: 0 !important; margin: 0 !important; cursor: pointer; opacity: 0.7;
         }
         .update-toast-close:hover { opacity: 1; }
+
+        /* --- MODALES --- */
+        .modal-overlay {
+            display: none; 
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.6); z-index: 1000;
+            align-items: center; justify-content: center;
+        }
+        .modal-overlay.open { display: flex; }
         
+        .modal-box {
+            background: #fff; color: #651b1b; border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3); position: relative;
+        }
+        
+        .modal-header-flex { display: flex; justify-content: space-between; align-items: center; }
+        .modal-title { font-size: 22px; margin: 0; font-weight: normal; }
+        .delete-box-btn { background: none; border: none; color: #a00; font-size: 28px; cursor: pointer; padding: 0; }
+        .iframe-notube-wrapper { border-radius: 15px; overflow: hidden; border: 1px solid #d3c4c4; width: 100%; height: 100%; background: #fff; }
+        
+
+        /* --- STYLE DU BOUTON CONVERTISSEUR --- */
+        .btn-modal-white {
+            background-color: transparent;
+            color: #651b1b; /* Ton rouge bordeaux */
+            border: 2px solid #651b1b;
+            padding: 10px 25px;
+            border-radius: 25px; /* Bords bien arrondis */
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease; /* Animation fluide au survol */
+            font-family: inherit;
+        }
+
+        .btn-modal-white:hover {
+            background-color: #651b1b;
+            color: #ffffff;
+            box-shadow: 0 4px 10px rgba(101, 27, 27, 0.3); /* Légère ombre bordeaux */
+            transform: translateY(-2px); /* Petit effet de soulèvement */
+        }
     </style>
 </head>
 <body class="no-scroll"> 
@@ -173,8 +213,7 @@
 
             </div>
 
-            <div id="tab-all-music" class="panel-view"> <!--upload musiques-->
-                <form action="/upload" method="POST" enctype="multipart/form-data" id="upload-form">
+            <div id="tab-all-music" class="panel-view"> <form action="/upload" method="POST" enctype="multipart/form-data" id="upload-form">
                     <input type="hidden" name="playlist_id" id="playlist-id">
 
                     <label class="upload-area" id="upload-zone" for="audio-input">
@@ -196,10 +235,35 @@
                         <button type="submit" id="btn-upload" class="btn-action-blue full-width" disabled>
                             Ajouter à la base de données
                         </button>
-                        <button type="button" class="btn-outline-blue">
-                            <a href="https://notube.lol/fr" target="_blank">Convertir en MP3</a>
-                        </button>
+                        <div style="text-align: center; margin-top: 25px;">
+                            <button type="button" class="btn-modal-white" onclick="openNotubeModal()">
+                                Ouvrir le convertisseur (NoTube)
+                            </button>
+                        </div>
                     </div>
+                </form>
+            </div>
+
+        </div> </main>
+
+    <div id="notube-modal" class="modal-overlay" onclick="if(event.target===this) closeNotubeModal()">
+        <div class="modal-box" style="width: 800px; max-width: 95%; height: 80vh; padding: 20px; display: flex; flex-direction: column;">
+            
+            <div class="modal-header-flex" style="margin-bottom: 15px;">
+                <h2 class="modal-title"><u><b>Convertisseur YouTube vers MP3</b></u></h2>
+                <button class="delete-box-btn" onclick="closeNotubeModal()">&times;</button>
+            </div>
+
+            <div class="modal-body" style="flex: 1; overflow: hidden; padding-right: 0;">
+                <div class="iframe-notube-wrapper">
+                    <iframe src="https://notube.lol/fr/youtube-app-361" style="width: 100%; height: 100%; border: none;" allowfullscreen title="NoTube"></iframe>
+                </div>
+            </div>
+            
+        </div>
+    </div>
+                </div>
+                </div>
                 </form>
             </div>
 
@@ -208,6 +272,14 @@
     </main>
 
     <script>
+
+        function openNotubeModal() {
+            document.getElementById('notube-modal').classList.add('open');
+        }
+
+        function closeNotubeModal() {
+            document.getElementById('notube-modal').classList.remove('open');
+        }
 
 
         // --- BOÎTES PLAYLIST & DRAG AND DROP ---
