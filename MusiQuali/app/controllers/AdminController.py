@@ -350,8 +350,17 @@ def action_requete():
         if type_req == "inscription":
             user_service.signin(req.get('demandeur'), req.get('mdp'), req.get('role'), req.get('mail'), id_entreprise_cible)
             flash(f"La requête a été acceptée et le compte de {req.get('demandeur')} a été créé !", "success")
+            
+        elif type_req.lower() == "changement de rôle":
+            nouveau_role = req.get('nouveau_role')
+            demandeur = req.get('demandeur')
+            user_service.setRole(demandeur, nouveau_role, id_entreprise_cible)
+            flash(f"La requête a été acceptée. Le rôle de {demandeur} est passé à {nouveau_role} !", "success")
+            
         else:
             flash(f"La requête a été marquée comme traitée.", "success")
+
+        # ... (suite du code de l'email) ...
 
         envoyer_email_decision(mail_dest, pseudo_dest, type_req, accepte=True)
         # Notifie l'admin de l'entreprise

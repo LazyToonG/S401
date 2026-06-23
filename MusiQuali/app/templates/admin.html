@@ -11,19 +11,19 @@
     <style>
         /* Gestion des colonnes de la liste */
         .col-nom {
-            flex: 1; /* Prend 1 part de l'espace */
-            min-width: 0; /* Indispensable pour que text-overflow fonctionne */
+            flex: 1;
+            min-width: 0; 
         }
         .col-email {
-            flex: 2; /* L'email prend plus de place (2 parts) */
+            flex: 2; 
             min-width: 0;
-            white-space: nowrap;      /* Interdit au texte de passer à la ligne */
-            overflow: hidden;         /* Cache ce qui dépasse */
-            text-overflow: ellipsis;  /* Ajoute les petits points "..." */
-            padding-right: 15px;      /* Marge de sécurité pour ne pas coller au rôle */
+            white-space: nowrap; 
+            overflow: hidden;  
+            text-overflow: ellipsis;
+            padding-right: 15px; 
         }
         .col-ip {
-            flex: 1; /* Prend exactement la même place que le nom (1 part) */
+            flex: 1;
             min-width: 120px;
             padding-right: 15px;
         }
@@ -328,7 +328,11 @@
                 </div>
                 
                 <div class="details-body">
-                    <p>{{ req.message }}</p>
+                    {% if req.type|lower == 'changement de rôle' %}
+                        <p style="font-size: 16px;"><b>Le rôle demandé est :</b> <span style="color: #a71e23; font-weight: bold;">{{ req.nouveau_role | capitalize }}</span></p>
+                    {% else %}
+                        <p>{{ req.message }}</p>
+                    {% endif %}
                 </div>
 
                 <div class="details-actions">
