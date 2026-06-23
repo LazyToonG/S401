@@ -48,11 +48,7 @@ def playlist_tracks(playlist_id):
 def get_playlists_json():
     idEntreprise = session['idEntreprise']
     """Retourne la liste des playlists en JSON (pour le calendrier des commerciaux)."""
-<<<<<<< HEAD
-    data = marketingService.get_marketing_data(idEntreprise)
-=======
     data = marketingService.get_marketing_data(session['idEntreprise'])
->>>>>>> 966f8ab (réparer ajouter playlist dans planning)
     return jsonify([
         {"idPlaylist": p["idPlaylist"], "title": p["title"], "duree_totale": p["duree_totale"]}
         for p in data["playlists"]
