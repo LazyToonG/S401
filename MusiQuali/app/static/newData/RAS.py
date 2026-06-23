@@ -124,7 +124,7 @@ def main():
 
     log("=== Lecteur MusiQuali démarré ===")
 
-    # Garde une trace des slots déjà déclenchés (évite les doublons)
+    # liqte des musiqes déja joués (évite les doublons)
     triggered_mu  = set()   # "HH:MM"
     triggered_msg = set()   # "HH:MM"
     current_day   = day_name()
@@ -132,7 +132,7 @@ def main():
     while True:
         now = datetime.now()
 
-        # Reset au changement de jour
+        # Reset a new day
         if day_name() != current_day:
             log(f"=== Nouveau jour : {day_name()} ===")
             triggered_mu.clear()
@@ -155,7 +155,7 @@ def main():
         for slot in mu_slots:
             if slot["time"] in triggered_mu:
                 continue
-            if now >= slot_datetime(slot["time"]):
+            if now == slot_datetime(slot["time"]):
                 triggered_mu.add(slot["time"])
                 paths = [mp3_path(f) for f in slot["musics"]]
                 log(f">>> MU slot {slot['time']} : {slot['musics']}")
@@ -170,7 +170,7 @@ def main():
         for slot in msg_slots:
             if slot["time"] in triggered_msg:
                 continue
-            if now >= slot_datetime(slot["time"]):
+            if now == slot_datetime(slot["time"]):
                 triggered_msg.add(slot["time"])
                 # Le message tourne dans son propre thread pour rester non-bloquant,
                 # mais il gère lui-même le volume de channel_music de façon synchrone
