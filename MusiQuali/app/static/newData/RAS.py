@@ -23,9 +23,9 @@ import pygame
 
 # ------------------------------------------------------------------ Chemins
 BASE_DIR    = os.path.dirname(os.path.abspath(__file__))
-MU_JSON     = os.path.join(BASE_DIR, "musiquali", "MU.json")
-MSG_JSON    = os.path.join(BASE_DIR, "musiquali", "MSG.json")
-SOUND_DIR   = os.path.join(BASE_DIR, "musiquali", "rasSound")
+MU_JSON     = os.path.join(BASE_DIR, "MU.json")
+MSG_JSON    = os.path.join(BASE_DIR, "MSG.json")
+SOUND_DIR   = os.path.join(BASE_DIR, "rasSound")
 LOG_DIR     = os.path.join(BASE_DIR, "logs")
 
 # ------------------------------------------------------------------ Canaux pygame
