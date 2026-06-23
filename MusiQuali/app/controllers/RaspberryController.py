@@ -157,6 +157,9 @@ def envoieChangementPlanning(nom, ip):
         return False
 
     time.sleep(5)
+    print(f"Arrêt forcé de l'ancienne instance de RAS.py sur {nom}@{ip}")
+    # On passe la commande distante sous forme d'une chaîne unique
+    subprocess.run(["ssh", f"{nom}@{ip}", "pkill -9 -f RAS.py"], capture_output=True)
 
     print("lancement RAS.py")
     print(f"ssh {nom}@{ip} python3 /home/{nom}/musiquali/RAS.py")
@@ -177,20 +180,22 @@ def envoieChangementPlanning(nom, ip):
 
 last_sync = {}  # mémorise le dernier rsync par raspberry
 def recupLogs(idLecteur, nom, ip):
-    dest = Path(app.static_folder) / f"raspLogs/{nom}/"  # <-- sans /logs/
+    # En ciblant directement le dossier parent, rsync va fusionner le contenu
+    dest = Path(app.static_folder) / "raspLogs"
     dest.mkdir(parents=True, exist_ok=True)
     
+    # On utilise f"{nom}/" dans la destination pour éviter la création du sous-dossier /logs/
     log = subprocess.run(
         ["rsync", "-avz", "-e", "ssh", 
-         f"{nom}@{ip}:/home/{nom}/musiquali/logs/",  # source distante
-         str(dest)],                                   # destination locale
+         f"{nom}@{ip}:/home/{nom}/musiquali/logs/",         # Source distante
+         str(dest / nom)],                                   # Destination locale propre
         capture_output=True, text=True
     )
     
-    # Les fichiers arrivent dans dest/logs/
-    logs_dir = dest / "logs"
-    if logs_dir.exists():
-        for file in logs_dir.iterdir():
+    # On parcourt le dossier propre de la Raspberry
+    rasp_dir = dest / nom
+    if rasp_dir.exists():
+        for file in rasp_dir.iterdir():
             if file.is_file():
                 ls.add_log(idLecteur, file.name)
     

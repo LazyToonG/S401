@@ -30,7 +30,8 @@ class LogsService:
 
     def list_log_files(self, nom_lecteur):
         base = Path(__file__).resolve().parent.parent / "static" / "raspLogs"
-        path = (base / nom_lecteur / "logs").resolve()
+        # MODIFICATION : On retire / "logs" pour chercher directement dans le dossier du lecteur
+        path = (base / nom_lecteur).resolve()
 
         if base not in path.parents and path != base:
             return []
@@ -41,7 +42,8 @@ class LogsService:
 
     def read_log_file(self, nom_lecteur, filename):
         base = Path(__file__).resolve().parent.parent / "static" / "raspLogs"
-        path = (base / nom_lecteur / "logs" / filename).resolve()
+        # MODIFICATION : On retire / "logs" pour cibler directement le fichier du log
+        path = (base / nom_lecteur / filename).resolve()
 
         if base not in path.parents:
             return None
