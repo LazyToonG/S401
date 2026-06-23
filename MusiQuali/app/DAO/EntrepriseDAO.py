@@ -25,7 +25,7 @@ class EntrepriseSqliteDAO():
         # entreprise par défaut
         conn.execute("""
             INSERT OR IGNORE INTO Entreprise (idEntreprise, nomEntreprise)
-            VALUES (5, 'testEntreprise');
+            VALUES (100, 'MusiQuali');
         """)
         conn.commit()
         conn.close()
