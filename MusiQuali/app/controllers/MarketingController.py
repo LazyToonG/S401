@@ -46,8 +46,9 @@ def playlist_tracks(playlist_id):
 @app.route("/marketing/playlists", methods=["GET"])
 @reqrole('admin', 'marketing')
 def get_playlists_json():
+    idEntreprise = session['idEntreprise']
     """Retourne la liste des playlists en JSON (pour le calendrier des commerciaux)."""
-    data = marketingService.get_marketing_data()
+    data = marketingService.get_marketing_data(idEntreprise)
     return jsonify([
         {"idPlaylist": p["idPlaylist"], "title": p["title"], "duree_totale": p["duree_totale"]}
         for p in data["playlists"]

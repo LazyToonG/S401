@@ -34,7 +34,12 @@ def reqrole(*role):
 
             current_role = session.get('role')
             if current_role not in role:
-                abort(403)
+                if current_role=="admin":
+                    return redirect(url_for('admin_dashboard'))
+                elif current_role=="commercial":
+                    return redirect(url_for('commercial_page'))
+                elif current_role=="marketing":
+                    return redirect(url_for('marketing'))
             return f(*args, **kwargs)
         return verifyRole
     return wrap

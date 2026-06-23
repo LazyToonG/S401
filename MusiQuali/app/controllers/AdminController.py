@@ -231,12 +231,17 @@ def edit_user():
     id_entreprise = session.get('idEntreprise', 1)
     ancien_username = request.form.get("original_username")
     ancien_email = request.form.get("original_email")
+    ancien_role = request.form.get("original_role")
     nouveau_username = request.form.get("edit_username")
     nouvel_email = request.form.get("edit_email")
+    nouveau_role = request.form.get("edit_role")
 
     if nouvel_email != ancien_email:
         user_service.setEmail(ancien_username, nouvel_email, id_entreprise)
         ancien_email = nouvel_email 
+
+    if nouveau_role != ancien_role:
+        user_service.setRole(ancien_username, nouveau_role, id_entreprise)
 
     if nouveau_username != ancien_username:
         user_service.setUsername(ancien_username, nouveau_username, id_entreprise)
