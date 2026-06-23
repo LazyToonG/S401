@@ -127,10 +127,14 @@ def action_rasp():
 
 def envoieChangementPlanning(nom, ip):
     """
-    Envoie le contenu de ./app/static/rasdata/ vers le Raspberry distant via rsync,
+    Envoie le contenu de ./app/static/newData/ vers le Raspberry distant via rsync,
     puis lance RAS.py sur le Raspberry via SSH.
     Retourne True si le rsync et le lancement SSH ont réussi, False sinon.
     """
+
+    print(f"Pause de sécurité pour l'écriture du JSON...")
+    time.sleep(2)
+
     if not ip:
         return False
 
@@ -177,6 +181,27 @@ def envoieChangementPlanning(nom, ip):
     #             "nohup python3 -u /home/{nom}/musiquali/RAS.py > /home/{nom}/musiquali/ras.log 2>&1 &"
     #         ])
 
+@app.route("/admin/api/force_send_planning", methods=["POST"])
+@reqrole('admin', 'commercial')
+def force_send_planning():
+    global last_sync # Indispensable pour parler avec la boucle automatique
+    
+    idEntreprise = session.get('idEntreprise')
+    raspberrys = rs.montreToutRasp(idEntreprise)
+    
+    for r in raspberrys:
+        if r.ip and r.nomLecteur:
+            if pingRasp(r.ip):
+                print(f"Action Bouton : Envoi MANUEL pour {r.nomLecteur}")
+                recupLogs(r.idLecteur, r.nomLecteur, r.ip)
+                envoieChangementPlanning(r.nomLecteur, r.ip)
+                
+                # On remet le chronomètre à zéro pour que l'auto attende 5 min
+                last_sync[r.nomLecteur] = time.time()
+            else:
+                print(f"Échec : {r.nomLecteur} est hors ligne.")
+                
+    return {"status": "success", "message": "Planning déployé !"}
 
 last_sync = {}  # mémorise le dernier rsync par raspberry
 def recupLogs(idLecteur, nom, ip):

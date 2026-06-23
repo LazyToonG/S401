@@ -419,6 +419,7 @@
     </div>
 
     <script>
+        const ENTREPRISE_ID = parseInt("{{ session['idEntreprise'] }}");
         // ==========================================
         // 1. NOUVEAU MOTEUR DE CALENDRIER ET PLANNING
         // ==========================================
@@ -678,6 +679,7 @@
             const payloadBoxes = boxes.map(({ _box, ...rest }) => rest);
 
             try {
+                // 1. On effectue d'abord la sauvegarde en Base de Données
                 const res = await fetch('/planning/save', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -687,8 +689,33 @@
                 if (res.ok) {
                     const saved = await res.json();
                     saved.forEach((row, i) => { if (boxes[i]._box) boxes[i]._box.dataset.idPlanning = row.idPlanning; });
-                    saveStatus.textContent = 'Sauvegardé ✓';
-                    setTimeout(() => saveStatus.textContent = '', 2000);
+                    
+                    // Changement de message visuel pour l'utilisateur
+                    saveStatus.textContent = 'Génération des fichiers de configuration...';
+                    console.log("Sauvegarde BDD OK. Attente de 5 secondes pour l'écriture physique des fichiers JSON...");
+                    
+                    // 2. On attend ICI 5 secondes complètes pour laisser le serveur écrire les JSON
+                    setTimeout(async () => {
+                        saveStatus.textContent = 'Déploiement vers les Raspberry...';
+                        console.log("Fin des 5 secondes de sécurité. Déclenchement du rsync !");
+                        
+                        try {
+                            // 3. C'est seulement APRÈS l'attente qu'on demande l'envoi forcé
+                            const forceRes = await fetch('/admin/api/force_send_planning', { method: 'POST' });
+                            if (forceRes.ok) {
+                                saveStatus.textContent = 'Déploiement réussi ! ✓';
+                            } else {
+                                saveStatus.textContent = 'Erreur lors du déploiement.';
+                            }
+                        } catch (err) {
+                            saveStatus.textContent = 'Erreur réseau transfert.';
+                            console.error(err);
+                        }
+                        
+                        // Efface le statut au bout de 3 secondes après la fin de l'opération
+                        setTimeout(() => saveStatus.textContent = '', 3000);
+                    }, 5000); // 5000 ms de sécurité
+
                     clearDirty(); 
                 } else {
                     saveStatus.textContent = 'Erreur lors de la sauvegarde.';
@@ -697,12 +724,9 @@
         }
 
         async function loadPlanning() {
-            // SÉCURITÉ : Ne pas rafraîchir si l'utilisateur est en train de modifier le planning !
-            if (isDirty) return; 
-
             try {
                 const [planningRes, playlistsRes, musiquesRes] = await Promise.all([
-                    fetch('/planning/data?idEntreprise=1'),
+                    fetch(`/planning/data?idEntreprise=${ENTREPRISE_ID}`),
                     fetch('/marketing/playlists'),
                     fetch('/marketing/musiques?prefix=MSG_')
                 ]);
@@ -714,11 +738,6 @@
                 const playlistById = new Map(playlists.map(p => [p.idPlaylist, p]));
                 const messageById = new Map(messages.map(m => [m.idMusique, m]));
 
-                // 1. ON VIDE LES CALENDRIERS AVANT DE LES REMPLIR (Pour éviter les doublons lors du rafraîchissement)
-                document.querySelectorAll('.scheduled-box').forEach(b => b.remove());
-                boxCounter = 0;
-
-                // 2. ON RE-CRÉE LES BOÎTES
                 for (const row of rows) {
                     if (row.idPlaylist !== null) {
                         const { dayId, time } = startTimeToDayAndTime(row.StartTime, 'tab1');
@@ -733,9 +752,6 @@
                 clearDirty();
             } catch (err) { console.error(err); }
         }
-
-        // --- LA LIGNE MAGIQUE : Appelle la fonction toutes les 5 secondes ---
-        setInterval(loadPlanning, 5000);
 
         // ==========================================
         // 2. ANCIEN MOTEUR D'UPLOAD DE MESSAGES (Intact)
