@@ -7,9 +7,9 @@ Canal 1 (messages) : déclenche chaque message de MSG.json à l'heure pile,
 met le volume du canal musique à 0 le temps du message,
 puis le remonte.
  attendu  :
-    rasData/MU.json
-    rasData/MSG.json
-    rasData/rasSound/les mp3         
+    msiquali/MU.json
+    musiquali/MSG.json
+    musiquali/rasSound/les mp3         
 """
 
 import os
@@ -23,9 +23,9 @@ import pygame
 
 # ------------------------------------------------------------------ Chemins
 BASE_DIR    = os.path.dirname(os.path.abspath(__file__))
-MU_JSON     = os.path.join(BASE_DIR, "rasData", "MU.json")
-MSG_JSON    = os.path.join(BASE_DIR, "rasData", "MSG.json")
-SOUND_DIR   = os.path.join(BASE_DIR, "rasData", "rasSound")
+MU_JSON     = os.path.join(BASE_DIR, "musiquali", "MU.json")
+MSG_JSON    = os.path.join(BASE_DIR, "musiquali", "MSG.json")
+SOUND_DIR   = os.path.join(BASE_DIR, "musiquali", "rasSound")
 LOG_DIR     = os.path.join(BASE_DIR, "logs")
 
 # ------------------------------------------------------------------ Canaux pygame
