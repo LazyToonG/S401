@@ -26,7 +26,7 @@ class PlanningService:
 
     def __init__(self):
         self.dao = PlanningDAO()
-        self.export_dir = os.path.join(app.static_folder, "newData")
+        self.export_dir = os.path.join(app.static_folder, "rasData")
         self.sound_dir = os.path.join(self.export_dir, "rasSound")
         self.source_music_dir = os.path.join(app.static_folder, "AllMusics")
 
@@ -34,7 +34,7 @@ class PlanningService:
         """Retourne tout le planning pour une entreprise (état initial des calendriers)."""
         return self.dao.get_all(idEntreprise)
 
-    def sync(self, boxes, idEntreprise):
+    def sync(self, boxes, idEntreprise=1):
         """
         boxes: liste de dicts, chacun avec les clés possibles:
             - idPlanning (int ou None) : None si la box n'existe pas encore en bd
@@ -107,44 +107,59 @@ class PlanningService:
     def _build_day_skeleton(self):
         return {day: [] for day in DAY_NAMES}
 
-    def export_planning(self, idEntreprise):
+    def export_planning(self, idEntreprise=1):
         """
-        Génère MU.json (playlists), MSG.json (messages), et copie les mp3
-        référencés dans static/newData/rasSound. Tout est régénéré à neuf
-        à chaque appel (le dossier rasSound est vidé puis reconstruit).
+        Génère MU.json (playlists) et MSG.json (messages), copie les mp3 dans rasSound.
+        Tout est régénéré à neuf à chaque appel.
 
-        Format :
+        Format MU.json — liste plate par jour, heure calculée par accumulation des durées :
         {
-            "monday": [ {"time": "13:30", "musics": ["a.mp3", "b.mp3"]}, ... ],
-            "tuesday": [...],
+            "monday": [
+                {"time": "13:30", "music": "a.mp3"},
+                {"time": "13:32", "music": "b.mp3"},
+                {"time": "13:37", "music": "c.mp3"}
+            ],
+            "tuesday": [],
             ...
         }
-        Les jours sans créneau ont une liste vide.
+
+        Format MSG.json — inchangé, une heure fixe par message :
+        {
+            "monday": [ {"time": "19:30", "musics": ["MSG_welcome.mp3"]} ],
+            ...
+        }
         """
+        from datetime import datetime, timedelta
+
         message_slots = self.dao.get_message_slots(idEntreprise)
         playlist_slots = self.dao.get_playlist_slots(idEntreprise)
 
         msg_data = self._build_day_skeleton()
-        mu_data = self._build_day_skeleton()
+        mu_data  = self._build_day_skeleton()
         needed_filenames = set()
 
+        # --- MSG.json : format inchangé ---
         for slot in message_slots:
-            day = self._day_name_from_start_time(slot["StartTime"])
+            day      = self._day_name_from_start_time(slot["StartTime"])
             time_str = self._time_str_from_start_time(slot["StartTime"])
             filename = slot["nomMusique"]
 
             msg_data[day].append({"time": time_str, "musics": [filename]})
             needed_filenames.add(filename)
 
+        # --- MU.json : liste plate avec heure calculée par accumulation des durées ---
         for slot in playlist_slots:
-            day = self._day_name_from_start_time(slot["StartTime"])
-            time_str = self._time_str_from_start_time(slot["StartTime"])
-            filenames = slot["musics"]  # déjà triés par position
+            day      = self._day_name_from_start_time(slot["StartTime"])
+            # StartTime sert de point de départ ; on accumule les durées track par track
+            cursor_dt = datetime.fromisoformat(slot["StartTime"])
 
-            mu_data[day].append({"time": time_str, "musics": filenames})
-            needed_filenames.update(filenames)
+            for track in slot["musics"]:  # track = {"nomMusique": ..., "duree": ...}
+                time_str = cursor_dt.strftime("%H:%M")
+                mu_data[day].append({"time": time_str, "music": track["nomMusique"]})
+                needed_filenames.add(track["nomMusique"])
+                cursor_dt += timedelta(seconds=track["duree"])
 
-        # Trie chaque jour par heure, pour un fichier lisible/déterministe
+        # Trie chaque jour par heure calculée
         for day in DAY_NAMES:
             msg_data[day].sort(key=lambda s: s["time"])
             mu_data[day].sort(key=lambda s: s["time"])

@@ -77,7 +77,7 @@ class PlanningDAO:
             idEntreprise=row["idEntreprise"]
         )
 
-    def get_all(self, idEntreprise):
+    def get_all(self, idEntreprise=1):
         conn = self._getDbConnection()
         rows = conn.execute(
             "SELECT * FROM Planning WHERE idEntreprise=?",
@@ -107,7 +107,7 @@ class PlanningDAO:
 
     # -------------------- Requêtes d'export (MU.json / MSG.json) --------------------
 
-    def get_message_slots(self, idEntreprise):
+    def get_message_slots(self, idEntreprise=1):
         """
         Retourne chaque créneau "message" planifié, avec le nom de fichier de la musique
         associée (jointure directe Planning.idMSG = Musique.idMusique).
@@ -127,7 +127,7 @@ class PlanningDAO:
             for row in rows
         ]
 
-    def get_playlist_slots(self, idEntreprise):
+    def get_playlist_slots(self, idEntreprise=1):
         """
         Retourne chaque créneau "playlist" planifié, avec la liste ordonnée (par position)
         des noms de fichiers des musiques qu'elle contient (jointure via PlaylistMusique).
@@ -143,7 +143,7 @@ class PlanningDAO:
         slots = []
         for slot in slot_rows:
             track_rows = conn.execute("""
-                SELECT m.nomMusique
+                SELECT m.nomMusique, m.duree
                 FROM PlaylistMusique pm
                 JOIN Musique m ON pm.idMusique = m.idMusique
                 WHERE pm.idPlaylist = ?
@@ -154,7 +154,7 @@ class PlanningDAO:
                 "idPlanning": slot["idPlanning"],
                 "StartTime": slot["StartTime"],
                 "idPlaylist": slot["idPlaylist"],
-                "musics": [t["nomMusique"] for t in track_rows]
+                "musics": [{"nomMusique": t["nomMusique"], "duree": t["duree"]} for t in track_rows]
             })
 
         conn.close()
