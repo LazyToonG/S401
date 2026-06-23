@@ -123,10 +123,15 @@ def envoieChangementPlanning(nom, ip):
     if not ip:
         return False
 
+    source = Path(app.static_folder) / "newData/"  # <-- chemin absolu
+
     try:
+        print(f"Source rsync : {source}")
+        print(f"Existe : {source.exists()}")
+        print(f"Contenu : {list(source.iterdir())}")
         subprocess.run(
             # ["rsync", "-avz", "--delete", "-e", "ssh", "./app/static/rasdata/", f"{nom}@{ip}:/home/{nom}/musiquali/"],
-            ["rsync", "-avz", "--delete", "-e", "ssh", "./app/static/newData/", f"{nom}@{ip}:/home/{nom}/musiquali/"],
+            ["rsync", "-avz", "--delete", "-e", "ssh", str(source) + "/", f"{nom}@{ip}:/home/{nom}/musiquali/"],
             check=True,
             capture_output=True,
             text=True,

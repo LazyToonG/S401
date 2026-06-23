@@ -1,2 +1,10 @@
-[2026-06-23 11:59:46] Erreur lecture JSON : [Errno 2] No such file or directory: '/home/darragh/musiquali/rasData/MU.json'
-[2026-06-23 11:59:48] Erreur lecture JSON : [Errno 2] No such file or directory: '/home/darragh/musiquali/rasData/MU.json'
+[2026-06-23 12:23:27] === Lecteur MusiQuali démarré ===
+[2026-06-23 12:23:27] >>> MU slot 07:00 : ['emotional-damage-meme(2).mp3', 'emotional-damage-meme(3).mp3', 'emotional-damage-meme(1).mp3', 'emotional-damage-meme(1).mp3', 'emotional-damage-meme(3).mp3']
+[2026-06-23 12:23:27] --- MESSAGE slot 06:07 : ['MSG_tf_nemesis.mp3'] ---
+[2026-06-23 12:23:27] MISSING /home/darragh/musiquali/rasSound/emotional-damage-meme(2).mp3
+[2026-06-23 12:23:27] MISSING /home/darragh/musiquali/rasSound/emotional-damage-meme(3).mp3
+[2026-06-23 12:23:27] MISSING /home/darragh/musiquali/rasSound/MSG_tf_nemesis.mp3
+[2026-06-23 12:23:27] --- MESSAGE termine, volume musique restauré ---
+[2026-06-23 12:23:27] MISSING /home/darragh/musiquali/rasSound/emotional-damage-meme(1).mp3
+[2026-06-23 12:23:27] MISSING /home/darragh/musiquali/rasSound/emotional-damage-meme(1).mp3
+[2026-06-23 12:23:27] MISSING /home/darragh/musiquali/rasSound/emotional-damage-meme(3).mp3

@@ -1,47 +1,15 @@
 {
-  "monday": [
-    {
-      "time": "02:04",
-      "musics": [
-        "emotional-damage-meme(2).mp3",
-        "emotional-damage-meme(3).mp3",
-        "emotional-damage-meme(1).mp3",
-        "emotional-damage-meme(1).mp3",
-        "emotional-damage-meme(3).mp3"
-      ]
-    },
-    {
-      "time": "06:00",
-      "musics": [
-        "tf_nemesis.mp3",
-        "fbi-open-up_dwLhIFf.mp3",
-        "emotional-damage-meme.mp3",
-        "spiderman-meme-song.mp3"
-      ]
-    }
-  ],
+  "monday": [],
   "tuesday": [
     {
-      "time": "07:00",
+      "time": "12:28",
       "musics": [
-        "emotional-damage-meme(2).mp3",
-        "emotional-damage-meme(3).mp3",
-        "emotional-damage-meme(1).mp3",
-        "emotional-damage-meme(1).mp3",
-        "emotional-damage-meme(3).mp3"
+        "Five_Nights_at_Freddys_Big_Band_Version_-_The8BitBigBand_Lyric_Video(1).mp3",
+        "MEGALOVANIA.mp3"
       ]
     }
   ],
-  "wednesday": [
-    {
-      "time": "08:00",
-      "musics": [
-        "tmp_7901-951678082.mp3",
-        "tf_nemesis.mp3",
-        "error_CDOxCYm.mp3"
-      ]
-    }
-  ],
+  "wednesday": [],
   "thursday": [],
   "friday": [],
   "saturday": [],
