@@ -249,7 +249,6 @@
     min-height: 0;/
 }
 
-/* On ajoute une jolie scrollbar fine et rouge */
 .users-list::-webkit-scrollbar { width: 4px; }
 .users-list::-webkit-scrollbar-track { background: transparent; }
 .users-list::-webkit-scrollbar-thumb { background: #505050; border-radius: 10px; }
