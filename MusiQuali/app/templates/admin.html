@@ -753,8 +753,8 @@
 
                 data.forEach((r, index) => {
                     const etat = r.enLigne
-                        ? `🟢 ${t.en_ligne}`
-                        : `🔴 ${t.hors_ligne} - ${r.dernierOk}`;
+                        ? `🟢 En ligne`
+                        : `🔴 Hors ligne - ${r.dernierOk}`;
 
                     const row = document.createElement('div');
                     row.className = 'user-list-item';
