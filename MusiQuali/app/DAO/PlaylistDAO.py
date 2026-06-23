@@ -1,13 +1,14 @@
 import sqlite3
-from app.models.Planning import Planning
+from app.models.Playlist import Playlist
+import os
+from app.models.db import get_db
 from app import app
 
-
-class PlanningDAO:
+class PlaylisteDAO:
 
     def __init__(self):
-
-        self.db = app.static_folder + '/data/database.db'
+        
+        self.db=app.static_folder +'/data/database.db'
         self._init_db()
 
     def _getDbConnection(self):
@@ -19,49 +20,61 @@ class PlanningDAO:
         conn = self._getDbConnection()
         cursor = conn.cursor()
 
+        # Création table
         cursor.execute("""
-            CREATE TABLE IF NOT EXISTS Planning(
-                idPlanning INTEGER PRIMARY KEY AUTOINCREMENT,
-                idPlaylist INT,
-                idMSG INT,
-                StartTime DATETIME NOT NULL,
-                idEntreprise INT NOT NULL DEFAULT 1,
-                FOREIGN KEY(idPlaylist) REFERENCES Playlist(idPlaylist),
-                FOREIGN KEY(idMSG) REFERENCES Musique(idMusique),
-                FOREIGN KEY(idEntreprise) REFERENCES Entreprise(idEntreprise)
+            CREATE TABLE IF NOT EXISTS Playlist(
+                idPlaylist INTEGER PRIMARY KEY AUTOINCREMENT,
+                idUtilisateur INT NOT NULL DEFAULT 1,
+                idPlanning INT default 1,
+                title VARCHAR(100) NOT NULL,
+                FOREIGN KEY(idUtilisateur) REFERENCES Utilisateur(idUtilisateur),
+                FOREIGN KEY(idPlanning) REFERENCES Planning(idPlanning)
             );
         """)
 
+        # Ajout playlist "annonces" uniquement si elle n'existe pas
+        cursor.execute("""
+            SELECT 1 FROM Playlist WHERE title = ?
+        """, ("annonces",))
+
+        exists = cursor.fetchone() is not None
+
         conn.commit()
         conn.close()
+        
 
-    def create(self, planning: Planning):
+    def _ids_to_str(self, ids):
+        return "|".join(str(i) for i in ids)
+
+    def _str_to_ids(self, data):
+        return [int(i) for i in data.split("|")] if data else []
+
+    def create(self, playlist: Playlist):
         conn = self._getDbConnection()
         cur = conn.cursor()
 
-        if planning.idPlanning is None:
+
+        if playlist.idPlaylist is None:
             cur.execute(
-                "INSERT INTO Planning (idPlaylist, idMSG, StartTime, idEntreprise) VALUES (?, ?, ?, ?)",
-                (planning.idPlaylist, planning.idMSG, planning.StartTime, planning.idEntreprise)
+                "INSERT INTO Playlist (title, idUtilisateur, idPlanning) VALUES (?, ?, ?)",
+                (playlist.title, playlist.idUtilisateur, playlist.idPlanning)
             )
-            planning.idPlanning = cur.lastrowid
+            playlist.idPlaylist = cur.lastrowid
         else:
             cur.execute(
-                "UPDATE Planning SET idPlaylist=?, idMSG=?, StartTime=?, idEntreprise=? WHERE idPlanning=?",
-                (planning.idPlaylist, planning.idMSG, planning.StartTime,
-                 planning.idEntreprise, planning.idPlanning)
+                "UPDATE Playlist SET title=? WHERE idPlaylist=?",
+                (playlist.title,  playlist.idPlaylist)
             )
 
         conn.commit()
         conn.close()
-        return planning
 
-    def get(self, planning_id):
+    def get(self, playlist_id):
         conn = self._getDbConnection()
 
         row = conn.execute(
-            "SELECT * FROM Planning WHERE idPlanning=?",
-            (planning_id,)
+            "SELECT * FROM Playlist WHERE idPlaylist=?",
+            (playlist_id,)
         ).fetchone()
 
         conn.close()
@@ -69,93 +82,32 @@ class PlanningDAO:
         if not row:
             return None
 
-        return Planning(
-            idPlanning=row["idPlanning"],
+        return Playlist(
             idPlaylist=row["idPlaylist"],
-            idMSG=row["idMSG"],
-            StartTime=row["StartTime"],
-            idEntreprise=row["idEntreprise"]
+            title=row["title"],
+            idUtilisateur=row["idUtilisateur"],
+            idPlanning=row["idPlanning"]
         )
 
-    def get_all(self, idEntreprise=1):
-        conn = self._getDbConnection()
-        rows = conn.execute(
-            "SELECT * FROM Planning WHERE idEntreprise=?",
-            (idEntreprise,)
-        ).fetchall()
-        conn.close()
-
-        return [
-            Planning(
-                idPlanning=row["idPlanning"],
-                idPlaylist=row["idPlaylist"],
-                idMSG=row["idMSG"],
-                StartTime=row["StartTime"],
-                idEntreprise=row["idEntreprise"]
-            )
-            for row in rows
-        ]
-
-    def delete(self, planning_id):
-        conn = self._getDbConnection()
-        conn.execute(
-            "DELETE FROM Planning WHERE idPlanning = ?",
-            (int(planning_id),)
-        )
-        conn.commit()
-        conn.close()
-
-    # -------------------- Requêtes d'export (MU.json / MSG.json) --------------------
-
-    def get_message_slots(self, idEntreprise=1):
-        """
-        Retourne chaque créneau "message" planifié, avec le nom de fichier de la musique
-        associée (jointure directe Planning.idMSG = Musique.idMusique).
-        """
+    def get_all(self, idEntreprise):
         conn = self._getDbConnection()
         rows = conn.execute("""
-            SELECT pl.idPlanning, pl.StartTime, m.nomMusique
-            FROM Planning pl
-            JOIN Musique m ON pl.idMSG = m.idMusique
-            WHERE pl.idEntreprise = ? AND pl.idMSG IS NOT NULL
-            ORDER BY pl.StartTime
+            SELECT p.* FROM Playlist p
+            JOIN Users u ON p.idUtilisateur = u.idUtilisateur
+            WHERE u.idEntreprise = ?
         """, (idEntreprise,)).fetchall()
         conn.close()
-
         return [
-            {"idPlanning": row["idPlanning"], "StartTime": row["StartTime"], "nomMusique": row["nomMusique"]}
+            Playlist(idPlaylist=row["idPlaylist"], title=row["title"],
+                    idUtilisateur=row["idUtilisateur"], idPlanning=row["idPlanning"])
             for row in rows
         ]
 
-    def get_playlist_slots(self, idEntreprise=1):
-        """
-        Retourne chaque créneau "playlist" planifié, avec la liste ordonnée (par position)
-        des noms de fichiers des musiques qu'elle contient (jointure via PlaylistMusique).
-        """
+    def delete(self, playlist_id): #appeler seulement apres avoir effacé les musiques
         conn = self._getDbConnection()
-        slot_rows = conn.execute("""
-            SELECT pl.idPlanning, pl.StartTime, pl.idPlaylist
-            FROM Planning pl
-            WHERE pl.idEntreprise = ? AND pl.idPlaylist IS NOT NULL
-            ORDER BY pl.StartTime
-        """, (idEntreprise,)).fetchall()
-
-        slots = []
-        for slot in slot_rows:
-            track_rows = conn.execute("""
-                SELECT m.nomMusique, m.duree
-                FROM PlaylistMusique pm
-                JOIN Musique m ON pm.idMusique = m.idMusique
-                WHERE pm.idPlaylist = ?
-                ORDER BY pm.position
-            """, (slot["idPlaylist"],)).fetchall()
-
-            slots.append({
-                "idPlanning": slot["idPlanning"],
-                "StartTime": slot["StartTime"],
-                "idPlaylist": slot["idPlaylist"],
-                "musics": [{"nomMusique": t["nomMusique"], "duree": t["duree"]} for t in track_rows]
-            })
-
+        conn.execute(
+                "DELETE FROM Playlist WHERE idPlaylist = ?",
+                (int(playlist_id),)
+            )
+        conn.commit()
         conn.close()
-        return slots

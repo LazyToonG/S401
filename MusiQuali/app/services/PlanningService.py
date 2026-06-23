@@ -34,7 +34,7 @@ class PlanningService:
         """Retourne tout le planning pour une entreprise (état initial des calendriers)."""
         return self.dao.get_all(idEntreprise)
 
-    def sync(self, boxes, idEntreprise):
+    def sync(self, boxes, idEntreprise=1):
         """
         boxes: liste de dicts, chacun avec les clés possibles:
             - idPlanning (int ou None) : None si la box n'existe pas encore en bd
@@ -107,7 +107,7 @@ class PlanningService:
     def _build_day_skeleton(self):
         return {day: [] for day in DAY_NAMES}
 
-    def export_planning(self, idEntreprise):
+    def export_planning(self, idEntreprise=1):
         """
         Génère MU.json (playlists) et MSG.json (messages), copie les mp3 dans rasSound.
         Tout est régénéré à neuf à chaque appel.
