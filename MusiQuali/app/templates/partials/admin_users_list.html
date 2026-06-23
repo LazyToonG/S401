@@ -1,4 +1,4 @@
-<div class="user-list-item" style="font-weight: bold; padding-bottom: 15px; border-bottom: 1px solid #eee;">
+<div class="user-list-item list-header-fixed" style="font-weight: bold; padding-bottom: 15px; border-bottom: 1px solid #eee;">
     <span class="col-checkbox"></span>
     <span class="item-name col-nom">{{t.nom}}</span>
     <span class="user-role-text col-email">{{t.mail}}</span>
@@ -7,13 +7,13 @@
 </div>
 
 {% for u in users %}
-<div class="user-list-item">
+<div class="user-list-item" data-username="{{u.username | lower}}" data-role="{{u.role | lower}}" data-index="{{ loop.index }}">
     <input type="checkbox" class="custom-round-checkbox col-checkbox">
     <span class="item-name col-nom">{{u.username}}</span>
     <span class="user-role-text col-email" title="{{u.mail}}">{{u.mail}}</span>
     <span class="user-role-text col-role">{{u.role}}</span>
     <div class="item-actions">
-        <span class="icon"><img src="{{ url_for('static', filename='img/modif.png') }}" alt="Edit" class="modif-img" onclick="openUserModal('{{u.username}}', '{{u.mail}}')"></span>
+        <span class="icon"><img src="{{ url_for('static', filename='img/modif.png') }}" alt="Edit" class="modif-img" onclick="openUserModal('{{u.username}}', '{{u.mail}}', '{{ u.role }}')"></span>
         <span class="icon"><img src="{{ url_for('static', filename='img/delete.png') }}" alt="Delete" class="delete-img" onclick="openDeleteModal('{{u.username}}')"></span>
     </div>
 </div>

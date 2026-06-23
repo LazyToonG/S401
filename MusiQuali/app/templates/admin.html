@@ -11,16 +11,21 @@
     <style>
         /* Gestion des colonnes de la liste */
         .col-nom {
-            flex: 1; /* Prend 1 part de l'espace */
-            min-width: 0; /* Indispensable pour que text-overflow fonctionne */
+            flex: 1;
+            min-width: 0; 
         }
         .col-email {
-            flex: 2; /* L'email prend plus de place (2 parts) */
+            flex: 2; 
             min-width: 0;
-            white-space: nowrap;      /* Interdit au texte de passer à la ligne */
-            overflow: hidden;         /* Cache ce qui dépasse */
-            text-overflow: ellipsis;  /* Ajoute les petits points "..." */
-            padding-right: 15px;      /* Marge de sécurité pour ne pas coller au rôle */
+            white-space: nowrap; 
+            overflow: hidden;  
+            text-overflow: ellipsis;
+            padding-right: 15px; 
+        }
+        .col-ip {
+            flex: 1;
+            min-width: 120px;
+            padding-right: 15px;
         }
         .col-role {
             flex: 1;
@@ -38,9 +43,8 @@
 
     <div class="tabs-container">
         <button class="tab-btn" data-target="raspberry">{{t.gestion_rasp}}</button>
-        <button class="tab-btn" data-target="terminal">{{t.terminal}}</button>
         <button class="tab-btn" data-target="users">{{t.gestion_user}}</button>
-        <button class="tab-btn" data-target="requests">{{t.requetes}} [1]</button>
+        <button class="tab-btn" data-target="requests">{{t.requetes}}{% if requetes|length>0 %} [{{requetes|length}}]{% endif %}</button>
     </div>
 
     <main class="content-area">
@@ -53,20 +57,19 @@
                         
                         <div class="search-bar admin-search">
                             <span class="search-icon"><img src="{{ url_for('static', filename='img/loupe.png') }}" alt="Recherche" class="recherche-img"></span>
-                            <input type="text" id="search-rasp" placeholder="{{t.recherche}}..." oninput="rechercheDynamique('raspberry')">
+                            <input type="text" id="search-rasp" placeholder="{{t.recherche}}..." oninput="filterAndSortRasp()">
                         </div>
                         
                         <div class="sort-container" style="display: flex; align-items: center; gap: 15px; position: relative;">
-                            {% if current_sort_rasp %}
-                            <a href="{{ url_for('admin_dashboard', _anchor='raspberry') }}" class="clear-filter" style="color: #CE5956; text-decoration: underline; font-size: 14px;">{{t.supp_filtres}}</a>
-                            {% endif %}
+                            <a href="javascript:void(0)" id="clear-sort-rasp" class="hidden" onclick="clearAdminSort('rasp')" style="color: #CE5956; text-decoration: underline; font-size: 14px;">{{t.supp_filtres}}</a>
+                            
                             <div style="position: relative;">
                                 <div class="sort-dropdown" onclick="toggleSortMenuRasp()" style="cursor: pointer; color: #651b1b; padding: 5px;">{{t.trier}} ▼</div>
                                 
                                 <div id="sort-menu-rasp" class="hidden" style="position: absolute; right: 0; top: 120%; background: white; border: 1px solid #b5abab; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); z-index: 100; min-width: 150px; overflow: hidden;">
-                                    <a href="{{ url_for('admin_dashboard', sort_rasp='asc', _anchor='raspberry') }}" style="display: block; padding: 10px 15px; color: #333; text-decoration: none; border-bottom: 1px solid #eee;">{{t.a_z}}</a>
-                                    <a href="{{ url_for('admin_dashboard', sort_rasp='desc', _anchor='raspberry') }}" style="display: block; padding: 10px 15px; color: #333; text-decoration: none; border-bottom: 1px solid #eee;">{{t.z_a}}</a>
-                                    <a href="{{ url_for('admin_dashboard', sort_rasp='ip', _anchor='raspberry') }}" style="display: block; padding: 10px 15px; color: #333; text-decoration: none;">{{t.ip}}</a>
+                                    <a href="javascript:void(0)" data-category="name" data-dir="1" onclick="applyAdminSort('rasp', 'name', 1)" style="display: block; padding: 10px 15px; color: #333; text-decoration: none; border-bottom: 1px solid #eee;">{{t.a_z}}</a>
+                                    <a href="javascript:void(0)" data-category="name" data-dir="-1" onclick="applyAdminSort('rasp', 'name', -1)" style="display: block; padding: 10px 15px; color: #333; text-decoration: none; border-bottom: 1px solid #eee;">{{t.z_a}}</a>
+                                    <a href="javascript:void(0)" data-category="ip" data-dir="1" onclick="applyAdminSort('rasp', 'ip', 1)" style="display: block; padding: 10px 15px; color: #333; text-decoration: none;">{{t.ip}}</a>
                                 </div>
                             </div>
                         </div>
@@ -80,96 +83,106 @@
                     </div>
                 </div>
 
-                <div class="users-list">
-                    <div class="user-list-item">
-                        <span class="item-name">Nom</span>
-                        <span class="user-role-text">Ip</span>
-                        <span class="user-role-text">Etat</span>
-                        <div class="item-actions">
-                            
-                        </div>
+                <div class="users-list" id="rasp-list-container">
+                    
+                    <div class="user-list-item" style="font-weight: bold; padding-bottom: 15px; border-bottom: 1px solid #eee;">
+                        <span class="col-checkbox"></span>
+                        <span class="item-name col-nom">{{t.nom}}</span>
+                        <span class="item-name col-ip">Ip</span>
+                        <span class="user-role-text col-role">{{t.etat}}</span>
+                        <div class="item-actions" style="width: 120px;"></div>
                     </div>
+
                     {% for r in raspberry %}
-                    <div class="user-list-item">
-                        <input type="checkbox" class="custom-round-checkbox">
-                        <span class="item-name">{{ r.nomLecteur }}</span>
-                        <span class="item-name">{{ r.ip }}</span>
-                        <span class="user-role-text">
+                    <div class="user-list-item" data-nom="{{ r.nomLecteur | lower }}" data-ip="{{ r.ip }}" data-index="{{ loop.index }}">
+                        <input type="checkbox" class="custom-round-checkbox col-checkbox">
+                        
+                        <span class="item-name col-nom">{{ r.nomLecteur }}</span>
+                        <span class="item-name col-ip">{{ r.ip }}</span>
+                        
+                        <span class="user-role-text col-role">
                             {% if etatPing.get(r.nomLecteur, False) %}
-                                🟢 En ligne
+                                🟢 {{t.en_ligne}}
                             {% else %}
-                                🔴 Hors ligne - {{ dernierOk.get(r.nomLecteur, "Jamais") }}
+                                🔴 {{t.hors_ligne}} - {{ dernierOk.get(r.nomLecteur, "Jamais") }}
                             {% endif %}
                         </span>
-                        <button type="button" onclick="openLogsModal('{{ r.nomLecteur }}')">
-                            Voir logs
-                        </button>
-                        <div class="item-actions">
-
-                            <!-- DELETE FIX -->
-                            <form method="POST" action="/admin/action_rasp">
+                        
+                        <div class="item-actions" style="display: flex; align-items: center; gap: 15px; width: 120px; justify-content: flex-end;">
+                            <button class="btn-action-red-log" type="button" onclick="openLogsModal('{{ r.nomLecteur }}')" style="margin: 0; padding: 5px 8px;">
+                                {{t.voir_logs}}
+                            </button>
+                            
+                            <form method="POST" action="/admin/action_rasp" style="margin: 0; display: flex;">
                                 <input type="hidden" name="action" value="delete-rasp">
                                 <input type="hidden" name="raspberry-select" value="{{ r.idLecteur }}">
-
-                                <button type="submit" style="background:none;border:none;cursor:pointer;">
-                                    <img src="{{ url_for('static', filename='img/delete.png') }}"
-                                        alt="Delete"
-                                        class="delete-img">
+                                <button type="submit" style="background:none; border:none; cursor:pointer; padding:0; display: flex; align-items: center;">
+                                    <img src="{{ url_for('static', filename='img/delete.png') }}" alt="Delete" class="delete-img">
                                 </button>
                             </form>
-
                         </div>
+                    </div>
+                    {% else %}
+                    <div class="rien" style="padding: 20px; text-align: center; color: #666; font-style: italic;">
+                        {{t.rien_rasp}}
                     </div>
                     {% endfor %}
                 </div>
             </div>
             
             <div class="admin-panel">
-                <h3 class="panel-title">{{t.titreRasp}}</h3>
-                <!--Info pour la procédure pour mettre son Raspberry-->
-                <div class="tooltip">
+                <h3 class="panel-title" style="display: flex; align-items: center; gap: 10px;">{{t.titreRasp}}
+                    <div class="tooltip">
                     <img src="{{ url_for('static', filename='img/aide.png') }}" alt="aide" class="aide-img">
                     <span class="tooltip-text">
-                        <h3>Les étapes pour configurer votre Raspberry :</h3>
-                        <h3>Pour pouvoir connecter la Raspberry il y a 3 informations nécéssaire qui nécéssite de chercher directement dans la Raspberry :</h3>
+                        <h3>{{t.etape}}</h3>
+                        <h3>{{t.conn}}</h3>
                         <ul>
-                            <li><strong>Utilisateur :</strong> il faut taper la commande <code>whoami</code></li>
-                            <li><strong>IP :</strong> il faut taper la commande <code>ip a</code> et chercher à la ligne 
-                                <br><code>inet <strong>IPSETROUVEICI</strong> brd ADRESSERESEAU scope global dynamic noprefixroute wlp4s0</code>
-                                <br> ou la première valeur avec la commande <code>hostname -I</code></li>
-                            <li><strong>Mot de passe :</strong> Il est défini lors de la création du Raspberry</li>
+                            <li><strong>{{t.user}}:</strong> {{t.tape_com}} <code>whoami</code></li>
+                            <li><strong>IP:</strong> {{t.tape_com}} <code>ip a</code> {{t.cherche_ligne}} 
+                                <br><code>inet <strong>{{t.iptrouveici}}</strong> brd {{t.adressereseau}} scope global dynamic noprefixroute wlp4s0</code>
+                                <br> {{t.premier_val}} <code>hostname -I</code></li>
+                            <li><strong>{{t.password}}:</strong> {{t.creation_rasp}}</li>
                         </ul>
                     </span>
                 </div>
-                    <form action="/admin/add_rasp" method="POST">
-                        <div class="mb-3 mt-3">
-                            <label for="nomLecteur" class="form-label">{{t.nomRasp}}</label>
-                            <input type="text"
-                                class="form-control"
-                                id="nomLecteur"
-                                placeholder="{{t.form_nomRasp}}"
-                                name="nomLecteur">
-                            <br>
-                            <label for="ip" class="form-label">
-                                {{t.ipRasp}}
-                            </label>
-                            <input type="text"
-                                class="form-control"
-                                id="ip"
-                                placeholder="{{t.form_ipRasp}}"
-                                name="ip">
-                            <br>
-                            <label for="mdpRasp" class="form-label">
-                                {{t.mdpRasp}}
-                            </label>
-                            <input type="password"
-                                class="form-control"
-                                id="mdpRasp"
-                                placeholder="{{t.form_mdpRasp}}"
-                                name="mdpRasp">
+                </h3>
+                <!--Info pour la procédure pour mettre son Raspberry-->
+                
+                    <form class="create-user-form" action="/admin/add_rasp" method="POST">
+                        <div class="input-group">
+                            <label for="nomLecteur" style="color: #651b1b;">{{t.nomRasp}}</label>
+                            <input type="text" 
+                                   class="transparent-input" 
+                                   id="nomLecteur" 
+                                   placeholder="{{t.form_nomRasp}}" 
+                                   name="nomLecteur" 
+                                   required>
                         </div>
-                        <br>
-                        <button type="submit" class="btn-action-red" style="text-align: center; margin-top: 30px;">{{t.confirm}}</button>
+                        
+                        <div class="input-group">
+                            <label for="ip" style="color: #651b1b;">{{t.ipRasp}}</label>
+                            <input type="text" 
+                                   class="transparent-input" 
+                                   id="ip" 
+                                   placeholder="{{t.form_ipRasp}}" 
+                                   name="ip" 
+                                   required>
+                        </div>
+                        
+                        <div class="input-group">
+                            <label for="mdpRasp" style="color: #651b1b;">{{t.mdpRasp}}</label>
+                            <input type="password" 
+                                   class="transparent-input" 
+                                   id="mdpRasp" 
+                                   placeholder="{{t.form_mdpRasp}}" 
+                                   name="mdpRasp" 
+                                   required>
+                        </div>
+                        
+                        <div style="text-align: center; margin-top: 30px;">
+                            <button type="submit" class="btn-action-red">{{t.confirm}}</button>
+                        </div>
                     </form>
                 </div>
 
@@ -179,16 +192,17 @@
 
         <!-- MODAL LOGS UNIQUE -->
         <div id="logs-modal" class="modal-overlay hidden" onclick="if(event.target === this) closeLogsModal()">
-            <div class="modal-box" style="background-color: #fff; color: #000;">
-                <h3 id="logs-modal-title" style="color: #000;">Logs</h3>
+            <div class="modal-box admin-modal-box" style="max-width: 700px;">
+                <h3 id="logs-modal-title" class="modal-title">Logs</h3>
 
-                <div id="logs-list" class="logs-list" style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:12px;">
-                    <!-- liste des fichiers logs, remplie en JS -->
+                <div id="logs-list" class="logs-list" style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px;">
+                    </div>
+
+                <pre id="logs-content" class="logs-content" style="max-height: 400px; overflow: auto; background-color: #fdfafb; color: #333; padding: 15px; border: 1px solid #e3caca; border-radius: 10px; font-size: 13px; font-family: monospace; white-space: pre-wrap; line-height: 1.5;"></pre>
+
+                <div class="modal-actions-row" style="justify-content: center; margin-top: 20px;">
+                    <button type="button" class="btn-outline-red" onclick="closeLogsModal()">{{t.fermer}}</button>
                 </div>
-
-                <pre id="logs-content" class="logs-content" style="max-height:300px; overflow:auto; background:#f5f5f5; color:#000; padding:10px; text-align:left;"></pre>
-
-                <button type="button" onclick="closeLogsModal()">Fermer</button>
             </div>
         </div>
 
@@ -203,22 +217,19 @@
                         
                         <div class="search-bar admin-search">
                             <span class="search-icon"><img src="{{ url_for('static', filename='img/loupe.png') }}" alt="Recherche" class="recherche-img"></span>
-                            <input type="text" id="search-users" placeholder="{{t.recherche}}..." oninput="rechercheDynamique('users')">
+                            <input type="text" id="search-users" placeholder="{{t.recherche}}..." oninput="filterAndSortUsers()">
                         </div>
                         
                         <div class="sort-container" style="display: flex; align-items: center; gap: 15px; position: relative;">
-                            
-                            {% if current_sort %}
-                            <a href="{{ url_for('admin_dashboard', _anchor='users') }}" class="clear-filter" style="color: #CE5956; text-decoration: none; font-size: 14px;">{{t.supp_filtres}}</a>
-                            {% endif %}
+                            <a href="javascript:void(0)" id="clear-sort-users" class="hidden" onclick="clearAdminSort('users')" style="color: #CE5956; text-decoration: underline; font-size: 14px;">{{t.supp_filtres}}</a>
 
                             <div style="position: relative;">
                                 <div class="sort-dropdown" onclick="toggleSortMenu()" style="cursor: pointer; color: #651b1b; padding: 5px;">{{t.trier}} ▼</div>
                                 
-                                <div id="sort-menu" class="hidden" style="position: absolute; right: 0; top: 120%; background: white; border: 1px solid #b5abab; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); z-index: 100; min-width: 150px; overflow: hidden;">
-                                    <a href="{{ url_for('admin_dashboard', sort='asc', _anchor='users') }}" style="display: block; padding: 10px 15px; color: #333; text-decoration: none; border-bottom: 1px solid #eee;">{{t.a_z}}</a>
-                                    <a href="{{ url_for('admin_dashboard', sort='desc', _anchor='users') }}" style="display: block; padding: 10px 15px; color: #333; text-decoration: none; border-bottom: 1px solid #eee;">{{t.z_a}}</a>
-                                    <a href="{{ url_for('admin_dashboard', sort='role', _anchor='users') }}" style="display: block; padding: 10px 15px; color: #333; text-decoration: none;">{{t.tri_role}}</a>
+                                <div id="sort-menu-users" class="hidden" style="position: absolute; right: 0; top: 120%; background: white; border: 1px solid #b5abab; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); z-index: 100; min-width: 150px; overflow: hidden;">
+                                    <a href="javascript:void(0)" data-category="name" data-dir="1" onclick="applyAdminSort('users', 'name', 1)" style="display: block; padding: 10px 15px; color: #333; text-decoration: none; border-bottom: 1px solid #eee;">{{t.a_z}}</a>
+                                    <a href="javascript:void(0)" data-category="name" data-dir="-1" onclick="applyAdminSort('users', 'name', -1)" style="display: block; padding: 10px 15px; color: #333; text-decoration: none; border-bottom: 1px solid #eee;">{{t.z_a}}</a>
+                                    <a href="javascript:void(0)" data-category="role" data-dir="1" onclick="applyAdminSort('users', 'role', 1)" style="display: block; padding: 10px 15px; color: #333; text-decoration: none;">{{t.tri_role}}</a>
                                 </div>
                             </div>
                         </div>
@@ -278,7 +289,7 @@
 
                     </div>
                     
-                    <div style="text-align: center; margin-top: 30px;">
+                    <div style="text-align: center; margin-top: auto; padding-top: 20px;">
                         <button type="submit" class="btn-action-red">{{t.create_user}}</button>
                     </div>
                 </form>
@@ -288,41 +299,57 @@
         <div id="requests" class="tab-content split-layout">
             
             <div class="requests-sidebar">
-                <h2 class="sidebar-title">Requêtes :</h2>
+                <h2 class="sidebar-title">{{t.requete}}:</h2>
                 <div class="requests-list">
-                    <div class="request-item active">
-                        <div class="req-row"><b>Sujet :</b> <span>-------------------------</span></div>
-                        <div class="req-row right"><b>De :</b> <span>----------------</span></div>
+                    {% for req_id, req in requetes.items() %}
+                    <div class="request-item" onclick="showRequestDetails('{{ req_id }}', this)">
+                        <div class="req-row"><b>{{t.sujet}}:</b> <span>{{ req.type | capitalize }}</span></div>
+                        <div class="req-row right"><b>{{t.from}}:</b> <span>{{ req.mail }}</span></div>
                     </div>
-                    <div class="request-item">
-                        <div class="req-row"><b>Sujet :</b> <span>-------------------------</span></div>
-                        <div class="req-row right"><b>De :</b> <span>----------------</span></div>
+                    {% else %}
+                    <div class="rien" style="padding: 20px; text-align: center; color: #666; font-style: italic;">
+                        {{t.rien_req}}
                     </div>
-                    <div class="request-item"></div>
-                    <div class="request-item"></div>
-                    <div class="request-item"></div>
-                    <div class="request-item"></div>
+                    {% endfor %}
                 </div>
             </div>
 
-            <div class="requests-details">
+            <div class="requests-details" id="req-placeholder">
+                <p class="rien" style="text-align: center; color: #666; margin-top: 50px; font-style: italic;">
+                    {{t.select_req}}
+                </p>
+            </div>
+
+            {% for req_id, req in requetes.items() %}
+            <div class="requests-details hidden req-detail-box" id="req-detail-{{ req_id }}">
                 <div class="details-header">
-                    <p>Sujet : ----------------------------------------------------</p>
-                    <p>De : --------------------</p>
+                    <p><b>{{t.sujet}}:</b> {{ req.type | capitalize }}</p>
+                    <p><b>{{t.from}}:</b> {{ req.mail }} ({{ req.demandeur }})</p>
+                    <p><b>{{t.role_demande}}:</b> {{ req.role }} &nbsp;|&nbsp; <b>{{t.id_entreprise}}:</b> {{ req.entreprise }}</p>
                 </div>
                 
                 <div class="details-body">
-                    <p>--------------------------------------------------------------------------------------------------------------------------------</p>
-                    <p>--------------------------------------------------------------------------------------------------------------------------------</p>
-                    <p>--------------------------------------------------------------------------------------------------------------------------------</p>
-                    <p>----------------------------------------------------------------------------------------</p>
+                    {% if req.type|lower == 'changement de rôle' %}
+                        <p style="font-size: 16px;"><b>{{t.role_demander}}:</b> <span style="color: #a71e23; font-weight: bold;">{{ req.nouveau_role | capitalize }}</span></p>
+                    {% else %}
+                        <p>{{ req.message }}</p>
+                    {% endif %}
                 </div>
 
                 <div class="details-actions">
-                    <button class="btn-accept">Accepter</button>
-                    <button class="btn-refuse">Refuser</button>
+                    <form method="POST" action="/admin/action_requete" style="margin: 0;">
+                        <input type="hidden" name="req_id" value="{{ req_id }}">
+                        <input type="hidden" name="action" value="accept">
+                        <button type="submit" class="btn-accept">{{t.accepter}}</button>
+                    </form>
+                    <form method="POST" action="/admin/action_requete" style="margin: 0;">
+                        <input type="hidden" name="req_id" value="{{ req_id }}">
+                        <input type="hidden" name="action" value="refuse">
+                        <button type="submit" class="btn-refuse" onclick="return confirm('Voulez-vous vraiment refuser cette requête ?');">{{t.refuser}}</button>
+                    </form>
                 </div>
             </div>
+            {% endfor %}
 
         </div>
 
@@ -335,8 +362,7 @@
                 
                 <input type="hidden" id="original_username" name="original_username">
                 <input type="hidden" id="original_email" name="original_email">
-
-                <div class="input-group">
+                <input type="hidden" id="original_role" name="original_role"> <div class="input-group">
                     <label style="color: #651b1b;">{{t.name_user}}</label>
                     <input type="text" id="edit_username" name="edit_username" class="transparent-input">
                 </div>
@@ -344,6 +370,16 @@
                     <label style="color: #651b1b;">{{t.mail}}</label>
                     <input type="email" id="edit_email" name="edit_email" class="transparent-input">
                 </div>
+                
+                <div class="input-group">
+                    <label style="color: #651b1b;">{{t.role}}</label>
+                    <select id="edit_role" name="edit_role" class="transparent-input" style="width: 100%; padding: 12px; border: 1px solid #5d1b1b5a; border-radius: 6px; font-size: 14px; outline: none; background-color: transparent;">
+                        <option value="commercial">{{t.commercial}}</option>
+                        <option value="marketing">{{t.marketing}}</option>
+                        <option value="admin">{{t.admin}}</option>
+                    </select>
+                </div>
+
                 <div class="modal-actions-row">
                     <button type="submit" class="btn-action-red">{{t.enregistrer}}</button>
                     <button type="button" class="btn-outline-red" onclick="closeUserModal()">{{t.cancel}}</button>
@@ -453,9 +489,10 @@
                     data.files.forEach(filename => {
                         const btn = document.createElement('button');
                         btn.type = 'button';
-                        btn.style.display = 'block';
-                        btn.style.color = '#000';
-                        btn.style.background = '#eee';
+                        btn.style.cssText = 'background-color: #f5ebeb; color: #651b1b; border: 1px solid #e3caca; padding: 6px 15px; border-radius: 20px; cursor: pointer; font-family: inherit; font-size: 14px; transition: 0.2s ease;';
+                        btn.onmouseover = () => { btn.style.backgroundColor = '#e3caca'; };
+                        btn.onmouseout = () => { btn.style.backgroundColor = '#f5ebeb'; };
+                        
                         btn.innerText = filename;
                         btn.onclick = () => loadLogContent(nom, filename);
                         listDiv.appendChild(btn);
@@ -485,12 +522,14 @@
         }
 
         // --- FONCTIONS MODALE (Modification Utilisateur) ---
-        function openUserModal(username, email) {
+        function openUserModal(username, email, role) {
             document.getElementById('original_username').value = username;
             document.getElementById('original_email').value = email;
+            document.getElementById('original_role').value = role;
             
             document.getElementById('edit_username').value = username;
             document.getElementById('edit_email').value = email;
+            document.getElementById('edit_role').value = role;
             
             document.getElementById('user-modal-overlay').classList.remove('hidden');
         }
@@ -516,31 +555,19 @@
             document.getElementById('delete-modal-overlay').classList.add('hidden');
         }
 
-        // --- GESTION DU MENU DÉROULANT DE TRI ---
+        // --- GESTION DES MENUS DÉROULANTS DE TRI ---
         function toggleSortMenu() {
-            document.getElementById('sort-menu').classList.toggle('hidden');
+            document.getElementById('sort-menu-users').classList.toggle('hidden');
         }
 
-        // Ferme le menu si on clique n'importe où ailleurs sur la page
-        window.addEventListener('click', function(e) {
-            if (!e.target.matches('.sort-dropdown')) {
-                var sortMenu = document.getElementById('sort-menu');
-                if (sortMenu && !sortMenu.classList.contains('hidden')) {
-                    sortMenu.classList.add('hidden');
-                }
-            }
-        });
-
-
-        // --- GESTION DU MENU DE TRI RASPBERRY ---
         function toggleSortMenuRasp() {
             document.getElementById('sort-menu-rasp').classList.toggle('hidden');
         }
 
-        // --- MISE À JOUR : Fermeture globale des menus ---
+        // Fermeture globale des menus si on clique ailleurs
         window.addEventListener('click', function(e) {
             if (!e.target.matches('.sort-dropdown')) {
-                var sortMenuUser = document.getElementById('sort-menu');
+                var sortMenuUser = document.getElementById('sort-menu-users');
                 var sortMenuRasp = document.getElementById('sort-menu-rasp');
                 
                 if (sortMenuUser && !sortMenuUser.classList.contains('hidden')) {
@@ -552,39 +579,219 @@
             }
         });
 
+        // =========================================================
+        // --- MOTEUR DE RECHERCHE ET DE TRI (SANS RAFRAICHISSEMENT)
+        // =========================================================
+        
+        let sortsUsers = [];
+        let sortsRasp = [];
 
-        // --- RECHERCHE DYNAMIQUE (AJAX) ---
-        function rechercheDynamique(type) {
-            let inputId, containerId, url;
+        function updateSortVisualsAdmin(type) {
+            const menuId = type === 'users' ? 'sort-menu-users' : 'sort-menu-rasp';
+            const activeSorts = type === 'users' ? sortsUsers : sortsRasp;
+            const menu = document.getElementById(menuId);
+            if (!menu) return;
 
-            // On configure les cibles selon l'onglet actif
+            menu.querySelectorAll('a').forEach(link => {
+                const cat = link.dataset.category;
+                const dir = parseInt(link.dataset.dir);
+                const isActive = activeSorts.some(s => s.category === cat && s.dir === dir);
+                
+                if (isActive) link.classList.add('active-sort');
+                else link.classList.remove('active-sort');
+            });
+        }
+
+        function applyAdminSort(type, category, direction) {
+            let activeSorts = type === 'users' ? sortsUsers : sortsRasp;
+            
+            // Remplace l'ancien tri
+            activeSorts = activeSorts.filter(s => s.category !== category);
+            activeSorts.unshift({ category: category, dir: direction });
+
             if (type === 'users') {
-                inputId = 'search-users';
-                containerId = 'users-list-container';
-                url = '/admin/api/search_users';
-            } 
-            else if (type === 'raspberry') {
-                inputId = 'search-rasp';
-                containerId = 'rasp-list-container';
-                url = '/admin/api/search_rasp';
+                sortsUsers = activeSorts;
+                document.getElementById('clear-sort-users').classList.remove('hidden');
+                document.getElementById('sort-menu-users').classList.add('hidden');
+                filterAndSortUsers();
+            } else {
+                sortsRasp = activeSorts;
+                document.getElementById('clear-sort-rasp').classList.remove('hidden');
+                document.getElementById('sort-menu-rasp').classList.add('hidden');
+                filterAndSortRasp();
             }
+            updateSortVisualsAdmin(type);
+        }
 
-            const query = document.getElementById(inputId).value;
+        function clearAdminSort(type) {
+            if (type === 'users') {
+                sortsUsers = [];
+                document.getElementById('clear-sort-users').classList.add('hidden');
+                filterAndSortUsers();
+            } else {
+                sortsRasp = [];
+                document.getElementById('clear-sort-rasp').classList.add('hidden');
+                filterAndSortRasp();
+            }
+            updateSortVisualsAdmin(type);
+        }
 
-            // Appel en arrière-plan à notre serveur Flask
-            fetch(`${url}?q=${encodeURIComponent(query)}`)
-            .then(response => response.text())
-            .then(html => {
-                // On remplace l'ancien tableau par le nouveau code HTML filtré
-                document.getElementById(containerId).innerHTML = html;
-            })
-            .catch(error => console.error("Erreur lors de la recherche dynamique :", error));
+        function filterAndSortUsers() {
+            const query = document.getElementById('search-users').value.toLowerCase();
+            const container = document.getElementById('users-list-container');
+            const header = container.querySelector('.list-header-fixed');
+            const boxes = Array.from(container.querySelectorAll('.user-list-item:not(.list-header-fixed)'));
+
+            // Filtre (Recherche)
+            boxes.forEach(b => {
+                const nom = b.dataset.username || '';
+                b.style.display = nom.includes(query) ? '' : 'none';
+            });
+
+            // Tri
+            const visible = boxes.filter(b => b.style.display !== 'none');
+            visible.sort((a, b) => {
+                for (let sort of sortsUsers) {
+                    if (sort.category === 'name') {
+                        const comp = a.dataset.username.localeCompare(b.dataset.username);
+                        if (comp !== 0) return comp * sort.dir;
+                    } else if (sort.category === 'role') {
+                        const comp = a.dataset.role.localeCompare(b.dataset.role);
+                        if (comp !== 0) return comp * sort.dir;
+                    }
+                }
+                return parseInt(a.dataset.index) - parseInt(b.dataset.index);
+            });
+
+            // Ré-injection propre (en gardant l'en-tête en premier)
+            container.innerHTML = '';
+            if (header) container.appendChild(header);
+            visible.forEach(b => container.appendChild(b));
+            boxes.filter(b => b.style.display === 'none').forEach(b => container.appendChild(b));
+        }
+
+        // Utilitaire pour transformer l'IP afin de la trier de manière logique
+        function ipToNum(ip) {
+            return ip.split('.').map(d => ('000' + d).slice(-3)).join('');
+        }
+
+        function filterAndSortRasp() {
+            const query = document.getElementById('search-rasp').value.toLowerCase();
+            const container = document.getElementById('rasp-list-container');
+            const header = container.querySelector('.list-header-fixed');
+            const boxes = Array.from(container.querySelectorAll('.user-list-item:not(.list-header-fixed)'));
+
+            boxes.forEach(b => {
+                const nom = b.dataset.nom || '';
+                b.style.display = nom.includes(query) ? '' : 'none';
+            });
+
+            const visible = boxes.filter(b => b.style.display !== 'none');
+            visible.sort((a, b) => {
+                for (let sort of sortsRasp) {
+                    if (sort.category === 'name') {
+                        const comp = a.dataset.nom.localeCompare(b.dataset.nom);
+                        if (comp !== 0) return comp * sort.dir;
+                    } else if (sort.category === 'ip') {
+                        const ipA = ipToNum(a.dataset.ip || '0.0.0.0');
+                        const ipB = ipToNum(b.dataset.ip || '0.0.0.0');
+                        const comp = ipA.localeCompare(ipB);
+                        if (comp !== 0) return comp * sort.dir;
+                    }
+                }
+                return parseInt(a.dataset.index) - parseInt(b.dataset.index);
+            });
+
+            container.innerHTML = '';
+            if (header) container.appendChild(header);
+            visible.forEach(b => container.appendChild(b));
+            boxes.filter(b => b.style.display === 'none').forEach(b => container.appendChild(b));
+        }
+
+        // --- GESTION DE L'AFFICHAGE DES REQUÊTES ---
+        function showRequestDetails(reqId, elementClicked) {
+            // 1. Cache tous les panneaux de détails
+            document.getElementById('req-placeholder').classList.add('hidden');
+            document.querySelectorAll('.req-detail-box').forEach(box => {
+                box.classList.add('hidden');
+            });
+            
+            // 2. Affiche le bon panneau
+            document.getElementById('req-detail-' + reqId).classList.remove('hidden');
+            
+            // 3. Enlève la couleur rouge (active) de tous les onglets
+            document.querySelectorAll('.request-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            // 4. Met en surbrillance l'onglet cliqué
+            elementClicked.classList.add('active');
         }
 
         // setInterval(() => {
         //     window.location.reload();
         // }, 20000); // toutes les 20 secondes
+
+        // --- RAFRAÎCHISSEMENT AUTO DES LECTEURS ---
+        async function refreshRaspList() {
+            const container = document.getElementById('rasp-list-container');
+            try {
+                const response = await fetch('/admin/api/rasp_status', {
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                });
+                const data = await response.json();
+
+                if (data.length === 0) {
+                    container.innerHTML = '<div class="rien" style="padding: 20px; text-align: center; color: #666; font-style: italic;">Aucune Raspberry trouvée.</div>';
+                    return;
+                }
+
+                // Garde l'en-tête
+                const header = container.querySelector('.user-list-item:first-child');
+                container.innerHTML = '';
+                if (header) container.appendChild(header);
+
+                data.forEach((r, index) => {
+                    const etat = r.enLigne
+                        ? `🟢 En ligne`
+                        : `🔴 Hors ligne - ${r.dernierOk}`;
+
+                    const row = document.createElement('div');
+                    row.className = 'user-list-item';
+                    row.dataset.nom = r.nomLecteur.toLowerCase();
+                    row.dataset.ip = r.ip;
+                    row.dataset.index = index;
+                    row.innerHTML = `
+                        <input type="checkbox" class="custom-round-checkbox col-checkbox">
+                        <span class="item-name col-nom">${r.nomLecteur}</span>
+                        <span class="item-name col-ip">${r.ip}</span>
+                        <span class="user-role-text col-role">${etat}</span>
+                        <div class="item-actions" style="display:flex; align-items:center; gap:15px; width:120px; justify-content:flex-end;">
+                            <button class="btn-action-red-log" type="button" onclick="openLogsModal('${r.nomLecteur}')" style="margin:0; padding:5px 8px;">
+                                Voir logs
+                            </button>
+                            <form method="POST" action="/admin/action_rasp" style="margin:0; display:flex;">
+                                <input type="hidden" name="action" value="delete-rasp">
+                                <input type="hidden" name="raspberry-select" value="${r.idLecteur}">
+                                <button type="submit" style="background:none; border:none; cursor:pointer; padding:0; display:flex; align-items:center;">
+                                    <img src="/static/img/delete.png" alt="Delete" class="delete-img">
+                                </button>
+                            </form>
+                        </div>
+                    `;
+                    container.appendChild(row);
+                });
+
+                filterAndSortRasp();
+
+            } catch (err) {
+                console.error('Erreur refreshRaspList:', err);
+            }
+        }
+
+        // Rafraîchit toutes les 5 secondes
+        setInterval(refreshRaspList, 5000);
+        refreshRaspList(); 
     </script>
-    <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 </html>

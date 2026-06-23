@@ -9,6 +9,7 @@
     <link href="{{ url_for('static', filename='message_alert.css') }}" rel="stylesheet">
     <style>
         .profile-container {
+            width: 100%;
             max-width: 600px;
             margin: 40px auto;
             background: #fff;
@@ -152,7 +153,6 @@
         </div>
     </div>
 
-    <script src="{{ url_for('static', filename='script.js') }}"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const btnEdit = document.getElementById('btnEdit');

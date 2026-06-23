@@ -39,12 +39,6 @@ class PlaylisteDAO:
 
         exists = cursor.fetchone() is not None
 
-        # if not exists:
-        #     conn.execute("""
-        #         INSERT INTO Playlist (title)
-        #         VALUES ('annonces');
-        #     """)
-
         conn.commit()
         conn.close()
         
@@ -95,18 +89,17 @@ class PlaylisteDAO:
             idPlanning=row["idPlanning"]
         )
 
-    def get_all(self):
+    def get_all(self, idEntreprise):
         conn = self._getDbConnection()
-        rows = conn.execute("SELECT * FROM Playlist").fetchall()
+        rows = conn.execute("""
+            SELECT p.* FROM Playlist p
+            JOIN Users u ON p.idUtilisateur = u.idUtilisateur
+            WHERE u.idEntreprise = ?
+        """, (idEntreprise,)).fetchall()
         conn.close()
-
         return [
-            Playlist(
-                idPlaylist=row["idPlaylist"],
-                title=row["title"],
-                idUtilisateur=row["idUtilisateur"],
-                idPlanning=row["idPlanning"]
-            )
+            Playlist(idPlaylist=row["idPlaylist"], title=row["title"],
+                    idUtilisateur=row["idUtilisateur"], idPlanning=row["idPlanning"])
             for row in rows
         ]
 

@@ -34,7 +34,12 @@ def reqrole(*role):
 
             current_role = session.get('role')
             if current_role not in role:
-                abort(403)
+                if current_role=="admin":
+                    return redirect(url_for('admin_dashboard'))
+                elif current_role=="commercial":
+                    return redirect(url_for('commercial_page'))
+                elif current_role=="marketing":
+                    return redirect(url_for('marketing'))
             return f(*args, **kwargs)
         return verifyRole
     return wrap
@@ -109,11 +114,14 @@ class LoginController:
                 elif user.role == "marketing":
                     return redirect(url_for("marketing"))
                 elif user.role == "commercial":
-                    return redirect(url_for("voir_planning"))
+                    return redirect(url_for("commercial_page"))
+                elif user.role == "modo":
+                    return redirect(url_for("entreprise_dashboard"))
                 else:
                     return redirect(url_for("index"))
             else:
                 msg_error = ts.message_langue('Identifiants non valides','Invalid Credentials')
+                flash(msg_error,"error")
         return render_template('login.html', msg_error=msg_error, t=textes, current_lang=langue_choisie)
 
     
@@ -136,7 +144,7 @@ class LoginController:
             email = request.form.get('email')
             
             # 1. On cherche si l'utilisateur existe avec cet e-mail
-            user = us.getUserByEmail(email)
+            user = us.getUserByEmail(email, idEntreprise=None)
             
             if user:
                 # 2. On crée le sérialiseur avec la clé secrète de l'application
@@ -175,16 +183,19 @@ class LoginController:
             # On tente de lire le jeton. S'il a plus de 15 minutes (900s), ça lève une exception.
             email = s.loads(token, salt='password-reset-salt', max_age=900)
         except SignatureExpired:
-            flash("Le lien de réinitialisation a expiré (valide 15 min). Veuillez recommencer.", "error")
+            msg_error = ts.message_langue("Le lien de réinitialisation a expiré (valide 15 min). Veuillez recommencer.","The reset link has expired (valid for 15 minutes). Please try again.")
+            flash(msg_error, "error")
             return redirect(url_for('forgot_password'))
         except BadTimeSignature:
-            flash("Lien de réinitialisation invalide ou corrompu.", "error")
+            msg_error = ts.message_langue("Lien de réinitialisation invalide ou corrompu.","Invalid or corrupted reset link.")
+            flash(msg_error, "error")
             return redirect(url_for('forgot_password'))
             
         # Si le jeton est valide, on s'assure que l'utilisateur est toujours là
         user = us.getUserByEmail(email)
         if not user:
-            flash("Utilisateur introuvable.", "error")
+            msg_error = ts.message_langue("Utilisateur introuvable.","User not found.")
+            flash(msg_error, "error")
             return redirect(url_for('forgot_password'))
 
         if request.method == 'POST':
@@ -192,12 +203,14 @@ class LoginController:
             conf_mdp = request.form.get('confirm_password')
             
             if nouveau_mdp != conf_mdp:
-                flash("Les mots de passe ne correspondent pas.", "error")
+                msg_error = ts.message_langue("Les mots de passe ne correspondent pas.","The passwords do not match.")
+                flash(msg_error, "error")
                 return render_template('reset_password_form.html', token=token, t=textes)
                 
             us.setPassword(user.username, nouveau_mdp)
-        
-            flash("Votre mot de passe a été modifié avec succès ! Vous pouvez vous connecter.", "success")
+
+            msg_error = ts.message_langue("Votre mot de passe a été modifié avec succès ! Vous pouvez vous connecter.","Your password has been successfully changed! You can now log in.")
+            flash(msg_error, "success")
             return redirect(url_for('login'))
             
         # Si c'est un GET, on affiche un petit formulaire pour taper le nouveau mot de passe

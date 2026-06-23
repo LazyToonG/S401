@@ -1,22 +1,42 @@
 <div class="user-list-item" style="font-weight: bold; padding-bottom: 15px; border-bottom: 1px solid #eee;">
     <span class="col-checkbox"></span>
     <span class="item-name col-nom">{{t.nom}}</span>
-    <span class="item-name col-email">IP</span>
+    <span class="item-name col-ip">Ip</span>
     <span class="user-role-text col-role">{{t.etat}}</span>
-    <div class="item-actions"></div>
+    <div class="item-actions" style="width: 120px;"></div>
 </div>
 
 {% for r in raspberry %}
 <div class="user-list-item">
     <input type="checkbox" class="custom-round-checkbox col-checkbox">
-    <span class="item-name col-nom">{{ r.nom }}</span>
-    <span class="item-name col-email">{{ r.ipRasp }}</span>
-    <span class="user-role-text col-role">Actif</span> <div class="item-actions">
-        <span class="icon"><img src="{{ url_for('static', filename='img/delete.png') }}" alt="Delete" class="delete-img"></span>
+    
+    <span class="item-name col-nom">{{ r.nomLecteur }}</span>
+    <span class="item-name col-ip">{{ r.ip }}</span>
+    
+    <span class="user-role-text col-role">
+        {% if etatPing.get(r.nomLecteur, False) %}
+            🟢 {{t.en_ligne}}
+        {% else %}
+            🔴 {{t.hors_ligne}} - {{ dernierOk.get(r.nomLecteur, "Jamais") }}
+        {% endif %}
+    </span>
+    
+    <div class="item-actions" style="display: flex; align-items: center; gap: 15px; width: 120px; justify-content: flex-end;">
+        <button class="btn-action-red-log" type="button" onclick="openLogsModal('{{ r.nomLecteur }}')" style="margin: 0; padding: 5px 8px;">
+            {{t.voir_logs}}
+        </button>
+        
+        <form method="POST" action="/admin/action_rasp" style="margin: 0; display: flex;">
+            <input type="hidden" name="action" value="delete-rasp">
+            <input type="hidden" name="raspberry-select" value="{{ r.idLecteur }}">
+            <button type="submit" style="background:none; border:none; cursor:pointer; padding:0; display: flex; align-items: center;">
+                <img src="{{ url_for('static', filename='img/delete.png') }}" alt="Delete" class="delete-img">
+            </button>
+        </form>
     </div>
 </div>
 {% else %}
 <div style="padding: 20px; text-align: center; color: #666; font-style: italic;">
-    {{t.aucun_rasp}}
+    {{t.rien_rasp}}
 </div>
 {% endfor %}

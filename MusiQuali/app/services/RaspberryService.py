@@ -10,8 +10,11 @@ class RaspberryService():
     def __init__(self):
         self.rdao = RaspberryDAO()
 
-    def montreToutRasp(self):
-        return self.rdao.findAll()
+    def montreToutRasp(self, idEntreprise):
+        return self.rdao.findAll(idEntreprise)
+
+    def montreToutRaspGlobal(self):
+        return self.rdao.findAllGlobal()
     
     def ajoutR(self, identifiant, ipRasp, idEntreprise):
         return self.rdao.createRasp(identifiant, ipRasp, idEntreprise)

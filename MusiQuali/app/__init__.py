@@ -7,3 +7,5 @@ app.config["SESSION_COOKIE_SECURE"] = True
 app.secret_key = 'ma cle secrete unique'
 
 from app.controllers import *
+
+

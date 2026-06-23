@@ -1,240 +1,895 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Weekly Calendar (Drag and Drop)</title>
+    <title>Musiquali - Planning</title>
+    <link href="{{ url_for('static', filename='style.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='message_alert.css') }}" rel="stylesheet">
+    <style>
+        /* --- FOND ET LAYOUT GLOBAL --- */
+        body {
+            background-color: #651b1b; /* Fond rouge/bordeaux */
+            color: #fff;
+            margin: 0;
+            font-family: inherit;
+        }
+
+        .planning-header {
+            display: flex;
+            align-items: center;
+            padding: 20px 40px;
+            gap: 20px;
+        }
+
+        .styled-select {
+            background-color: #f5ebeb;
+            color: #000;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            outline: none;
+            font-family: inherit;
+        }
+
+        .btn-action-red {
+            background-color: #CE5956;
+            color: #fff;
+            border: 1px solid #fff;
+            padding: 10px 25px;
+            border-radius: 20px;
+            font-size: 14px;
+            cursor: pointer;
+            display: none; /* Caché par défaut */
+            transition: 0.2s;
+        }
+        .btn-action-red:hover { background-color: #a71e23; }
+
+        /* --- LE CALENDRIER (COLONNES) --- */
+        .calendar-wrapper {
+            display: flex;
+            padding: 0 40px 40px 40px;
+            gap: 15px;
+            height: calc(100vh - 180px); /* S'adapte à l'écran */
+        }
+
+        .time-labels {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 60px 10px 60px 0;
+            font-weight: bold;
+            font-size: 14px;
+            color: #fff;
+        }
+
+        .days-container {
+            display: flex;
+            flex: 1;
+            gap: 15px;
+        }
+
+        .day-column {
+            background-color: #f5ebeb;
+            border-radius: 20px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            color: #000;
+        }
+
+        .day-header {
+            text-align: center;
+            padding: 15px 0;
+            border-bottom: 1px solid #d3c4c4;
+            font-size: 16px;
+        }
+
+        .day-content {
+            flex: 1;
+            padding: 10px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .add-prog-btn {
+            background: transparent;
+            border: none;
+            border-top: 1px solid #d3c4c4;
+            padding: 15px 0;
+            text-align: center;
+            cursor: pointer;
+            color: #000;
+            width: 100%;
+            font-family: inherit;
+            font-size: 14px;
+            transition: background 0.2s;
+        }
+        .add-prog-btn:hover { background: #e8dada; }
+
+        /* --- LES BOÎTES PROGRAMMÉES --- */
+        .scheduled-box {
+            background-color: #fff;
+            border: 1px solid #d3c4c4;
+            border-radius: 8px;
+            padding: 10px;
+            cursor: grab;
+            position: relative;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        .scheduled-box:active { cursor: grabbing; }
+        
+        .box-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+        
+        .box-title {
+            font-size: 14px;
+            font-weight: normal;
+        }
+
+        .box-details-link {
+            text-align: right;
+            font-size: 12px;
+            color: #651b1b;
+            cursor: pointer;
+            margin-top: 8px;
+        }
+        .box-details-link:hover { text-decoration: underline; }
+
+        .delete-box-btn {
+            background: none; border: none; color: #a00; font-size: 16px;
+            cursor: pointer; padding: 0; line-height: 1;
+        }
+
+        /* --- MODALES --- */
+        .modal-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.6); z-index: 1000;
+            align-items: center; justify-content: center;
+        }
+        .modal-overlay.open { display: flex; }
+        
+        .modal-box {
+            background: #fff; color: #651b1b; border-radius: 20px;
+            width: 500px; max-width: 90%; max-height: 80vh;
+            display: flex; flex-direction: column; padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3); position: relative;
+        }
+
+        .modal-header-flex {
+            display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;
+        }
+        .modal-title { font-size: 22px; margin: 0; font-weight: normal; }
+        
+        .time-picker {
+            border: 1px solid #651b1b; border-radius: 8px; padding: 5px 10px;
+            font-size: 18px; color: #651b1b; outline: none; font-family: inherit;
+        }
+
+        .modal-body {
+            flex: 1; overflow-y: auto; margin-bottom: 20px; padding-right: 10px;
+        }
+
+        /* Radio Liste pour sélection */
+        .radio-list { display: flex; flex-direction: column; gap: 15px; }
+        .radio-item { display: flex; align-items: center; gap: 10px; cursor: pointer; color: #000; }
+        
+        /* Liste read-only pour les détails */
+        .details-list { list-style: none; padding: 0; margin: 0; color: #000; }
+        .details-list li { padding: 10px 0; border-bottom: 1px solid #eee; display: flex; align-items: center; gap: 10px; }
+        .details-list li::before { content: '○'; color: #651b1b; }
+
+        .modal-footer { display: flex; justify-content: center; gap: 15px; }
+        
+        .btn-modal-red { background: #CE5956; color: #fff; border: none; padding: 10px 30px; border-radius: 20px; cursor: pointer; font-size: 14px; }
+        .btn-modal-white { background: transparent; color: #651b1b; border: 1px solid #651b1b; padding: 10px 30px; border-radius: 20px; cursor: pointer; font-size: 14px; }
+
+        /* Scrollbar élégante pour la modale */
+        .modal-body::-webkit-scrollbar { width: 6px; }
+        .modal-body::-webkit-scrollbar-track { background: transparent; }
+        .modal-body::-webkit-scrollbar-thumb { background: #651b1b; border-radius: 10px; }
+        
+        .hidden-tab { display: none !important; }
+
+        /* --- CONTENEUR PLEIN ÉCRAN CENTRÉ --- */
+        .upload-fullscreen-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex: 1; 
+            max-height: calc(100vh - 180px);
+            padding: 40px;
+        }
+
+        /* --- LA CARTE D'UPLOAD --- */
+        .upload-card {
+            background-color: #ffffff;
+            width: 100%;
+            max-width: 600px; /* Taille optimale pour un formulaire */
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .upload-card h1 {
+            text-align: center;
+            color: #651b1b;
+            margin-top: 0;
+            margin-bottom: 30px;
+            font-weight: normal;
+            font-size: 28px;
+        }
+
+        /* Zone de Glisser-Déposer parfaitement centrée */
+        .upload-area {
+            border: 2px dashed #b5abab;
+            border-radius: 15px;
+            padding: 30px 20px;
+            cursor: pointer;
+            background-color: #fdfafb;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 150px; /* Donne une belle hauteur à la boîte */
+            margin-bottom: 25px;
+        }
+
+        .upload-area:hover {
+            background-color: #f5ebeb;
+            border-color: #651b1b;
+        }
+
+        .upload-area p {
+            color: #651b1b;
+            margin: 0;
+            font-size: 16px;
+            text-align: center;
+        }
+
+        .btn-action-red {
+            background-color: #CE5956;
+            color: #fff;
+            border: 1px solid #CE5956;
+            padding: 10px 25px;
+            border-radius: 20px;
+            font-size: 14px;
+            cursor: pointer;
+            display: none; /* Caché par défaut */
+            transition: 0.2s;
+        }
+
+        .btn-upload-red:hover:not(:disabled) {
+            background-color: #a71e23;
+        }
+
+        .btn-upload-red:disabled {
+            background-color: #e3caca;
+            cursor: not-allowed;
+        }
+
+        /* Liste des fichiers uploadés / prévisualisation */
+        .file-preview-container, .messages-list-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-height: 250px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+        }
+        .file-preview-container.hidden { display: none; }
+
+        .file-preview-item, .message-box {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #f9f9f9;
+            border: 1px solid #eaeaea;
+            padding: 10px 15px;
+            border-radius: 8px;
+            color: #333;
+        }
+
+        .remove-file-btn, .action-btn {
+            color: #CE5956;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 20px;
+            background: none;
+            border: none;
+        }
+    </style>
 </head>
 <body>
 
+    {% include 'nav_bar.html' %}
 
-    <select id="tabSelect" onchange="switchTab()">
-        <option value="tab1">Gestion des playlistes</option>
-        <option value="tab2">Gestion des messages</option>
-    </select>
+    <div class="planning-header">
+        <select id="tabSelect" class="styled-select" onchange="switchTab()">
+            <option value="tab-playlists">Planning des musiques</option>
+            <option value="tab-messages">Planning des messages</option>
+            <option value="tab-upload">Enregistrement de messages</option>
+        </select>
 
-<div id="tab1" class="tab-content">
-    <h1>Calendrier des playlistes</h1>
+        <button id="save-planning-btn" class="btn-action-red" onclick="savePlanning()">Enregistrer</button>
+        <span id="save-status" style="margin-left: 10px; color: #e8dada; font-size: 14px;"></span>
+    </div>
+
+    <div id="tab-playlists" class="calendar-wrapper">
+        <div class="days-container">
+            {% set days = [('Lundi', 'mon-tab1'), ('Mardi', 'tue-tab1'), ('Mercredi', 'wed-tab1'), ('Jeudi', 'thu-tab1'), ('Vendredi', 'fri-tab1'), ('Samedi', 'sat-tab1'), ('Dimanche', 'sun-tab1')] %}
+            {% for day_name, day_id in days %}
+            <div class="day-column">
+                <div class="day-header">{{ day_name }}</div>
+                <div class="day-content dropzone" id="{{ day_id }}"></div>
+                <button class="add-prog-btn" onclick="openAddModal('{{ day_id }}', 'playlists')">+ Programmer</button>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div id="tab-messages" class="calendar-wrapper hidden-tab">
+        <div class="time-labels">
+            <span>7:00</span>
+            <span>22:00</span>
+        </div>
+        <div class="days-container">
+            {% set days = [('Lundi', 'mon-tab2'), ('Mardi', 'tue-tab2'), ('Mercredi', 'wed-tab2'), ('Jeudi', 'thu-tab2'), ('Vendredi', 'fri-tab2'), ('Samedi', 'sat-tab2'), ('Dimanche', 'sun-tab2')] %}
+            {% for day_name, day_id in days %}
+            <div class="day-column">
+                <div class="day-header">{{ day_name }}</div>
+                <div class="day-content dropzone" id="{{ day_id }}"></div>
+                <button class="add-prog-btn" onclick="openAddModal('{{ day_id }}', 'messages')">+ Programmer</button>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+<div id="tab-upload" class="tab-content upload-fullscreen-container">
     
-    <button id="add-box-btn">+ add playlist</button>
-   
-    <br>
+    <div class="upload-card">
+        <h1>Enregistrement de messages</h1>
 
-    <table border="1" cellpadding="10" cellspacing="0" width="100%">
-        <thead>
-            <tr bgcolor="#f2f2f2">
-                <th width="14.28%">Monday</th>
-                <th width="14.28%">Tuesday</th>
-                <th width="14.28%">Wednesday</th>
-                <th width="14.28%">Thursday</th>
-                <th width="14.28%">Friday</th>
-                <th width="14.28%">Saturday</th>
-                <th width="14.28%">Sunday</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr height="300" valign="top">
-                <td class="dropzone" id="mon-tab1"></td>
-                <td class="dropzone" id="tue-tab1"></td>
-                <td class="dropzone" id="wed-tab1"></td>
-                <td class="dropzone" id="thu-tab1"></td>
-                <td class="dropzone" id="fri-tab1"></td>
-                <td class="dropzone" id="sat-tab1"></td>
-                <td class="dropzone" id="sun-tab1"></td>
-            </tr>
-        </tbody>
-    </table>
+        <form action="/upload" method="POST" enctype="multipart/form-data" id="upload-form-message">
+
+            <label class="upload-area" id="upload-zone-message" for="audio-input-message">
+                <p id="upload-text-message">Glisser-déposer ou cliquer pour sélectionner un fichier</p>
+                <input
+                    type="file"
+                    name="audio"
+                    id="audio-input-message"
+                    accept=".mp3"
+                    multiple
+                    required
+                    style="display: none;"
+                >
+            </label>
+
+            <div id="file-preview-container-message" class="file-preview-container hidden"></div>
+
+            <div class="upload-actions" style="display: flex; justify-content: center; width: 100%;">
+                <button type="submit" id="btn-upload-message" class="btn-upload-red" disabled>
+                    Ajouter à la base de données
+                </button>
+            </div>
+        </form>
+
+        <div id="messages-list" class="messages-list-container">
+            </div>
+    </div>
 
 </div>
 
+    <div id="add-modal" class="modal-overlay">
+        <div class="modal-box">
+            <div class="modal-header-flex">
+                <h2 class="modal-title" id="add-modal-title">Programmer une playlist</h2>
+                <input type="time" id="add-time-input" class="time-picker">
+            </div>
+            <div class="modal-body" id="add-modal-list">
+                </div>
+            <div class="modal-footer">
+                <button class="btn-modal-red" onclick="confirmAdd()">Ajouter</button>
+                <button class="btn-modal-white" onclick="closeModals()">Annuler</button>
+            </div>
+        </div>
+    </div>
 
-<div id="tab2" class="tab-content">
-    <h1>Calendrier des messages</h1>
-    
-    <button id="add-message-btn">+ add playlist</button>
-    
-    
-    <br>
+    <div id="details-modal" class="modal-overlay" onclick="if(event.target===this) closeModals()">
+        <div class="modal-box" style="align-items: center; width: 400px;">
+            <h2 class="modal-title" id="details-modal-title" style="margin-bottom: 20px; text-align: center;">Composition</h2>
+            <div class="modal-body" style="width: 100%;">
+                <ul class="details-list" id="details-modal-list">
+                    </ul>
+            </div>
+        </div>
+    </div>
 
-    <table border="1" cellpadding="10" cellspacing="0" width="100%">
-        <thead>
-            <tr bgcolor="#f2f2f2">
-                <th width="14.28%">Monday</th>
-                <th width="14.28%">Tuesday</th>
-                <th width="14.28%">Wednesday</th>
-                <th width="14.28%">Thursday</th>
-                <th width="14.28%">Friday</th>
-                <th width="14.28%">Saturday</th>
-                <th width="14.28%">Sunday</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr height="300" valign="top">
-                <td class="messageszone" id="mon-tab2"></td>
-                <td class="messageszone" id="tue-tab2"></td>
-                <td class="messageszone" id="wed-tab2"></td>
-                <td class="messageszone" id="thu-tab2"></td>
-                <td class="messageszone" id="fri-tab2"></td>
-                <td class="messageszone" id="sat-tab2"></td>
-                <td class="messageszone" id="sun-tab2"></td>
-            </tr>
-        </tbody>
-    </table>
+    <script>
+        // ==========================================
+        // 1. NOUVEAU MOTEUR DE CALENDRIER ET PLANNING
+        // ==========================================
 
-</div>
+        // --- GESTION DU BOUTON ENREGISTRER (Dirty State) ---
+        let isDirty = false;
+        function markDirty() {
+            isDirty = true;
+            document.getElementById('save-planning-btn').style.display = 'block';
+        }
+        function clearDirty() {
+            isDirty = false;
+            document.getElementById('save-planning-btn').style.display = 'none';
+        }
 
+        // --- ONGLETS ---
+        function switchTab() {
+            const val = document.getElementById("tabSelect").value;
+            document.getElementById("tab-playlists").classList.add("hidden-tab");
+            document.getElementById("tab-messages").classList.add("hidden-tab");
+            document.getElementById("tab-upload").classList.add("hidden-tab");
+            document.getElementById(val).classList.remove("hidden-tab");
+        }
 
-
-    <script>//crée des boites pour faire bouger les playlistes
-        
-        // #TODO 
-        // faire remplir les characteristiques avant de créer la boite
-        // l'heure de start et de fin + titre de la playliste + liste des musiques dedans.
-        //automatiquement créer des boites selon ce qu'il y a dans la bd.
-
-
-        // compteur de boites
+        // --- GESTION DES BOÎTES DANS LE CALENDRIER ---
         let boxCounter = 0;
 
-        // ne peut etre laché que dans les zone désignés c-a-d les jours
-        const addBoxBtn = document.getElementById('add-box-btn');
-        const dropzones = document.querySelectorAll('.dropzone');
-
-        // -------------------- logique des boites
-        addBoxBtn.addEventListener('click', () => {
-            boxCounter++;
+        // Fonction d'aide pour ajouter une durée (en secondes) à un horaire HH:MM
+        function addDurationToTime(timeStr, durationSeconds) {
+            const [h, m] = timeStr.split(':').map(Number);
+            let totalMinutes = h * 60 + m + Math.ceil(durationSeconds / 60);
             
-            // create box
+            const rh = Math.floor(totalMinutes / 60).toString().padStart(2, '0');
+            const rm = (totalMinutes % 60).toString().padStart(2, '0');
+            return `${rh}:${rm}`;
+        }
+        
+        function createBox(item, options = {}) {
+            boxCounter++;
+            const { idPlanning = null, time = '07:00', dayId, type } = options;
+            
+            // Récupération de la durée et calcul de fin
+            const duration = parseInt(item.duree_totale || item.dureeTotale || item.duree || 0);
+            const endTime = addDurationToTime(time, duration);
+
             const newBox = document.createElement('div');
             newBox.id = `box-${boxCounter}`;
+            newBox.className = 'scheduled-box ' + (type === 'playlists' ? 'commercial-box' : 'message-calendar-box');
             newBox.draggable = true;
-            
-            // nom des boites
-            newBox.innerHTML = `<b>Box ${boxCounter}</b><br><small>Drag me</small>`; //modifier nom selon playliste choisie
-            
-            // Using basic JS inline styles *only* to simulate basic HTML box borders/padding 
-            // so you can actually see and grab the empty boxes.
-            newBox.style.border = "2px dashed #333";
-            newBox.style.padding = "10px";
-            newBox.style.margin = "5px 0";
-            newBox.style.backgroundColor = "#e0e0e0";
-            newBox.style.cursor = "move";
+            newBox.dataset.time = time;
+            newBox.dataset.endTime = endTime;
+            newBox.dataset.idPlanning = idPlanning || '';
 
-            // Attach drag start event to the new box
+            if (type === 'playlists') {
+                newBox.dataset.idPlaylist = item.idPlaylist;
+                newBox.innerHTML = `
+                    <div class="box-header"><span><b>${time} - ${endTime}</b></span> <button class="delete-box-btn" onclick="deleteBox(this)">&times;</button></div>
+                    <div class="box-title">${item.title}</div>
+                    <div class="box-details-link" onclick="openDetailsModal('${item.idPlaylist}', '${item.title.replace(/'/g, "\\'")}')">+ Détails</div>
+                `;
+            } else {
+                newBox.dataset.idMusique = item.idMusique;
+                newBox.innerHTML = `
+                    <div class="box-header"><span><b>${time} - ${endTime}</b></span> <button class="delete-box-btn" onclick="deleteBox(this)">&times;</button></div>
+                    <div class="box-title">${item.nomMusique}</div>
+                `;
+            }
+
+            // Drag and Drop de la boîte
             newBox.addEventListener('dragstart', (e) => {
                 e.dataTransfer.setData('text/plain', e.target.id);
             });
 
-            // Automatically place the newly created box into Monday to start
-            document.getElementById('mon-tab1').appendChild(newBox);
-        });
+            document.getElementById(dayId).appendChild(newBox);
+            sortColumnByTime(document.getElementById(dayId));
+            return newBox;
+        }
 
-        // --- DragonDrop
-        dropzones.forEach(zone => {
-            // Necessary to allow dropping (default behavior prevents it)
-            zone.addEventListener('dragover', (e) => {
-                e.preventDefault();
-            });
+        function deleteBox(btnElement) {
+            const box = btnElement.closest('.scheduled-box');
+            box.remove();
+            markDirty();
+        }
 
-            // Handle the drop event
-            zone.addEventListener('drop', (e) => {
-                e.preventDefault();
-                const boxId = e.dataTransfer.getData('text/plain');
-                const draggedBox = document.getElementById(boxId);
-                
-                // Ensure we are appending to the column (TD), not inside another box
-                if (e.target.classList.contains('dropzone')) {
-                    e.target.appendChild(draggedBox);
-                } else {
-                    // If dropped onto an existing box, append to its parent column instead
-                    e.target.closest('.dropzone').appendChild(draggedBox);
-                }
-            });
-        });
+        // Trie les boîtes par ordre chronologique
+        function sortColumnByTime(column) {
+            const boxes = Array.from(column.children).filter(el => el.classList.contains('scheduled-box'));
+            boxes.sort((a, b) => (a.dataset.time || '99:99').localeCompare(b.dataset.time || '99:99'));
+            boxes.forEach(box => column.appendChild(box));
+        }
 
-
-    
-        //pour le 2e tab
-
-
-        let MessageCounter = 0;
-
-        // ne peut etre laché que dans les zone désignés c-a-d les jours
-        const messageBoxBtn = document.getElementById('add-message-btn');
-        const messageszones = document.querySelectorAll('.messageszone');
-
-        // -------------------- logique des boites
-        messageBoxBtn.addEventListener('click', () => {
-            MessageCounter++;
-            
-            // create box
-            const newBox = document.createElement('div');
-            newBox.id = `msgbox-${MessageCounter}`;
-            newBox.draggable = true;
-            
-            // nom des boites
-            newBox.innerHTML = `<b>Box ${MessageCounter}</b><br><small>Drag me</small>`; //modifier nom selon playliste choisie
-            
-            // Using basic JS inline styles *only* to simulate basic HTML box borders/padding 
-            // so you can actually see and grab the empty boxes.
-            newBox.style.border = "2px dashed #333";
-            newBox.style.padding = "10px";
-            newBox.style.margin = "5px 0";
-            newBox.style.backgroundColor = "#e0e0e0";
-            newBox.style.cursor = "move";
-
-            // Attach drag start event to the new box
-            newBox.addEventListener('dragstart', (e) => {
-                e.dataTransfer.setData('text/plain', e.target.id);
-            });
-
-            // Automatically place the newly created box into Monday to start
-            document.getElementById('mon-tab2').appendChild(newBox);
-        });
-
-        // --- DragonDrop
-        messageszones.forEach(zone => {
-            // Necessary to allow dropping (default behavior prevents it)
-            zone.addEventListener('dragover', (e) => {
-                e.preventDefault();
-            });
-
-            // Handle the drop event
-            zone.addEventListener('drop', (e) => {
+        // --- DRAG AND DROP (Colonnes) ---
+        document.querySelectorAll('.dropzone').forEach(zone => {
+            zone.addEventListener('dragover', e => e.preventDefault());
+            zone.addEventListener('drop', e => {
                 e.preventDefault();
                 const boxId = e.dataTransfer.getData('text/plain');
                 const draggedBox = document.getElementById(boxId);
+                const targetColumn = e.target.classList.contains('dropzone') ? e.target : e.target.closest('.dropzone');
                 
-                // Ensure we are appending to the column (TD), not inside another box
-                if (e.target.classList.contains('messageszone')) {
-                    e.target.appendChild(draggedBox);
-                } else {
-                    // If dropped onto an existing box, append to its parent column instead
-                    e.target.closest('.messageszone').appendChild(draggedBox);
-                }
+                targetColumn.appendChild(draggedBox);
+                sortColumnByTime(targetColumn);
+                markDirty();
             });
         });
 
+        // --- LOGIQUE DES MODALES ---
+        let currentAddDayId = null;
+        let currentAddType = null;
+        let fetchedData = [];
 
+        function closeModals() {
+            document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('open'));
+        }
 
-        function switchTab() { // handle the tabs.
-            // choper val du dropdown
-            const selectedValue = document.getElementById("tabSelect").value;
+        // Calcule la prochaine heure libre pour le pop-up
+        function getEarliestTime(dayId) {
+            const boxes = Array.from(document.getElementById(dayId).querySelectorAll('.scheduled-box'));
+            if (boxes.length === 0) return "07:00"; 
             
-            // grab the right 'tab-content'
-            const tabs = document.getElementsByClassName("tab-content");
-           
-            // montrer le bon, cacher le reste
-            for (let i = 0; i < tabs.length; i++) {
-                if (tabs[i].id === selectedValue) {
-                    tabs[i].style.display = "block";  // Show
-                } else {
-                    tabs[i].style.display = "none";   // Hide
+            boxes.sort((a, b) => (a.dataset.time || '00:00').localeCompare(b.dataset.time || '00:00'));
+            const lastBox = boxes[boxes.length - 1];
+            
+            return lastBox.dataset.endTime || "07:00";
+        }
+
+        async function openAddModal(dayId, type) {
+            currentAddDayId = dayId;
+            currentAddType = type;
+            
+            document.getElementById('add-modal-title').textContent = type === 'playlists' ? 'Programmer une playlist' : 'Programmer un message';
+            document.getElementById('add-time-input').value = getEarliestTime(dayId);
+            
+            const listContainer = document.getElementById('add-modal-list');
+            listContainer.innerHTML = '<i>Chargement...</i>';
+            document.getElementById('add-modal').classList.add('open');
+
+            try {
+                const url = type === 'playlists' ? '/marketing/playlists' : '/marketing/musiques?prefix=MSG_';
+                const res = await fetch(url);
+                fetchedData = await res.json();
+
+                if (fetchedData.length === 0) {
+                    listContainer.innerHTML = '<i>Aucun élément disponible.</i>';
+                    return;
                 }
+
+                listContainer.innerHTML = '<div class="radio-list"></div>';
+                const radioGroup = listContainer.querySelector('.radio-list');
+
+                fetchedData.forEach((item, index) => {
+                    const label = type === 'playlists' ? item.title : item.nomMusique;
+                    const html = `
+                        <label class="radio-item">
+                            <input type="radio" name="prog_selection" value="${index}" ${index === 0 ? 'checked' : ''}>
+                            <span>${label}</span>
+                        </label>
+                    `;
+                    radioGroup.insertAdjacentHTML('beforeend', html);
+                });
+            } catch (err) {
+                listContainer.innerHTML = '<i>Erreur de chargement.</i>';
             }
         }
 
+        function confirmAdd() {
+            const selectedRadio = document.querySelector('input[name="prog_selection"]:checked');
+            if (!selectedRadio) return closeModals();
 
+            const item = fetchedData[selectedRadio.value];
+            const time = document.getElementById('add-time-input').value || '07:00';
+            
+            createBox(item, { time, dayId: currentAddDayId, type: currentAddType });
+            markDirty(); 
+            closeModals();
+        }
+
+        // Modale des détails de playlist
+        async function openDetailsModal(playlistId, playlistTitle) {
+            document.getElementById('details-modal-title').innerHTML = `Composition de la playlist <b>${playlistTitle}</b>`;
+            const listContainer = document.getElementById('details-modal-list');
+            listContainer.innerHTML = '<li><i>Chargement...</i></li>';
+            document.getElementById('details-modal').classList.add('open');
+
+            try {
+                const res = await fetch(`/marketing/playlist/${playlistId}/musiques`, { headers: { 'X-Requested-With': 'XMLHttpRequest' }});
+                const musiques = await res.json();
+                
+                if (musiques.length === 0) {
+                    listContainer.innerHTML = '<li><i>Playlist vide</i></li>';
+                    return;
+                }
+                
+                listContainer.innerHTML = '';
+                musiques.forEach(m => {
+                    listContainer.insertAdjacentHTML('beforeend', `<li>${m.nomMusique}</li>`);
+                });
+            } catch (err) {
+                listContainer.innerHTML = '<li><i>Erreur de chargement</i></li>';
+            }
+        }
+
+        // --- SAUVEGARDE ET CHARGEMENT DU PLANNING EN BDD ---
+        const DAY_OFFSETS = { 'mon': 0, 'tue': 1, 'wed': 2, 'thu': 3, 'fri': 4, 'sat': 5, 'sun': 6 };
+
+        function getCurrentMonday() {
+            const now = new Date();
+            const day = now.getDay(); 
+            const diffToMonday = (day === 0) ? -6 : 1 - day;
+            return new Date(now.getFullYear(), now.getMonth(), now.getDate() + diffToMonday);
+        }
+
+        function buildStartTime(dayId, time) {
+            if (!time) return null;
+            const dayCode = dayId.split('-')[0];
+            const offset = DAY_OFFSETS[dayCode];
+            if (offset === undefined) return null;
+
+            const target = getCurrentMonday();
+            target.setDate(target.getDate() + offset);
+            const [hours, minutes] = time.split(':').map(Number);
+            target.setHours(hours, minutes, 0, 0);
+
+            const pad = (n) => String(n).padStart(2, '0');
+            return `${target.getFullYear()}-${pad(target.getMonth() + 1)}-${pad(target.getDate())}T${pad(target.getHours())}:${pad(target.getMinutes())}:00`;
+        }
+
+        function startTimeToDayAndTime(startTime, suffix) {
+            const dt = new Date(startTime);
+            const diffDays = Math.round((new Date(dt.getFullYear(), dt.getMonth(), dt.getDate()) - getCurrentMonday()) / 86400000);
+            const dayCodes = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
+            const dayCode = dayCodes[((diffDays % 7) + 7) % 7];
+            const pad = (n) => String(n).padStart(2, '0');
+            return { dayId: `${dayCode}-${suffix}`, time: `${pad(dt.getHours())}:${pad(dt.getMinutes())}` };
+        }
+
+        async function savePlanning() {
+            const saveStatus = document.getElementById('save-status');
+            saveStatus.textContent = 'Sauvegarde en cours...';
+
+            const boxes = [];
+            document.querySelectorAll('.scheduled-box').forEach(box => {
+                const time = box.dataset.time;
+                const dayId = box.parentElement.id;
+                const startTime = buildStartTime(dayId, time);
+                if (!startTime) return;
+
+                boxes.push({
+                    idPlanning: box.dataset.idPlanning ? parseInt(box.dataset.idPlanning) : null,
+                    idPlaylist: box.dataset.idPlaylist ? parseInt(box.dataset.idPlaylist) : null,
+                    idMSG: box.dataset.idMusique ? parseInt(box.dataset.idMusique) : null,
+                    StartTime: startTime,
+                    _box: box
+                });
+            });
+
+            const payloadBoxes = boxes.map(({ _box, ...rest }) => rest);
+
+            try {
+                const res = await fetch('/planning/save', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ idEntreprise: 1, boxes: payloadBoxes })
+                });
+
+                if (res.ok) {
+                    const saved = await res.json();
+                    saved.forEach((row, i) => { if (boxes[i]._box) boxes[i]._box.dataset.idPlanning = row.idPlanning; });
+                    saveStatus.textContent = 'Sauvegardé ✓';
+                    setTimeout(() => saveStatus.textContent = '', 2000);
+                    clearDirty(); 
+                } else {
+                    saveStatus.textContent = 'Erreur lors de la sauvegarde.';
+                }
+            } catch (err) { saveStatus.textContent = 'Erreur réseau.'; }
+        }
+
+        async function loadPlanning() {
+            try {
+                const [planningRes, playlistsRes, musiquesRes] = await Promise.all([
+                    fetch('/planning/data?idEntreprise=1'),
+                    fetch('/marketing/playlists'),
+                    fetch('/marketing/musiques?prefix=MSG_')
+                ]);
+
+                const rows = await planningRes.json();
+                const playlists = playlistsRes.ok ? await playlistsRes.json() : [];
+                const messages = musiquesRes.ok ? await musiquesRes.json() : [];
+
+                const playlistById = new Map(playlists.map(p => [p.idPlaylist, p]));
+                const messageById = new Map(messages.map(m => [m.idMusique, m]));
+
+                for (const row of rows) {
+                    if (row.idPlaylist !== null) {
+                        const { dayId, time } = startTimeToDayAndTime(row.StartTime, 'tab1');
+                        const p = playlistById.get(row.idPlaylist) || { idPlaylist: row.idPlaylist, title: `Playlist #${row.idPlaylist}` };
+                        createBox(p, { idPlanning: row.idPlanning, time, dayId, type: 'playlists' });
+                    } else if (row.idMSG !== null) {
+                        const { dayId, time } = startTimeToDayAndTime(row.StartTime, 'tab2');
+                        const m = messageById.get(row.idMSG) || { idMusique: row.idMSG, nomMusique: `Message #${row.idMSG}` };
+                        createBox(m, { idPlanning: row.idPlanning, time, dayId, type: 'messages' });
+                    }
+                }
+                clearDirty();
+            } catch (err) { console.error(err); }
+        }
+
+        // ==========================================
+        // 2. ANCIEN MOTEUR D'UPLOAD DE MESSAGES (Intact)
+        // ==========================================
+
+        const audioInputMessage = document.getElementById('audio-input-message');
+        const filePreviewContainerMessage = document.getElementById('file-preview-container-message');
+        const btnUploadMessage = document.getElementById('btn-upload-message');
+        const uploadTextMessage = document.getElementById('upload-text-message');
+        const messagesList = document.getElementById('messages-list');
+
+        let selectedMessageFilesTransfer = new DataTransfer();
+
+        function withMsgPrefix(file) {
+            const alreadyPrefixed = file.name.startsWith('MSG_');
+            const newName = alreadyPrefixed ? file.name : `MSG_${file.name}`;
+            return new File([file], newName, { type: file.type });
+        }
+
+        if (audioInputMessage) {
+            audioInputMessage.addEventListener('change', function() {
+                for (let i = 0; i < this.files.length; i++) {
+                    selectedMessageFilesTransfer.items.add(withMsgPrefix(this.files[i]));
+                }
+                this.files = selectedMessageFilesTransfer.files;
+                updateMessageFilePreview();
+            });
+        }
+
+        function updateMessageFilePreview() {
+            filePreviewContainerMessage.innerHTML = ''; 
+
+            if (selectedMessageFilesTransfer.files.length > 0) {
+                filePreviewContainerMessage.classList.remove('hidden');
+                btnUploadMessage.disabled = false; 
+                uploadTextMessage.innerText = "Ajouter d'autres fichiers (.mp3)";
+
+                Array.from(selectedMessageFilesTransfer.files).forEach((file, index) => {
+                    const fileItem = document.createElement('div');
+                    fileItem.className = 'file-preview-item';
+
+                    const fileName = document.createElement('span');
+                    fileName.className = 'item-name';
+                    fileName.innerText = file.name;
+
+                    const removeBtn = document.createElement('span');
+                    removeBtn.className = 'remove-file-btn';
+                    removeBtn.innerHTML = '&times;';
+
+                    removeBtn.addEventListener('click', function(e) {
+                        e.preventDefault(); 
+                        removeMessageFile(index);
+                    });
+
+                    fileItem.appendChild(fileName);
+                    fileItem.appendChild(removeBtn);
+                    filePreviewContainerMessage.appendChild(fileItem);
+                });
+            } else {
+                filePreviewContainerMessage.classList.add('hidden');
+                btnUploadMessage.disabled = true;
+                uploadTextMessage.innerText = "Glisser-déposer ou cliquer pour sélectionner un fichier";
+            }
+        }
+
+        function removeMessageFile(indexToRemove) {
+            const newTransfer = new DataTransfer();
+            Array.from(selectedMessageFilesTransfer.files).forEach((file, index) => {
+                if (index !== indexToRemove) {
+                    newTransfer.items.add(file);
+                }
+            });
+            selectedMessageFilesTransfer = newTransfer;
+            audioInputMessage.files = selectedMessageFilesTransfer.files;
+            updateMessageFilePreview(); 
+        }
+
+        function createMessageListBox(m) {
+            const box = document.createElement('div');
+            box.id = `upload-message-box-${m.idMusique}`;
+            box.className = 'message-box';
+            box.dataset.musicId = m.idMusique;
+            box.innerHTML = `
+                <span class="item-info">
+                    <b>${m.nomMusique}</b>
+                    <span style="white-space: nowrap;">— ${m.duree}s</span>
+                </span>
+                <form action="/marketing/music/${m.idMusique}/delete" method="POST" style="margin: 0;">
+                    <button type="submit" class="action-btn">&times;</button>
+                </form>
+            `;
+
+            box.querySelector('form').addEventListener('submit', async (ev) => {
+                ev.preventDefault();
+                const f = ev.target;
+                const b = f.closest('.message-box');
+                try {
+                    const r = await fetch(f.action, {
+                        method: 'POST',
+                        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                    });
+                    if (r.ok) {
+                        b.remove();
+                    } else {
+                        console.error('Erreur lors de la suppression', r.status);
+                    }
+                } catch (err) {
+                    console.error('Erreur réseau', err);
+                }
+            });
+
+            if(messagesList) messagesList.appendChild(box);
+        }
+
+        async function loadExistingMessages() {
+            try {
+                const response = await fetch('/marketing/musiques?prefix=MSG_');
+                if (!response.ok) throw new Error('Erreur de chargement');
+                const messages = await response.json();
+                messages.forEach(m => createMessageListBox(m));
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        if (messagesList) {
+            loadExistingMessages();
+        }
+
+        const uploadFormMessage = document.getElementById('upload-form-message');
+        if (uploadFormMessage) {
+            uploadFormMessage.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const formData = new FormData(uploadFormMessage);
+
+                try {
+                    const res = await fetch(uploadFormMessage.action, {
+                        method: 'POST',
+                        headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                        body: formData
+                    });
+
+                    if (!res.ok) {
+                        console.error('Erreur lors de l\'upload', res.status);
+                        return;
+                    }
+
+                    const data = await res.json();
+                    (data.musiques || []).forEach(m => createMessageListBox(m));
+
+                    selectedMessageFilesTransfer = new DataTransfer();
+                    audioInputMessage.value = '';
+                    updateMessageFilePreview();
+
+                } catch (err) {
+                    console.error('Erreur réseau', err);
+                }
+            });
+        }
+
+        // ==========================================
+        // 3. LANCEMENT AU CHARGEMENT DE LA PAGE
+        // ==========================================
         switchTab();
+        loadPlanning();
     </script>
 
 </body>

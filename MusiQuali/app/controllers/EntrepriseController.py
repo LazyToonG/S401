@@ -1,3 +1,78 @@
+from flask import render_template, request, session, redirect, url_for, flash, jsonify
+from app import app
+from app.controllers.LoginController import reqrole
+
 from app.services.EntrepriseService import EntrepriseService
+from app.services.TraductionService import Traductionservice
+from app.services.UserService import UserService
+
 
 es = EntrepriseService()
+ts = Traductionservice()
+us = UserService()
+
+
+@app.route("/entreprise", methods=["GET"])
+@reqrole('modo')
+def entreprise_dashboard():
+    traductions = ts.tradEntreprise()
+    langue_choisie = ts.getLangue()
+    textes = traductions[langue_choisie]
+
+    allEntreprises = es.getAllEntreprises()
+
+
+    return render_template(
+        "entreprise.html",
+        entreprises=allEntreprises,
+        t=textes,
+        user=session['username'],
+        role=session['role'] 
+    )
+
+@app.route("/entreprise/delete/<int:idEntreprise>", methods=["POST"])
+@reqrole('modo')
+def delete_entreprise(idEntreprise):
+    try:
+        us.deleteUserIdentreprise(idEntreprise)
+        es.deleteEntreprise(idEntreprise)
+
+        msg_error = ts.message_langue("Entreprise supprimée avec succès","Company successfully deleted")
+        flash(msg_error, "success")
+
+    except Exception as e:
+        print("DELETE ERROR:", e)   # 👈 IMPORTANT
+        flash(f"Erreur: {e}", "error")
+
+    return redirect(url_for("entreprise_dashboard"))
+
+@app.route("/entreprise/create", methods=["POST"])
+@reqrole('modo')
+def create_entreprise():
+    try:
+        nomEntreprise = request.form.get("nomEntreprise")
+
+        idEntreprise = es.createEntreprise(nomEntreprise)
+
+        if not idEntreprise:
+            raise Exception("Création entreprise échouée")
+
+        msg_error = ts.message_langue("Entreprise créée avec succès","Company succefully created")
+        flash(msg_error, "success")
+
+        mail = f"{nomEntreprise}_{idEntreprise}@mail.com"
+
+        us.signin(
+            nomEntreprise,
+            "admin",
+            "admin",
+            mail,
+            idEntreprise
+        )
+
+    except Exception as e:
+        print(e)
+        msg_error = ts.message_langue("Erreur lors de la création de l'entreprise","Error whilst setting up the business")
+        flash(msg_error, "error")
+
+    return redirect(url_for("entreprise_dashboard"))

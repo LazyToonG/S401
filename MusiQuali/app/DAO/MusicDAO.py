@@ -31,10 +31,11 @@ class MusicDAO():
         conn.row_factory = sqlite3.Row
         return conn
 
-    def get_all(self):
+    def get_all(self, idEntreprise):
         conn = self.get_connection()
         rows = conn.execute(
-            "SELECT idMusique, nomMusique, duree, idEntreprise FROM Musique"
+            "SELECT idMusique, nomMusique, duree, idEntreprise FROM Musique WHERE idEntreprise = ?",
+            (idEntreprise,)
         ).fetchall()
         conn.close()
         return [Music(row["idMusique"], row["nomMusique"], row["duree"], row["idEntreprise"]) for row in rows]
@@ -48,7 +49,7 @@ class MusicDAO():
         conn.close()
         return Music(row["idMusique"], row["nomMusique"], row["duree"], row["idEntreprise"]) if row else None
 
-    def create(self, nomMusique, duree, idEntreprise=1):
+    def create(self, nomMusique, duree, idEntreprise):
         conn = self.get_connection()
         cur = conn.cursor()
         cur.execute(
@@ -67,18 +68,13 @@ class MusicDAO():
         conn.commit()
         conn.close()
 
-    def get_musiques(self, order_by="nomMusique"):
-        allowed = {
-            "nomMusique": "nomMusique",
-            "duree": "duree"
-        }
-
+    def get_musiques(self, idEntreprise, order_by="nomMusique"):
+        allowed = {"nomMusique": "nomMusique", "duree": "duree"}
         order_column = allowed.get(order_by, "nomMusique")
-
         conn = self.get_connection()
         rows = conn.execute(
-            f"SELECT idMusique, nomMusique, duree, idEntreprise FROM Musique ORDER BY {order_column}"
+            f"SELECT idMusique, nomMusique, duree, idEntreprise FROM Musique WHERE idEntreprise = ? ORDER BY {order_column}",
+            (idEntreprise,)
         ).fetchall()
         conn.close()
-
         return [Music(row["idMusique"], row["nomMusique"], row["duree"], row["idEntreprise"]) for row in rows]

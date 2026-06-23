@@ -25,7 +25,7 @@ class MusiqueService:
     def allowed_file(self, filename):
         return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
 
-    def save_file(self, file):
+    def save_file(self, file, idEntreprise):
         if file.filename == "":
             raise ValueError("Aucun fichier sélectionné")
         if not self.allowed_file(file.filename):
@@ -40,7 +40,7 @@ class MusiqueService:
         duration = int(audio.info.length)
 
         # DAO retourne un objet Music
-        return self.dao.create(nomMusique=title, duree=duration, idEntreprise=1)
+        return self.dao.create(nomMusique=title, duree=duration, idEntreprise=idEntreprise)
 
     def delete_musique(self, music):
         self.dao.delete(music.id)

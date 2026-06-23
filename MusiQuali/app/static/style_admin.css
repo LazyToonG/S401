@@ -9,20 +9,36 @@
 .tab-btn:hover { background-color: #cc5f5f; }
 
 /* --- CONTENU --- */
-.content-area { padding: 0 40px 40px 40px; }
+.content-area { 
+    padding: 0 40px 40px 40px; 
+    display: flex; 
+    flex-direction: column;
+    flex: 1; 
+    height: calc(100vh - 170px); 
+    max-height: calc(100vh - 170px);
+    box-sizing: border-box; 
+}
 .tab-content { display: none; }
-.tab-content.active { display: block; }
+.tab-content.active { display: flex; flex: 1; min-height: 0; }
+
 .full-box {
     background-color: #fff; border: 1px solid #651b1b; border-radius: 20px;
     min-height: 500px; width: 100%; position: relative; overflow: hidden;
 }
-.split-layout.active { display: flex; gap: 20px; height: 500px; }
+
+.split-layout.active { 
+    display: flex; 
+    gap: 20px; 
+    flex: 1; 
+    min-height: 0; 
+    height: 100%; 
+}
 
 
 /* --- ONGLET REQUÊTES : COLONNE GAUCHE --- */
 .requests-sidebar {
     width: 350px;
-    background-color: #fff;
+    background-color: #fdfafb; /* Fond très clair */
     border: 1px solid #651b1b;
     border-radius: 20px;
     display: flex;
@@ -35,6 +51,7 @@
     font-weight: normal;
     text-decoration: underline;
     padding: 20px 20px 10px 20px;
+    color: #000;
 }
 
 .requests-list {
@@ -44,35 +61,63 @@
     flex-direction: column;
 }
 
+/* Scrollbar personnalisée pour la liste des requêtes */
+.requests-list::-webkit-scrollbar { width: 8px; }
+.requests-list::-webkit-scrollbar-track { background: #fdfafb; }
+.requests-list::-webkit-scrollbar-thumb { background: #cc5f5f; border-radius: 10px; }
+
 .request-item {
     padding: 15px 20px;
-    height: 60px; /* Hauteur fixe pour ressembler à l'image */
+    min-height: 70px;
     display: flex;
     flex-direction: column;
     justify-content: center;
+    cursor: pointer;
+    border-bottom: 2px solid #fff; /* Ligne de séparation blanche */
+    color: #000;
+    transition: background-color 0.2s;
 }
 
-/* Alternance des couleurs des lignes */
+/* Alternance des couleurs selon ta maquette */
 .request-item:nth-child(odd) {
-    background-color: #f0f7fb;
+    background-color: #f5ebeb; /* Rose très clair */
 }
 .request-item:nth-child(even) {
-    background-color: #bee4f9;
+    background-color: #e3caca; /* Rose un peu plus soutenu */
+}
+
+/* L'élément actuellement sélectionné */
+.request-item.active {
+    background-color: #cc5f5f;
+    color: white;
 }
 
 .req-row {
     font-size: 14px;
+    display: flex;
+    align-items: center;
+    margin-bottom: 5px;
 }
+
+.req-row b {
+    width: 50px; /* Aligne les "De :" et "Sujet :" */
+}
+
 .req-row.right {
-    text-align: right;
+    justify-content: flex-end;
+    font-size: 13px;
     margin-top: 5px;
+}
+.req-row.right b {
+    width: auto;
+    margin-right: 5px;
 }
 
 /* --- ONGLET REQUÊTES : COLONNE DROITE --- */
 .requests-details {
     flex: 1;
-    background-color: #fff;
-    border: 1px solid #b3c6d6;
+    background-color: #fdfafb;
+    border: 1px solid #651b1b;
     border-radius: 20px;
     padding: 30px;
     display: flex;
@@ -82,19 +127,24 @@
 }
 
 .details-header {
-    margin-bottom: 30px;
-    font-size: 18px;
+    margin-bottom: 25px;
+    font-size: 16px;
     line-height: 1.8;
+    color: #000;
+    border-bottom: 1px solid #e3caca;
+    padding-bottom: 15px;
 }
 
 .details-body {
-    font-size: 16px;
+    font-size: 15px;
     line-height: 1.6;
-    color: #555;
+    color: #333;
+    flex: 1;
+    overflow-y: auto;
 }
 
 .details-actions {
-    margin-top: auto; /* Pousse les boutons tout en bas */
+    margin-top: 20px; 
     display: flex;
     justify-content: center;
     gap: 20px;
@@ -109,30 +159,34 @@
     transition: 0.2s ease;
 }
 
+/* Bouton rouge */
 .btn-accept {
-    background-color: #bee4f9;
-    border: 1px solid #75aadb;
-    color: #1a4f82;
+    background-color: #cc5f5f;
+    border: 1px solid #651b1b;
+    color: #651b1b;
+    font-weight: bold;
 }
+.btn-accept:hover { background-color: #a71e23; color: white; }
 
+/* Bouton blanc/transparent */
 .btn-refuse {
-    background-color: #fff;
-    border: 1px solid #4a6c9c;
-    color: #1a4f82;
+    background-color: transparent;
+    border: 1px solid #651b1b;
+    color: #651b1b;
 }
-
-.btn-accept:hover { background-color: #a4d8f5; }
-.btn-refuse:hover { background-color: #f0f0f0; }
+.btn-refuse:hover { background-color: #f5ebeb; }
 
 
-/* --- ONGLET GESTION DES UTILISATEURS --- */
+/* --- ONGLET GESTION DES UTILISATEURS ET RASPBERRY --- */
 .admin-panel {
-    background-color: #fff; /* La couleur beige/grise de ta DA */
+    background-color: #fff;
     border-radius: 20px;
     padding: 30px;
     flex: 1;
     display: flex;
     flex-direction: column;
+    min-height: 0;
+    max-height: 100%;
 }
 
 .users-header { margin-bottom: 10px; }
@@ -184,15 +238,34 @@
 }
 .hidden { display: none !important; }
 
-/* Liste d'utilisateurs */
+/* Liste d'utilisateurs et Raspberry */
 .users-list {
-    flex: 1; overflow-y: auto;
-    display: flex; flex-direction: column; gap: 15px;
+    flex: 1; 
+    overflow-y: auto;
+    display: flex; 
+    flex-direction: column; 
+    gap: 15px;
+    padding-right: 25px;
+    min-height: 0;/
+}
+
+.users-list::-webkit-scrollbar { width: 4px; }
+.users-list::-webkit-scrollbar-track { background: transparent; }
+.users-list::-webkit-scrollbar-thumb { background: #505050; border-radius: 10px; }
+
+/* La nouvelle classe magique pour figer l'en-tête */
+.list-header-fixed {
+    position: sticky;
+    top: 0;
+    background-color: #fff; /* Fond blanc obligatoire pour cacher le texte qui scrolle dessous */
+    z-index: 10; /* Assure que l'en-tête reste toujours au-dessus */
+    margin-top: -5px; /* Ajustement visuel */
+    padding-top: 5px;
 }
 .user-list-item { display: flex; align-items: center; padding: 5px 0; font-size: 16px; }
 .user-list-item .item-name, .user-role-text { width: 100px; color: #651b1b; } /* Aligne proprement les rôles */
 .user-list-item .user-role-text { flex: 1; text-align: left; margin-left: 20px; }
-.item-actions { display: flex; gap: 15px; cursor: pointer; opacity: 0.6; }
+.item-actions { display: flex; gap: 15px; cursor: pointer; }
 
 /* CHECKBOX RONDES */
 .custom-round-checkbox {
@@ -235,7 +308,22 @@
     padding: 10px 40px; border-radius: 20px; font-size: 16px;
     font-family: inherit; cursor: pointer; transition: 0.2s ease;
 }
-.btn-action-red:hover { background-color: #a71e23; color: white; }
+
+.btn-action-red-log {
+    background: none;
+    border: none;
+    border-radius: 6px;
+    color: #651b1b; 
+    text-decoration: underline;
+    padding: 5px 13px; 
+    font-size: 14px;
+    font-family: inherit; 
+    cursor: pointer; 
+    transition: 0.2s ease;
+    margin-right: 10px;
+}
+
+.btn-action-red:hover, .btn-action-red-log:hover { background-color: #a71e23; color: white; }
 
 .btn-outline-red {
     background-color: transparent; border: 1px solid #651b1b; color: #651b1b;
@@ -327,19 +415,28 @@
 }
 
 .tooltip-text ul {
+    font-size: 16px;
     padding-left: 18px;
     margin: 0;
 }
 
 .tooltip-text li {
+    font-size: 16px;
     margin-bottom: 8px;
     line-height: 1.4;
 }
 
 .tooltip-text code {
+    font-size: 14px;
     background: #333;
     color: #00ff99;
     padding: 2px 5px;
     border-radius: 4px;
 }
 
+/* --- CLASSE POUR LE TRI ACTIF --- */
+.active-sort {
+    background-color: #f5ebeb !important;
+    font-weight: bold;
+    color: #a71e23 !important;
+}

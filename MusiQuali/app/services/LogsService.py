@@ -29,8 +29,9 @@ class LogsService:
     # ---------------- FILE SYSTEM ----------------
 
     def list_log_files(self, nom_lecteur):
-        base = Path("./app/static/raspLogs").resolve()
-        path = (base / nom_lecteur / "logs").resolve()
+        base = Path(__file__).resolve().parent.parent / "static" / "raspLogs"
+        # MODIFICATION : On retire / "logs" pour chercher directement dans le dossier du lecteur
+        path = (base / nom_lecteur).resolve()
 
         if base not in path.parents and path != base:
             return []
@@ -40,8 +41,9 @@ class LogsService:
         return sorted([f.name for f in path.iterdir() if f.is_file()])
 
     def read_log_file(self, nom_lecteur, filename):
-        base = Path("./app/static/raspLogs").resolve()
-        path = (base / nom_lecteur / "logs" / filename).resolve()
+        base = Path(__file__).resolve().parent.parent / "static" / "raspLogs"
+        # MODIFICATION : On retire / "logs" pour cibler directement le fichier du log
+        path = (base / nom_lecteur / filename).resolve()
 
         if base not in path.parents:
             return None

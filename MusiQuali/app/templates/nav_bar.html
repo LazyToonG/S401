@@ -5,9 +5,10 @@
     </div>
     
     <nav class="main-nav">
-      {#  <!--{% if role=="admin" or role=="commercial" %}-->
-       <!-- <a href="{{ url_for('voir_planning') }}" class="nav-link {% if request.path == '/commercial' %}active{% endif %}" id="commercial">{{t.commercial}}</a>-->
-       <!-- {% endif %}-->#}
+            {% if role=="admin" or role=="commercial" %}
+    <a href="{{ url_for('commercial_page') }}" class="nav-link {% if request.path == '/commercial' %}active{% endif %}" id="commercial">{{t.commercial}}</a>
+        {% endif %}
+
         {% if role=="admin" %}
         <a href="{{ url_for('admin_dashboard') }}" class="nav-link {% if request.path == '/admin' %}active{% endif %}" id="admin">{{t.admin}}</a>
         {% endif %}
@@ -27,3 +28,4 @@
 </header>
 {% include 'messages_alert.html' %}
 <script src="{{ url_for('static', filename='message_alert.js') }}"></script>
+<script src="{{ url_for('static', filename='script.js') }}"></script>

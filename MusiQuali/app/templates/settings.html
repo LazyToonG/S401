@@ -10,6 +10,7 @@
     <link href="{{ url_for('static', filename='message_alert.css') }}" rel="stylesheet">
     <style>
         .settings-container {
+            width: 100%;
             max-width: 600px;
             margin: 40px auto;
             background: #fff;
@@ -39,6 +40,37 @@
             justify-content: space-between;
             align-items: center;
             padding: 10px 0;
+        }
+
+        #dark-mode-toggle {
+            appearance: none;
+            -webkit-appearance: none; 
+
+            width: 10px;
+            height: 10px;
+            background-color: white;
+            
+            border: 1px solid #333; 
+            border-radius: 0px;
+            cursor: pointer;
+            
+            transition: border-color 0.2s ease;
+            position: relative;
+        }
+        #dark-mode-toggle:hover, #dark-mode-toggle:checked {
+        border-color: #a71e23;
+        }
+
+        #dark-mode-toggle:checked::after {
+        content: "";
+        position: absolute;
+        left: 3px;
+        top: 0px;
+        width: 3px;
+        height: 6px;
+        border: solid #a71e23;
+        border-width: 0 2px 2px 0;
+        transform: rotate(45deg);
         }
     </style>
 </head>
@@ -83,6 +115,5 @@
         </div>
     </main>
 
-    <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 </html>

@@ -8,70 +8,153 @@
     <link href="{{ url_for('static', filename='style_marketing.css') }}" rel="stylesheet">
     <link href="{{ url_for('static', filename='message_alert.css') }}" rel="stylesheet">
     <style>
-        .music-box {
-            border: 2px dashed #651b1b;
-            padding: 10px;
-            margin: 5px 0;
-            background-color: #EBE3E3;
-            cursor: move;
-            border-radius: 8px;
-            color: #000;
-        }
+        /* Style commun pour les musiques ET les playlists */
+        
     </style>
 </head>
 <body class="no-scroll"> 
     {% include 'nav_bar.html' %}
 
     <div class="tabs-container">
-        <button class="tab-pill active" data-target="tab-playlists">{{t.playlist}}</button>
-        <button class="tab-pill" data-target="tab-all-music">{{t.musics}}</button>
+        <button class="tab-pill active" data-target="tab-playlists">Playlists</button>
+        <button class="tab-pill" data-target="tab-all-music">Toutes les musiques</button>
     </div>
 
     <main class="marketing-layout">
 
-        <div class="left-panel">
-
-            <div id="tab-playlists" class="panel-view active">
+        <div class="left-panel"> <!--liste des musiques, toujours visible-->
+            <div class="search-sort-bar">
+                <div class="search-bar admin-search" style="margin-right: 15px;">
+                    <span class="search-icon"><img src="{{ url_for('static', filename='img/loupe.png') }}" alt="Recherche" class="recherche-img"></span>
+                    <input type="text" id="search-musiques" placeholder="Rechercher une musique...">
+                </div>
                 
-                <form action="{{ url_for('add_playlist') }}" method="POST" style="display:flex; gap:8px; margin-bottom:10px;">
-                    <input type="text" name="title" placeholder="Nom de la playlist" required>
-                    <button type="submit">+ {{t.ajout_play}}</button>
-                </form>
-                {% for p in playlists %}
-                <div id="playlist-box-{{ p.idPlaylist }}" draggable="true" data-playlist-id="{{ p.idPlaylist }}" style="display:flex; justify-content:space-between; align-items:center; border:2px dashed #333; padding:10px; margin:5px 0; background-color:#e0e0e0; cursor:move;">
-                    <div>
-                        <b>{{ p.title }}</b><br>
-                        <small>{{ p.idUtilisateur }}</small>
+                <div class="sort-container" style="display: flex; align-items: center; position: relative;">
+                    <a href="javascript:void(0)" id="clear-sort-musiques" class="hidden" onclick="clearMarketingSort('musiques')" style="color: #CE5956; text-decoration: underline; font-size: 14px; margin-right: 15px;">Supprimer les tris</a>
+                    
+                    <div class="sort-dropdown" onclick="toggleMarketingSort('sort-menu-musiques')" style="cursor: pointer; color: #651b1b;">Trier ▼</div>
+                    
+                    <div id="sort-menu-musiques" class="sort-menu hidden" style="position: absolute; right: 0; top: 120%; background: white; border: 1px solid #b5abab; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); z-index: 100; min-width: 180px; overflow: hidden;">
+                        <a href="javascript:void(0)" data-category="name" data-dir="1" onclick="applyMarketingSort('musiques', 'name', 1)" style="display: block; padding: 10px 15px; color: #333; text-decoration: none; border-bottom: 1px solid #eee;">A → Z</a>
+                        <a href="javascript:void(0)" data-category="name" data-dir="-1" onclick="applyMarketingSort('musiques', 'name', -1)" style="display: block; padding: 10px 15px; color: #333; text-decoration: none; border-bottom: 1px solid #eee;">Z → A</a>
+                        <a href="javascript:void(0)" data-category="duree" data-dir="1" onclick="applyMarketingSort('musiques', 'duree', 1)" style="display: block; padding: 10px 15px; color: #333; text-decoration: none; border-bottom: 1px solid #eee;">Durée croissante</a>
+                        <a href="javascript:void(0)" data-category="duree" data-dir="-1" onclick="applyMarketingSort('musiques', 'duree', -1)" style="display: block; padding: 10px 15px; color: #333; text-decoration: none;">Durée décroissante</a>
                     </div>
-                    <form action="{{ url_for('delete_playlist', playlist_id=p.idPlaylist) }}" method="POST" style="display:inline;">
-                        <button type="submit" style="background:none; border:none; cursor:pointer;">
-                            <img src="{{ url_for('static', filename='img/delete.png') }}" style="width:20px;">
+                </div>
+            </div>
+            {% for m in musiques %}
+            {% if not m.nomMusique.startswith('MSG_') %}
+            <div id="music-box-{{ m.idMusique }}" class="music-box" draggable="true"
+                 data-music-id="{{ m.idMusique }}" data-nom="{{ m.nomMusique | lower }}" data-duree="{{ m.duree }}">
+                
+                <span class="item-info">
+                    <span class="grab-dots">⠿</span> 
+                    <b title="{{ m.nomMusique }}">{{ m.nomMusique }}</b> 
+                    <span style="white-space: nowrap;">— {{ m.duree }}s</span>
+                </span>
+                
+                <div style="display: flex; align-items: center; gap: 20px;">
+                    <button class="action-btn" onclick="togglePlay(this, '{{ m.nomMusique }}')">
+                        <img src="{{ url_for('static', filename='img/pause_noir.png') }}" alt="Play">
+                    </button>
+                    <form action="{{ url_for('delete_music', music_id=m.idMusique) }}" method="POST" style="margin: 0;">
+                        <button type="submit" class="action-btn">
+                            <img src="{{ url_for('static', filename='img/delete.png') }}" alt="Delete">
                         </button>
                     </form>
                 </div>
-                {% endfor %}
+
             </div>
-            <div id="tab-all-music" class="panel-view"> <!--musique gauche, liste des musiques-->
-                {% for m in musiques %}
-                <div id="music-box-{{ m.idMusique }}" class="music-box" draggable="true" data-music-id="{{ m.idMusique }}">
-                    <b>{{ m.nomMusique }}</b><br>
-                    <small>{{t.duree}} {{ m.duree }}</small>
-                    <form action="{{ url_for('delete_music', music_id=m.idMusique) }}" method="POST" style="display:inline;">
-                        <button type="submit" class="btn-outline-blue"><img src="{{ url_for('static', filename='img/delete.png') }}" alt="Supprimer"></button>
-                    </form>
+            {% endif %}
+            {% else %}
+                <div class="rien" style="padding: 20px; text-align: center; color: #666; font-style: italic;">
+                    Aucune musique enregistrée.
                 </div>
-                {% endfor %}
-            </div>
+            {% endfor %}
         </div>
 
-        <div class="right-panel">
+        <div class="right-panel" style="position:relative;">
 
-            <div id="upload-panel" class="panel-view">
+            <div id="tab-playlists" class="panel-view active"> <!--gestion des playlistes-->
+
+                <form action="{{ url_for('add_playlist') }}" method="POST" style="display: flex; gap: 15px; margin-bottom: 20px; border-bottom: 1px solid #b5abab; padding: 15px 0px; align-items: center;">
+                    <input type="text" name="title" class="playlist-input" placeholder="Nom de la nouvelle playlist..." required>
+                    <button type="submit" class="btn-action-red">+ Ajouter la playlist</button>
+                </form>
+
+                <div class="search-sort-bar">
+                    <div class="search-bar admin-search" style="margin-right: 15px;">
+                        <span class="search-icon"><img src="{{ url_for('static', filename='img/loupe.png') }}" alt="Recherche" class="recherche-img"></span>
+                        <input type="text" id="search-playlists" placeholder="Rechercher une playlist...">
+                    </div>
+                    
+                    <div class="sort-container" style="display: flex; align-items: center; position: relative;">
+                        <a href="javascript:void(0)" id="clear-sort-playlists" class="hidden" onclick="clearMarketingSort('playlists')" style="color: #CE5956; text-decoration: underline; font-size: 14px; margin-right: 15px;">Supprimer les tris</a>
+
+                        <div class="sort-dropdown" onclick="toggleMarketingSort('sort-menu-playlists')" style="cursor: pointer; color: #651b1b;">Trier ▼</div>
+                        
+                        <div id="sort-menu-playlists" class="sort-menu hidden" style="position: absolute; right: 0; top: 120%; background: white; border: 1px solid #b5abab; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); z-index: 100; min-width: 220px; overflow: hidden;">
+                            <a href="javascript:void(0)" data-category="name" data-dir="1" onclick="applyMarketingSort('playlists', 'name', 1)" style="display: block; padding: 10px 15px; color: #333; text-decoration: none; border-bottom: 1px solid #eee;">A → Z</a>
+                            <a href="javascript:void(0)" data-category="name" data-dir="-1" onclick="applyMarketingSort('playlists', 'name', -1)" style="display: block; padding: 10px 15px; color: #333; text-decoration: none; border-bottom: 1px solid #eee;">Z → A</a>
+                            <a href="javascript:void(0)" data-category="duree" data-dir="1" onclick="applyMarketingSort('playlists', 'duree', 1)" style="display: block; padding: 10px 15px; color: #333; text-decoration: none; border-bottom: 1px solid #eee;">Durée totale croissante</a>
+                            <a href="javascript:void(0)" data-category="duree" data-dir="-1" onclick="applyMarketingSort('playlists', 'duree', -1)" style="display: block; padding: 10px 15px; color: #333; text-decoration: none; border-bottom: 1px solid #eee;">Durée totale décroissante</a>
+                            <a href="javascript:void(0)" data-category="nb" data-dir="1" onclick="applyMarketingSort('playlists', 'nb', 1)" style="display: block; padding: 10px 15px; color: #333; text-decoration: none; border-bottom: 1px solid #eee;">Nb musiques croissant</a>
+                            <a href="javascript:void(0)" data-category="nb" data-dir="-1" onclick="applyMarketingSort('playlists', 'nb', -1)" style="display: block; padding: 10px 15px; color: #333; text-decoration: none;">Nb musiques décroissant</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="playlists-container">
+                {% for p in playlists %}
+                <div id="playlist-box-{{ p.idPlaylist }}" class="playlist-box" draggable="true"
+                     data-playlist-id="{{ p.idPlaylist }}" data-title="{{ p.title | lower }}"
+                     data-nb-musiques="{{ p.nb_musiques }}" data-duree-totale="{{ p.duree_totale }}">
+                    
+                    <span class="item-info">
+                        <span class="grab-dots">⠿</span> 
+                        <b title="{{ p.title }}">{{ p.title }}</b> 
+                        <span id="stats-{{ p.idPlaylist }}">— {{ p.nb_musiques }} musique(s) — {{ p.duree_totale }}s</span>
+                    </span>
+                    
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <button class="action-btn" onclick="toggleplaylistInfo('{{ p.idPlaylist }}', '{{ p.title }}')">
+                            <img src="{{ url_for('static', filename='img/modif.png') }}" alt="Modifier">
+                        </button>
+                        <form action="{{ url_for('delete_playlist', playlist_id=p.idPlaylist) }}" method="POST" style="margin: 0;">
+                            <button type="submit" class="action-btn">
+                                <img src="{{ url_for('static', filename='img/delete.png') }}" alt="Delete">
+                            </button>
+                        </form>
+                    </div>
+
+                </div>
+                {% else %}
+                <div class="rien" style="padding: 20px; text-align: center; color: #666; font-style: italic;">
+                    Aucune playlist créée.
+                </div>
+                {% endfor %}
+                </div>
+
+                <div id="playlistMusics" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; background:#ffffff; z-index:10; padding:40px; box-sizing:border-box; overflow-y:auto;">
+                    
+                    <button onclick="closeOverlay()" onmouseover="this.style.backgroundColor='#f5f5f5'" onmouseout="this.style.backgroundColor='white'" style="position: absolute; top: 20px; right: 20px; background: white; border: 1px solid #333; padding: 8px 15px; cursor: pointer; border-radius: 4px; font-family: inherit; font-size: 14px; transition: background-color 0.2s;">
+                        Sauvegarder et fermer la playlist
+                    </button>
+                    
+                    <h2 id="playlistTitle" style="color: #000; margin-top: 10px; margin-bottom: 30px; font-size: 24px;"></h2>
+                    
+                    <div id="playlistMusicsContent" style="color: #000; display: flex; flex-direction: column;"></div>
+                </div>
+
+
+            </div>
+
+            <div id="tab-all-music" class="panel-view"> <!--upload musiques-->
                 <form action="/upload" method="POST" enctype="multipart/form-data" id="upload-form">
                     <input type="hidden" name="playlist_id" id="playlist-id">
 
                     <label class="upload-area" id="upload-zone" for="audio-input">
-                        <p id="upload-text">{{t.h3}}</p>
+                        <p id="upload-text">Glisser-déposer ou cliquer pour sélectionner un fichier</p>
                         <input
                             type="file"
                             name="audio"
@@ -87,27 +170,24 @@
 
                     <div class="upload-actions">
                         <button type="submit" id="btn-upload" class="btn-action-blue full-width" disabled>
-                            {{t.ajout_bd}}
+                            Ajouter à la base de données
                         </button>
                         <button type="button" class="btn-outline-blue">
-                            <a href="https://notube.lol/fr" target="_blank">{{t.convertir}}</a>
+                            <a href="https://notube.lol/fr" target="_blank">Convertir en MP3</a>
                         </button>
                     </div>
                 </form>
-            </div>
-
-            <div id="playlist-side-panel" class="panel-view active">
             </div>
 
         </div>
 
     </main>
 
-    <script> //in future, mets js dans fichier dédié voir 2 ca casse les couilles la
+    <script>
 
 
         // --- BOÎTES PLAYLIST & DRAG AND DROP ---
-        // Une boîte par playlist(cf. boucle Jinja dans #tab-playlists).
+        // Les playlists sont dans le panneau droit (#tab-playlists).
         const playlistBoxes = document.querySelectorAll('#tab-playlists [draggable="true"]');
         playlistBoxes.forEach(box => {
             box.addEventListener('dragstart', (e) => {
@@ -115,9 +195,8 @@
             });
         });
 
-
         // --- SUPPRESSION DE PLAYLIST EN AJAX ---
-        document.querySelectorAll('#tab-playlists .panel-view form').forEach(form => {
+        document.querySelectorAll('#tab-playlists [draggable] form').forEach(form => {
             form.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 const box = form.closest('[draggable]');
@@ -137,11 +216,192 @@
             });
         });
 
+
+        //gestion des musiques dans les playlistes
+        let currentOverlayPlaylistId = null; // tracks which playlist's overlay is open
+        let overlayDragSrcEl = null; // tracks the dragged row inside the overlay
+
+        async function closeOverlay() {
+            // Sauvegarde l'ordre actuel avant de fermer
+            if (currentOverlayPlaylistId !== null) {
+                const rows = document.querySelectorAll('#playlistMusicsContent [data-id-couple]');
+                const positions = Array.from(rows).map((row, index) => ({
+                    idCouple: parseInt(row.dataset.idCouple),
+                    position: index + 1
+                }));
+
+                if (positions.length > 0) {
+                    try {
+                        await fetch('/marketing/playlist/save_positions', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-Requested-With': 'XMLHttpRequest'
+                            },
+                            body: JSON.stringify(positions)
+                        });
+                    } catch (err) {
+                        console.error('Erreur sauvegarde positions', err);
+                    }
+                }
+            }
+
+            document.getElementById('playlistMusics').style.display = 'none';
+            currentOverlayPlaylistId = null;
+        }
+
+        function attachOverlayRowDrag(row) {
+            row.draggable = true;
+
+            row.addEventListener('dragstart', (e) => {
+                overlayDragSrcEl = row;
+                e.dataTransfer.effectAllowed = 'move';
+                e.dataTransfer.setData('text/plain', row.dataset.idCouple);
+                setTimeout(() => row.style.opacity = '0.4', 0);
+            });
+
+            row.addEventListener('dragend', () => {
+                row.style.opacity = '';
+                document.querySelectorAll('#playlistMusicsContent [data-id-couple]')
+                    .forEach(r => r.classList.remove('drag-over'));
+            });
+
+            row.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                e.dataTransfer.dropEffect = 'move';
+                if (row !== overlayDragSrcEl) {
+                    row.style.borderTop = '2px solid #651b1b';
+                }
+            });
+
+            row.addEventListener('dragleave', () => {
+                row.style.borderTop = '';
+            });
+
+            row.addEventListener('drop', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                row.style.borderTop = '';
+
+                if (!overlayDragSrcEl || overlayDragSrcEl === row) return;
+
+                // Vérifie que c'est bien une ligne de l'overlay (pas une music-box)
+                if (!overlayDragSrcEl.dataset.idCouple) return;
+
+                const container = document.getElementById('playlistMusicsContent');
+                const rows = Array.from(container.querySelectorAll('[data-id-couple]'));
+                const srcIndex = rows.indexOf(overlayDragSrcEl);
+                const tgtIndex = rows.indexOf(row);
+
+                // Réordonne dans le DOM
+                if (srcIndex < tgtIndex) {
+                    container.insertBefore(overlayDragSrcEl, row.nextSibling);
+                } else {
+                    container.insertBefore(overlayDragSrcEl, row);
+                }
+            });
+        }
+
+        async function refreshOverlay(playlistId) {
+            const contentEl = document.getElementById('playlistMusicsContent');
+            try {
+                const response = await fetch(`/marketing/playlist/${playlistId}/musiques`, {
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                });
+                const data = await response.json();
+
+                if (data.length === 0) {
+                    contentEl.innerHTML = '<p><i>Aucune musique dans cette playlist.</i></p>';
+                    return;
+                }
+
+                contentEl.innerHTML = '';
+                data.forEach(m => {
+                    const row = document.createElement('div');
+                    row.id = `overlay-music-${m.idCouple}`;
+                    row.dataset.idCouple = m.idCouple;
+                    row.dataset.duree = m.duree;
+                    row.style.cssText = 'display:flex; justify-content:space-between; align-items:center; padding:15px 0; border-bottom:1px solid #eaeaea; cursor:grab; font-size:16px; font-family: "Times New Roman", Times, serif;';
+                    row.innerHTML = `
+                        <span style="display:flex; align-items:center; gap:12px; color:#000;">
+                            <span style="font-size:20px; color:#555;">⠿</span> 
+                            <b title="${m.nomMusique}">${m.nomMusique}</b> 
+                            <span style="white-space: nowrap;">— ${m.duree}s</span>
+                        </span>
+                        <button onclick="removeMusicFromPlaylist(${m.idCouple})" style="background:none; border:none; cursor:pointer; padding:0;">
+                            <img src="/static/img/delete.png" style="width:18px; opacity:0.5; transition:0.2s;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.5">
+                        </button>
+                    `;
+                    attachOverlayRowDrag(row);
+                    contentEl.appendChild(row);
+                });
+
+            } catch (err) {
+                document.getElementById('playlistMusicsContent').innerHTML = '<p>Erreur de chargement</p>';
+                console.error(err);
+            }
+        }
+
+        async function toggleplaylistInfo(playlistId, playlistTitle) {
+            const div = document.getElementById('playlistMusics');
+            const titleEl = document.getElementById('playlistTitle');
+
+            // Ferme si déjà ouvert pour la même playlist
+            const playlistIdInt = parseInt(playlistId);
+            if (div.style.display !== 'none' && currentOverlayPlaylistId === playlistIdInt) {
+                div.style.display = 'none';
+                currentOverlayPlaylistId = null;
+                return;
+            }
+
+            // Ouvre et charge
+            div.style.display = 'block';
+            currentOverlayPlaylistId = playlistIdInt;
+            titleEl.textContent = `Musiques de : ${playlistTitle}`;
+            document.getElementById('playlistMusicsContent').innerHTML = '<i>Chargement...</i>';
+            await refreshOverlay(playlistId);
+        }
+
+        async function removeMusicFromPlaylist(idCouple) {
+            try {
+                const res = await fetch(`/marketing/playlist/remove_music/${idCouple}`, {
+                    method: 'POST',
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                });
+                if (res.ok) {
+                    const row = document.getElementById(`overlay-music-${idCouple}`);
+                    if (row) {
+                        const duree = parseInt(row.dataset.duree) || 0;
+                        updatePlaylistStats(currentOverlayPlaylistId, -1, -duree);
+                        row.remove();
+                    }
+                } else {
+                    console.error('Erreur suppression relation', res.status);
+                }
+            } catch (err) {
+                console.error('Erreur réseau suppression relation', err);
+            }
+        }
+
+
+        // --- MISE À JOUR IMMÉDIATE DES STATS D'UNE PLAYLIST ---
+        function updatePlaylistStats(playlistId, deltaNb, deltaDuree) {
+            const box = document.getElementById(`playlist-box-${playlistId}`);
+            if (!box) return;
+            const nbNew = Math.max(0, (parseInt(box.dataset.nbMusiques) || 0) + deltaNb);
+            const dureeNew = Math.max(0, (parseInt(box.dataset.dureeTotale) || 0) + deltaDuree);
+            box.dataset.nbMusiques = nbNew;
+            box.dataset.dureeTotale = dureeNew;
+            const statsEl = document.getElementById(`stats-${playlistId}`);
+            if (statsEl) statsEl.textContent = `— ${nbNew} musique(s) — ${dureeNew}s`;
+        }
+
         // --- BOÎTES MUSIQUE & DRAG AND DROP ---
-        // Une boîte par musique (cf. boucle Jinja dans #tab-all-music).
-        // Elles ne peuvent être lâchées que dans les zones désignées (.panel-view).
+        // Une boîte par musique (panneau gauche, toujours visible).
+        // Seul le panneau gauche accepte les drops — pas le panneau droit.
         const musicBoxes = document.querySelectorAll('.music-box');
-        const dropzones = document.querySelectorAll('.panel-view');
+        const leftPanel = document.querySelector('.left-panel');
 
         musicBoxes.forEach(box => {
             box.addEventListener('dragstart', (e) => {
@@ -149,30 +409,143 @@
             });
         });
 
-        dropzones.forEach(zone => {
-            // Nécessaire pour autoriser le drop (comportement par défaut l'empêche)
-            zone.addEventListener('dragover', (e) => {
+        leftPanel.addEventListener('dragover', (e) => e.preventDefault());
+        leftPanel.addEventListener('drop', (e) => {
+            e.preventDefault();
+            const boxId = e.dataTransfer.getData('text/plain');
+            const draggedBox = document.getElementById(boxId);
+            if (!draggedBox || !draggedBox.classList.contains('music-box')) return;
+            leftPanel.appendChild(draggedBox);
+        });
+
+        // --- DROP SUR UNE BOÎTE PLAYLIST : ajoute la relation musique/playlist ---
+        // Les playlist boxes sont des dropzones secondaires.
+        // Une musique droppée dessus crée la relation en BD mais reste dans le panneau gauche.
+        document.querySelectorAll('#tab-playlists [draggable][data-playlist-id]').forEach(playlistBox => {
+            playlistBox.addEventListener('dragover', (e) => {
                 e.preventDefault();
+                e.stopPropagation(); // Empêche le drop de remonter au panel-view parent
             });
 
-            zone.addEventListener('drop', (e) => {
+            playlistBox.addEventListener('drop', async (e) => {
                 e.preventDefault();
+                e.stopPropagation();
+
                 const boxId = e.dataTransfer.getData('text/plain');
                 const draggedBox = document.getElementById(boxId);
                 if (!draggedBox) return;
 
-                // S'assure qu'on ajoute à la zone (.panel-view), pas à l'intérieur d'une autre boîte
-                if (e.target.classList.contains('panel-view')) {
-                    e.target.appendChild(draggedBox);
-                } else {
-                    const target = e.target.closest('.panel-view');
-                    if (target) target.appendChild(draggedBox);
+                // Vérifie que c'est bien une music-box (pas une autre playlist)
+                const musicId = draggedBox.dataset.musicId;
+                if (!musicId) return;
+
+                const playlistId = playlistBox.dataset.playlistId;
+
+                // Appel au serveur pour persister la relation
+                try {
+                    // 1. Récupère les idCouple existants
+                    const existingRes = await fetch(`/marketing/playlist/${playlistId}/musiques`, {
+                        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                    });
+                    const existingMusiques = await existingRes.json();
+
+                    // 2. Décale toutes les positions existantes de +1 en BD
+                    if (existingMusiques.length > 0) {
+                        const newPositions = existingMusiques.map((m, index) => ({
+                            idCouple: m.idCouple,
+                            position: index + 2
+                        }));
+                        await fetch('/marketing/playlist/save_positions', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-Requested-With': 'XMLHttpRequest'
+                            },
+                            body: JSON.stringify(newPositions)
+                        });
+                    }
+
+                    // 3. Insère la nouvelle musique en position 1
+                    const fd = new FormData();
+                    fd.append('position', 1);
+                    const res = await fetch(`/marketing/playlist/${playlistId}/add_music/${musicId}`, {
+                        method: 'POST',
+                        headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                        body: fd
+                    });
+
+                    if (res.ok) {
+                        // Feedback visuel temporaire sur la playlist box
+                        playlistBox.style.outline = '2px solid green';
+                        setTimeout(() => playlistBox.style.outline = '', 800);
+
+                        // Mise à jour du compteur en temps réel
+                        const musicBox = document.getElementById(boxId);
+                        const duree = parseInt(musicBox?.dataset.duree || 0);
+                        updatePlaylistStats(playlistId, 1, duree);
+
+                        // Si l'overlay est ouvert pour cette playlist, rafraîchit son contenu
+                        if (currentOverlayPlaylistId === parseInt(playlistId)) {
+                            await refreshOverlay(playlistId);
+                        }
+                    } else {
+                        console.error('Erreur ajout relation', res.status);
+                    }
+                } catch (err) {
+                    console.error('Erreur réseau ajout relation', err);
                 }
+                // La music-box reste dans le panneau gauche — on ne la déplace pas
             });
         });
 
-        // --- SUPPRESSION DE MUSIQUE EN AJAX ---
-        document.querySelectorAll('#tab-all-music .music-box form').forEach(form => {
+        // --- DROP SUR L'OVERLAY PLAYLISTMUSICS ---
+        // Dropper une musique dans l'overlay ajoute la relation pour la playlist actuellement ouverte.
+        const playlistMusicsOverlay = document.getElementById('playlistMusics');
+
+        playlistMusicsOverlay.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+        });
+
+        playlistMusicsOverlay.addEventListener('drop', async (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+
+            if (!currentOverlayPlaylistId) return;
+
+            const boxId = e.dataTransfer.getData('text/plain');
+            const draggedBox = document.getElementById(boxId);
+            if (!draggedBox) return;
+
+            const musicId = draggedBox.dataset.musicId;
+            if (!musicId) return;
+
+            try {
+                const existingRows = document.querySelectorAll('#playlistMusicsContent [data-id-couple]');
+                const position = existingRows.length + 1;
+                const fd = new FormData();
+                fd.append('position', position);
+                const res = await fetch(`/marketing/playlist/${currentOverlayPlaylistId}/add_music/${musicId}`, {
+                    method: 'POST',
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                    body: fd
+                });
+                if (res.ok) {
+                    // Mise à jour du compteur en temps réel
+                    const musicBox = document.getElementById(boxId);
+                    const duree = parseInt(musicBox?.dataset.duree || 0);
+                    updatePlaylistStats(currentOverlayPlaylistId, 1, duree);
+                    await refreshOverlay(currentOverlayPlaylistId);
+                } else {
+                    console.error('Erreur ajout relation via overlay', res.status);
+                }
+            } catch (err) {
+                console.error('Erreur réseau ajout relation via overlay', err);
+            }
+        });
+
+        // --- SUPPRESSION DE MUSIQUE EN AJAX (pas de rechargement de page) ---
+        document.querySelectorAll('.music-box form').forEach(form => {
             form.addEventListener('submit', async (e) => {
                 e.preventDefault();
 
@@ -195,10 +568,7 @@
             });
         });
 
-        // Onglets Playlists / Toutes les musiques
-        const uploadPanel = document.getElementById('upload-panel');
-        const playlistSidePanel = document.getElementById('playlist-side-panel');
-
+        // Onglets — bascule uniquement le panneau droit
         document.querySelectorAll('.tab-pill').forEach(btn => {
             btn.addEventListener('click', () => {
                 document.querySelectorAll('.tab-pill').forEach(b => b.classList.remove('active'));
@@ -206,19 +576,11 @@
                 btn.classList.add('active');
                 const targetId = btn.getAttribute('data-target');
                 document.getElementById(targetId).classList.add('active');
-
-                // Bascule le panneau droit en fonction de l'onglet actif
-                uploadPanel.classList.remove('active');
-                playlistSidePanel.classList.remove('active');
-                if (targetId === 'tab-all-music') {
-                    uploadPanel.classList.add('active');
-                } else {
-                    playlistSidePanel.classList.add('active');
-                }
             });
         });
 
         const deleteImgUrl = "{{ url_for('static', filename='img/delete.png') }}";
+        const playImgUrl = "{{ url_for('static', filename='img/pause_noir.png') }}";
 
         // --- GESTION DE L'UPLOAD DE FICHIERS (Preview & Suppression) ---
         const audioInput = document.getElementById('audio-input');
@@ -320,17 +682,34 @@
                     const data = await res.json();
 
                     (data.musiques || []).forEach(m => {
+                        // Les messages (préfixe MSG_) ne s'affichent pas dans "Toutes les musiques"
+                        if (m.nomMusique.startsWith('MSG_')) {
+                            return;
+                        }
+
                         const box = document.createElement('div');
                         box.id = `music-box-${m.idMusique}`;
                         box.className = 'music-box';
                         box.draggable = true;
                         box.dataset.musicId = m.idMusique;
+                        box.dataset.nom = m.nomMusique.toLowerCase();
+                        box.dataset.duree = m.duree;
                         box.innerHTML = `
-                            <b>${m.nomMusique}</b><br>
-                            <small>Durée : ${m.duree}</small>
-                            <form action="/marketing/music/${m.idMusique}/delete" method="POST" style="display:inline;">
-                                <button type="submit" class="btn-outline-blue"><img src="${deleteImgUrl}" alt="Supprimer"></button>
-                            </form>
+                            <span class="item-info">
+                                <span class="grab-dots">⠿</span> 
+                                <b title="${m.nomMusique}">${m.nomMusique}</b> 
+                                <span style="white-space: nowrap;">— ${m.duree}s</span>
+                            </span>
+                            <div style="display: flex; align-items: center; gap: 20px;">
+                                <button class="action-btn" onclick="togglePlay(this, '${m.nomMusique.replace(/'/g, "\\'")}')">
+                                    <img src="${playImgUrl}" alt="Jouer">
+                                </button>
+                                <form action="/marketing/music/${m.idMusique}/delete" method="POST" style="margin: 0;">
+                                    <button type="submit" class="action-btn">
+                                        <img src="${deleteImgUrl}" alt="Supprimer">
+                                    </button>
+                                </form>
+                            </div>
                         `;
 
                         // Réattache les écouteurs drag & delete sur la nouvelle boîte
@@ -356,7 +735,7 @@
                             }
                         });
 
-                        allMusicTab.appendChild(box);
+                        document.querySelector('.left-panel').appendChild(box);
                     });
 
                     // Réinitialise le formulaire et la prévisualisation
@@ -370,6 +749,202 @@
             });
         }
     </script>
-    <script src="{{ url_for('static', filename='script.js') }}"></script>
+    <script>
+        // --- LECTURE AUDIO ---
+        let currentAudio = null;
+        let currentBtn = null;
+
+        function togglePlay(btn, nomMusique) {
+            const isSame = currentAudio && currentBtn === btn;
+            const iconImg = btn.querySelector('img');
+
+            // Stoppe toujours l'audio en cours
+            if (currentAudio) {
+                currentAudio.pause();
+                currentAudio = null;
+                currentBtn = null;
+
+                if (currentBtn) {
+                    currentBtn.querySelector('img').src = '/static/img/pause_noir.png';
+                }
+                currentBtn = null;
+            }
+
+            // Si c'était le même bouton, on s'arrête là (toggle off)
+            if (isSame) return;
+
+            // Lance la nouvelle musique
+            const url = '/static/AllMusics/' + encodeURIComponent(nomMusique);
+            currentAudio = new Audio(url);
+            currentAudio.play();
+            currentBtn = btn;
+
+            iconImg.src = '/static/img/encours_noir.png';
+
+            // Remet currentAudio à null quand la musique se termine
+            currentAudio.addEventListener('ended', () => {
+                currentAudio = null;
+                currentBtn = null;
+                iconImg.src="/static/img/pause_noir.png";
+            });
+        }
+        // =========================================================
+        // --- MOTEUR DE RECHERCHE ET DE TRI MULTI-CRITÈRES ---
+        // =========================================================
+        
+        let sortsMusiques = [];
+        let sortsPlaylists = [];
+
+        function toggleMarketingSort(menuId) {
+            document.getElementById(menuId).classList.toggle('hidden');
+        }
+
+        // --- GESTION DES MENUS DÉROULANTS DE TRI (Multi-critères avec reflets visuels) ---
+        function toggleMarketingSort(menuId) {
+            document.getElementById(menuId).classList.toggle('hidden');
+        }
+
+        // Met à jour l'apparence des options du menu (allume les filtres actifs)
+        function updateSortVisuals(type) {
+            const menuId = type === 'musiques' ? 'sort-menu-musiques' : 'sort-menu-playlists';
+            const activeSorts = type === 'musiques' ? sortsMusiques : sortsPlaylists;
+            const menu = document.getElementById(menuId);
+            if (!menu) return;
+
+            // On parcourt tous les liens du menu déroulant
+            const links = menu.querySelectorAll('a');
+            links.forEach(link => {
+                const cat = link.dataset.category;
+                const dir = parseInt(link.dataset.dir);
+
+                // On vérifie si ce tri précis se trouve dans notre tableau de critères actifs
+                const isActive = activeSorts.some(s => s.category === cat && s.dir === dir);
+
+                if (isActive) {
+                    link.classList.add('active-sort');
+                } else {
+                    link.classList.remove('active-sort');
+                }
+            });
+        }
+
+        // Applique le tri, ferme le menu et rafraîchit l'affichage visuel
+        function applyMarketingSort(type, category, direction) {
+            let activeSorts = type === 'musiques' ? sortsMusiques : sortsPlaylists;
+
+            // Supprime l'ancien tri de la même catégorie s'il existe pour éviter les contradictions
+            activeSorts = activeSorts.filter(s => s.category !== category);
+
+            // Ajoute le nouveau tri au début de la pile (priorité numéro 1)
+            activeSorts.unshift({ category: category, dir: direction });
+
+            if (type === 'musiques') {
+                sortsMusiques = activeSorts;
+                document.getElementById('clear-sort-musiques').classList.remove('hidden');
+                document.getElementById('sort-menu-musiques').classList.add('hidden');
+                filterAndSortMusiques();
+            } else {
+                sortsPlaylists = activeSorts;
+                document.getElementById('clear-sort-playlists').classList.remove('hidden');
+                document.getElementById('sort-menu-playlists').classList.add('hidden');
+                filterAndSortPlaylists();
+            }
+
+            // Mettre à jour les couleurs du menu !
+            updateSortVisuals(type);
+        }
+
+        // Réinitialise tout à zéro
+        function clearMarketingSort(type) {
+            if (type === 'musiques') {
+                sortsMusiques = [];
+                document.getElementById('clear-sort-musiques').classList.add('hidden');
+                filterAndSortMusiques();
+            } else {
+                sortsPlaylists = [];
+                document.getElementById('clear-sort-playlists').classList.add('hidden');
+                filterAndSortPlaylists();
+            }
+
+            // Nettoyer les couleurs du menu !
+            updateSortVisuals(type);
+        }
+
+        // --- TRAITEMENT MUSIQUES ---
+        function filterAndSortMusiques() {
+            const query = document.getElementById('search-musiques').value.toLowerCase();
+            const panel = document.querySelector('.left-panel');
+            const boxes = Array.from(panel.querySelectorAll('.music-box'));
+
+            boxes.forEach(b => {
+                const nom = b.dataset.nom || '';
+                b.style.display = nom.includes(query) ? '' : 'none';
+            });
+
+            const visible = boxes.filter(b => b.style.display !== 'none');
+
+            visible.sort((a, b) => {
+                for (let sort of sortsMusiques) {
+                    if (sort.category === 'name') {
+                        const comp = a.dataset.nom.localeCompare(b.dataset.nom);
+                        if (comp !== 0) return comp * sort.dir;
+                    } else if (sort.category === 'duree') {
+                        const valA = parseInt(a.dataset.duree) || 0;
+                        const valB = parseInt(b.dataset.duree) || 0;
+                        if (valA !== valB) return (valA - valB) * sort.dir;
+                    }
+                }
+                return 0;
+            });
+            visible.forEach(b => panel.appendChild(b));
+        }
+        document.getElementById('search-musiques').addEventListener('input', filterAndSortMusiques);
+
+        // --- TRAITEMENT PLAYLISTS ---
+        function filterAndSortPlaylists() {
+            const query = document.getElementById('search-playlists').value.toLowerCase();
+            const container = document.getElementById('playlists-container');
+            const boxes = Array.from(container.querySelectorAll('.playlist-box'));
+
+            boxes.forEach(b => {
+                const title = b.dataset.title || '';
+                b.style.display = title.includes(query) ? '' : 'none';
+            });
+
+            const visible = boxes.filter(b => b.style.display !== 'none');
+
+            visible.sort((a, b) => {
+                for (let sort of sortsPlaylists) {
+                    if (sort.category === 'name') {
+                        const comp = a.dataset.title.localeCompare(b.dataset.title);
+                        if (comp !== 0) return comp * sort.dir;
+                    } else if (sort.category === 'duree') {
+                        const valA = parseInt(a.dataset.dureeTotale) || 0;
+                        const valB = parseInt(b.dataset.dureeTotale) || 0;
+                        if (valA !== valB) return (valA - valB) * sort.dir;
+                    } else if (sort.category === 'nb') {
+                        const valA = parseInt(a.dataset.nbMusiques) || 0;
+                        const valB = parseInt(b.dataset.nbMusiques) || 0;
+                        if (valA !== valB) return (valA - valB) * sort.dir;
+                    }
+                }
+                return 0;
+            });
+            visible.forEach(b => container.appendChild(b));
+        }
+        document.getElementById('search-playlists').addEventListener('input', filterAndSortPlaylists);
+
+        // --- FERMETURE DES MENUS (clic extérieur) ---
+        window.addEventListener('click', function(e) {
+            if (!e.target.matches('.sort-dropdown')) {
+                const menus = [document.getElementById('sort-menu-musiques'), document.getElementById('sort-menu-playlists')];
+                menus.forEach(menu => {
+                    if (menu && !menu.classList.contains('hidden')) {
+                        menu.classList.add('hidden');
+                    }
+                });
+            }
+        });
+    </script>
 </body>
 </html>

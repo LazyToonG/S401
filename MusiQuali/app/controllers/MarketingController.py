@@ -1,20 +1,21 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash, session
+from flask import render_template, request, redirect, url_for, flash, session, jsonify
 from app.controllers.LoginController import reqrole
 from app.services.TraductionService import Traductionservice
 from app.services.marketingService import MarketingService
 from app import app
 
 marketingService = MarketingService()
+
 ts = Traductionservice()
 
-
 @app.route("/marketing")
+@reqrole("admin","marketing")
 def marketing():
-    trad = ts.tradMarketing()
-    langue_choisie=ts.getLangue()
-    textes = trad[langue_choisie]
-    
-    data = marketingService.get_marketing_data()
+    traductions = ts.tradMarketing()
+    langue_choisie = ts.getLangue()
+    textes = traductions[langue_choisie]
+    idEntreprise = session['idEntreprise']
+    data = marketingService.get_marketing_data(idEntreprise)
     return render_template(
         "marketing.html",
         playlists=data["playlists"],
@@ -24,6 +25,7 @@ def marketing():
         t=textes
     )
 
+# PLAYLISTES
 
 @app.route("/marketing/playlist/<int:playlist_id>/tracks")
 @reqrole("admin","marketing")
@@ -38,6 +40,18 @@ def playlist_tracks(playlist_id):
     }
 
 
+@app.route("/marketing/playlists", methods=["GET"])
+@reqrole('admin', 'marketing')
+def get_playlists_json():
+    idEntreprise = session['idEntreprise']
+    """Retourne la liste des playlists en JSON (pour le calendrier des commerciaux)."""
+    data = marketingService.get_marketing_data(session['idEntreprise'])
+    return jsonify([
+        {"idPlaylist": p["idPlaylist"], "title": p["title"], "duree_totale": p["duree_totale"]}
+        for p in data["playlists"]
+    ])
+
+
 @app.route("/marketing/playlist/add", methods=["POST"])
 @reqrole('admin', 'marketing')
 def add_playlist():
@@ -45,7 +59,10 @@ def add_playlist():
     if not title:
         return redirect(url_for("marketing"))
     marketingService.add_playlist(title)
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return '', 204
     return redirect(url_for("marketing"))
+    
 
 @app.route("/marketing/playlist/<int:playlist_id>/delete", methods=["POST"])
 @reqrole('admin', 'marketing')
@@ -55,8 +72,28 @@ def delete_playlist(playlist_id):
         return '', 204
     return redirect(url_for("marketing"))
 
+@app.route("/marketing/musiques", methods=["GET"])
+@reqrole('admin', 'marketing')
+def get_musiques_json():
+    """
+    Retourne la liste des musiques en JSON. Filtre optionnel via ?prefix=MSG_
+    (utilisé par le calendrier des messages pour n'afficher que les MSG_*).
+    """
+    idEntreprise = session['idEntreprise']
+    data = marketingService.get_marketing_data(idEntreprise)
+    musiques = data["musiques"]
+
+    prefix = request.args.get("prefix")
+    if prefix:
+        musiques = [m for m in musiques if m.nomMusique.startswith(prefix)]
+
+    return jsonify([
+        {"idMusique": m.idMusique, "nomMusique": m.nomMusique, "duree": m.duree}
+        for m in musiques
+    ])
 
 
+#------ Musiques
 
 @app.route("/marketing/music/<int:music_id>/delete", methods=["POST"])
 @reqrole("admin","marketing")
@@ -71,10 +108,7 @@ def delete_music(music_id):
     return redirect(url_for("marketing"))
 
 
-
-#je fusionne service musique et service playliste parceque c t debile de les séparer
-#enfin peut etre pas mais ils était pas si grands que ca
-
+ 
 @app.route("/upload", methods=["POST"])
 @reqrole('admin')
 def upload_music():
@@ -83,10 +117,12 @@ def upload_music():
     if not files:
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
             return {"error": "Aucun fichier sélectionné"}, 400
-        flash("Aucun fichier sélectionné", "error")
+        
+        msg_error = ts.message_langue("Aucun fichier sélectionné","No files selected")        
+        flash(msg_error, "error")
         return redirect(url_for("marketing"))
 
-    created = marketingService.save_music_files(files)
+    created = marketingService.save_music_files(files, session['idEntreprise'])
 
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest': # async
         return {
@@ -96,7 +132,50 @@ def upload_music():
             ]
         }
 
-    flash("Musique(s) ajoutée(s) avec succès", "success")
+    msg_error = ts.message_langue("Musique(s) ajoutée(s) avec succès","Track(s) successfully added")      
+    flash(msg_error, "success")
     return redirect(url_for("marketing"))
 
-# marketingController.py
+
+
+
+# ------ RELATION PLAYISTE-MUSIQUE ----
+
+
+@app.route("/marketing/playlist/<int:playlist_id>/add_music/<int:music_id>", methods=["POST"])
+@reqrole('admin', 'marketing')
+def add_music_to_playlist(playlist_id, music_id):
+    position = request.form.get("position", type=int)
+    marketingService.add_music_to_playlist(playlist_id, music_id, position)
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return '', 204
+    return redirect(url_for("marketing"))
+
+
+@app.route("/marketing/playlist/remove_music/<int:id_couple>", methods=["POST"])
+@reqrole('admin', 'marketing')
+def remove_music_from_playlist(id_couple):
+    marketingService.remove_music_from_playlist(id_couple)
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return '', 204
+    return redirect(url_for("marketing"))
+
+
+@app.route("/marketing/playlist/save_positions", methods=["POST"])
+@reqrole('admin', 'marketing')
+def save_positions():
+    """
+    Reçoit une liste JSON [{idCouple, position}, ...]
+    et met à jour les positions en BD.
+    """
+    data = request.get_json()
+    if not data:
+        return {"error": "Aucune donnée reçue"}, 400
+    marketingService.save_positions(data)
+    return '', 204
+@app.route("/marketing/playlist/<int:playlist_id>/musiques")
+@reqrole('admin', 'marketing')
+def get_musiques_by_playlist(playlist_id):
+    """Retourne les musiques d'une playlist en JSON."""
+    musiques = marketingService.get_musiques_by_playlist(playlist_id)
+    return jsonify(musiques)

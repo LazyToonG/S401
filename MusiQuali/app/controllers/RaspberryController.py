@@ -26,7 +26,7 @@ def addRaspberry():#manque trad pour les flash
     mdp = request.form.get("mdpRasp")
     
 
-    rasps = rs.montreToutRasp()
+    rasps = rs.montreToutRaspGlobal()
     if any(r.ip == ip for r in rasps):
         message=ts.message_langue("Raspberry déjà existant","Raspberry already exists")
         flash(message,"error")
@@ -37,31 +37,38 @@ def addRaspberry():#manque trad pour les flash
             print(f"Vérification de l'IP : {ip}")
             ipaddress.IPv4Address(ip)
         except ipaddress.AddressValueError:
-            flash("IP invalide", "error")
+            message=ts.message_langue("IP invalide","Invalid IP address")
+            flash(message, "error")
             return redirect(url_for("admin_dashboard"))
         # subprocess.run(["scp", "-r", "./app/static/rasdata/*", f"{nom}@{ip}:/home/{nom}/musiquali/"])
         # print(f"sshpass -p {mdp} ssh-copy-id -o StrictHostKeyChecking=no {nom}@{ip}")
         subprocess.run(["sshpass", "-p", mdp, "ssh-copy-id", "-o", "StrictHostKeyChecking=no", f"{nom}@{ip}"], check=True, timeout=8, capture_output=True, text=True)
 
     except subprocess.TimeoutExpired:
-        flash("Délai dépassé : le Raspberry ne répond pas", "error")
+        message=ts.message_langue("Délai dépassé : le Raspberry ne répond pas","Timeout: the Raspberry is not responding")
+        flash(message, "error")
         return redirect(url_for("admin_dashboard"))
     
     except subprocess.CalledProcessError as e:
         error = (e.stderr or "").lower()
 
         if "permission denied" in error:
-            flash("Mot de passe SSH incorrect", "error")
+            message=ts.message_langue("Mot de passe SSH incorrect","Incorrect SSH password")
+            flash(message, "error")
         elif "connection refused" in error:
-            flash("Connexion refusée (SSH off ?)", "error")
+            message=ts.message_langue("Connexion refusée (SSH off ?)","Connection refused (SSH disabled?)")
+            flash(message, "error")
         elif "no route to host" in error:
-            flash("Raspberry inaccessible", "error")
+            message=ts.message_langue("Raspberry inaccessible","Raspberry is unreachable")
+            flash(message, "error")
         else:
-            flash("Erreur SSH inconnue", "error")
+            message=ts.message_langue("Erreur : SSH inconnue","Error: Unknown SSH")
+            flash(message, "error")
         return redirect(url_for("admin_dashboard")) 
 
     rs.ajoutR(nom, ip, session["idEntreprise"])#mettre mdp <----------------------
-    flash("Raspberry ajouté avec succès", "success")
+    message=ts.message_langue("Raspberry ajouté avec succès","Raspberry successfully added")
+    flash(message, "success")
     return redirect(url_for("admin_dashboard"))
 
 @app.route("/admin/action_rasp", methods=["POST"])
@@ -71,13 +78,15 @@ def action_rasp():
     rasp_id = request.form.get("raspberry-select")
 
     if rasp_id is None:
-        flash("Aucun Raspberry sélectionné", "error")
+        message=ts.message_langue("Aucun Raspberry sélectionné","No Raspberry selected")
+        flash(message, "error")
         return redirect(url_for("admin_dashboard"))
 
     rasp = rs.getRasp(rasp_id)
 
     if not rasp:
-        flash("Raspberry introuvable", "error")
+        message=ts.message_langue("Raspberry introuvable","Raspberry not found")
+        flash(message, "error")
         return redirect(url_for("admin_dashboard"))
 
     nom = rasp["nomLecteur"]
@@ -106,9 +115,11 @@ def action_rasp():
     #tmp
     elif button == "test":
         if envoieChangementPlanning(nom, ip):
-            flash("Envoi du planning OK", "success")
+            message=ts.message_langue("Envoi du planning OK","Schedule sent – OK")
+            flash(message, "success")
         else:
-            flash("Pas de Raspberry trouvé", "error")
+            message=ts.message_langue("Pas de Raspberry trouvé","No Raspberry found")
+            flash(message, "error")
 
         
     return redirect(url_for("admin_dashboard"))
@@ -123,9 +134,15 @@ def envoieChangementPlanning(nom, ip):
     if not ip:
         return False
 
+    source = Path(app.static_folder) / "newData"  # <-- chemin absolu
+
     try:
+        print(f"Source rsync : {source}")
+        print(f"Existe : {source.exists()}")
+        print(f"Contenu : {list(source.iterdir())}")
         subprocess.run(
-            ["rsync", "-avz", "--delete", "-e", "ssh", "./app/static/rasdata/", f"{nom}@{ip}:/home/{nom}/musiquali/"],
+            # ["rsync", "-avz", "--delete", "-e", "ssh", "./app/static/rasdata/", f"{nom}@{ip}:/home/{nom}/musiquali/"],
+            ["rsync", "-avz", "--delete", "--exclude=logs/", "-e", "ssh", str(source) + "/", f"{nom}@{ip}:/home/{nom}/musiquali/"],
             check=True,
             capture_output=True,
             text=True,
@@ -140,6 +157,9 @@ def envoieChangementPlanning(nom, ip):
         return False
 
     time.sleep(5)
+    print(f"Arrêt forcé de l'ancienne instance de RAS.py sur {nom}@{ip}")
+    # On passe la commande distante sous forme d'une chaîne unique
+    subprocess.run(["ssh", f"{nom}@{ip}", "pkill -9 -f RAS.py"], capture_output=True)
 
     print("lancement RAS.py")
     print(f"ssh {nom}@{ip} python3 /home/{nom}/musiquali/RAS.py")
@@ -160,14 +180,25 @@ def envoieChangementPlanning(nom, ip):
 
 last_sync = {}  # mémorise le dernier rsync par raspberry
 def recupLogs(idLecteur, nom, ip):
-    dest = Path(f"./app/static/raspLogs/{nom}/logs/")
+    # En ciblant directement le dossier parent, rsync va fusionner le contenu
+    dest = Path(app.static_folder) / "raspLogs"
     dest.mkdir(parents=True, exist_ok=True)
-    log = subprocess.run(["rsync", "-avz", "-e", "ssh", f"{nom}@{ip}:/home/{nom}/musiquali/logs/", str(dest)])
     
-    #met en base de données les fichiers récupérer
-    for file in dest.iterdir():
-        if file.is_file():
-            ls.add_log(idLecteur, file.name)
+    # On utilise f"{nom}/" dans la destination pour éviter la création du sous-dossier /logs/
+    log = subprocess.run(
+        ["rsync", "-avz", "-e", "ssh", 
+         f"{nom}@{ip}:/home/{nom}/musiquali/logs/",         # Source distante
+         str(dest / nom)],                                   # Destination locale propre
+        capture_output=True, text=True
+    )
+    
+    # On parcourt le dossier propre de la Raspberry
+    rasp_dir = dest / nom
+    if rasp_dir.exists():
+        for file in rasp_dir.iterdir():
+            if file.is_file():
+                ls.add_log(idLecteur, file.name)
+    
     return log
 
 def pingRasp(ip):
@@ -179,7 +210,7 @@ etatPing = {}
 def pingLoop():
     print("PING LOOP DEMARRE")
     while True:
-        raspberrys = rs.montreToutRasp()
+        raspberrys = rs.montreToutRaspGlobal()
         for r in raspberrys:
             if r.ip is None or r.nomLecteur is None:
                 continue  # Ignorer les entrées avec des informations incomplètes

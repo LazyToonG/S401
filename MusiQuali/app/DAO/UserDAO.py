@@ -21,11 +21,13 @@ class UserSqliteDAO():
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS Users(
                 idUtilisateur INTEGER PRIMARY KEY AUTOINCREMENT,
-                username VARCHAR(50) NOT NULL UNIQUE,
+                username VARCHAR(50) NOT NULL,
                 password VARCHAR(100) NOT NULL,
                 role VARCHAR(15) NOT NULL,
-                mail VARCHAR(50) NOT NULL UNIQUE,
+                mail VARCHAR(50) NOT NULL,
                 idEntreprise INT NOT NULL DEFAULT 1,
+                UNIQUE(username, idEntreprise),
+                UNIQUE(mail, idEntreprise),
                 FOREIGN KEY(idEntreprise) REFERENCES Entreprise(idEntreprise)
             );
         """)
@@ -39,6 +41,16 @@ class UserSqliteDAO():
         # Créer admin uniquement s’il n’existe pas
         if not admin_exists:
             self.createUser("admin", "admin", "admin", "admin@musiquali.com", 5)
+
+        # Vérifier si un modo existe déjà
+        cursor.execute("""
+            SELECT 1 FROM Users WHERE username = 'modo' LIMIT 1;
+        """)
+        modo_exists = cursor.fetchone() is not None
+
+        # Créer admin uniquement s’il n’existe pas
+        if not modo_exists:
+            self.createUser("modo", "modo", "modo", "modo@musiquali.com", 100)
 
         conn.commit()
         conn.close()
@@ -60,23 +72,30 @@ class UserSqliteDAO():
         finally:
             conn.close()
 
-    def getByUsername(self, username):
+    def getByUsername(self, username, idEntreprise):
         conn = self._getDbConnection()
         user = conn.execute(
-            "SELECT * FROM Users WHERE username = ?", (username,)
+            "SELECT * FROM Users WHERE username = ? AND idEntreprise = ?", (username, idEntreprise)
         ).fetchone()
         conn.close()
         return User(**dict(user)) if user else None
     
-    def getByEmail(self, mail):
+    def getByEmail(self, mail, idEntreprise=None):
         conn = self._getDbConnection()
-        user = conn.execute(
-            "SELECT * FROM Users WHERE mail = ?", (mail,)
-        ).fetchone()
+        if idEntreprise:
+            user = conn.execute(
+                "SELECT * FROM Users WHERE mail = ? AND idEntreprise = ?",
+                (mail, idEntreprise)
+            ).fetchone()
+        else:
+            user = conn.execute(
+                "SELECT * FROM Users WHERE mail = ?",
+                (mail,)
+            ).fetchone()
         conn.close()
         return User(**dict(user)) if user else None
 
-    def verifyUser(self, username, password):
+    def verifyUser(self, username, password): #Keske je fais pour la vérif ;-;
         conn = self._getDbConnection()
         user = conn.execute(
             "SELECT * FROM Users WHERE username = ?", (username,)
@@ -96,11 +115,11 @@ class UserSqliteDAO():
             return User(**dict(user))
         return None
     
-    def recherche(self, query):
+    def recherche(self, query, idEntreprise):
         conn = self._getDbConnection()
         rows = conn.execute(
-            "SELECT * FROM Users WHERE username LIKE ? ORDER BY username ASC",
-            (f"{query}%",)
+            "SELECT * FROM Users WHERE username LIKE ? AND idEntreprise = ? ORDER BY username ASC",
+            (f"{query}%", idEntreprise)
         ).fetchall()
         conn.close()
         
@@ -109,30 +128,30 @@ class UserSqliteDAO():
             
         return [User(r["idUtilisateur"], r["username"], r["password"], r["role"], r["mail"], r["idEntreprise"]) for r in rows]
     
-    def triASC(self):
+    def triASC(self, idEntreprise):
         conn = self._getDbConnection()
         rows = conn.execute(
-            "SELECT * FROM Users ORDER BY username ASC"
+            "SELECT * FROM Users WHERE idEntreprise = ? ORDER BY username ASC", (idEntreprise,)
         ).fetchall()
         conn.close()
         if not rows: # S'il n'y a aucune selection correspondante
             return None
         return [User(r["idUtilisateur"], r["username"], r["password"], r["role"], r["mail"], r["idEntreprise"]) for r in rows]
     
-    def triDESC(self):
+    def triDESC(self, idEntreprise):
         conn = self._getDbConnection()
         rows = conn.execute(
-            "SELECT * FROM Users ORDER BY username DESC"
+            "SELECT * FROM Users WHERE idEntreprise = ? ORDER BY username DESC", (idEntreprise,)
         ).fetchall()
         conn.close()
         if not rows: # S'il n'y a aucune selection correspondante
             return None
         return [User(r["idUtilisateur"], r["username"], r["password"], r["role"], r["mail"], r["idEntreprise"]) for r in rows]
     
-    def triRole(self):
+    def triRole(self, idEntreprise):
         conn = self._getDbConnection()
         rows = conn.execute(
-            "SELECT * FROM Users ORDER BY role ASC"
+            "SELECT * FROM Users WHERE idEntreprise = ? ORDER BY role ASC", (idEntreprise,)
         ).fetchall()
         conn.close()
         if not rows: # S'il n'y a aucune selection correspondante
@@ -140,51 +159,68 @@ class UserSqliteDAO():
         return [User(r["idUtilisateur"], r["username"], r["password"], r["role"], r["mail"], r["idEntreprise"]) for r in rows]
     
     
-    def setUsername(self, username, new_username):
+    def setUsername(self, username, new_username, idEntreprise):
         conn = self._getDbConnection()
         conn.execute(
-            "UPDATE Users SET username = ? WHERE username = ?",
-            (new_username, username)
+            "UPDATE Users SET username = ? WHERE username = ? AND idEntreprise = ?",
+            (new_username, username, idEntreprise)
         )
         conn.commit()
         conn.close()
 
-    def setEmail(self, username, new_mail):
+    def setEmail(self, username, new_mail, idEntreprise):
         conn = self._getDbConnection()
         conn.execute(
-            "UPDATE Users SET mail = ? WHERE username = ?",
-            (new_mail, username)
+            "UPDATE Users SET mail = ? WHERE username = ? AND idEntreprise = ?",
+            (new_mail, username, idEntreprise)
         )
         conn.commit()
         conn.close()
 
-    def setPassword(self, username, new_password):
+    def setPassword(self, username, new_password, idEntreprise):
         conn = self._getDbConnection()
         
         hashed = bcrypt.hashpw(new_password.encode('utf-8'), bcrypt.gensalt())
         
-        conn.execute("UPDATE Users SET password = ? WHERE username = ?", (hashed, username))
+        conn.execute("UPDATE Users SET password = ? WHERE username = ? AND idEntreprise = ?", (hashed, username, idEntreprise))
         conn.commit()
         conn.close()
 
-    def setRole(self, username, new_role):
+    def setRole(self, username, new_role, idEntreprise):
         conn = self._getDbConnection()
         conn.execute(
-            "UPDATE Users SET role = ? WHERE username = ?",
-            (new_role, username)
+            "UPDATE Users SET role = ? WHERE username = ? AND idEntreprise = ?",
+            (new_role, username, idEntreprise)
         )
         conn.commit()
         conn.close()
 
-    def findAll(self):
+    def findAll(self, idEntreprise):
         conn = self._getDbConnection()
-        users = conn.execute('SELECT * FROM Users').fetchall()
+        users = conn.execute('SELECT * FROM Users WHERE idEntreprise = ?', (idEntreprise,)
+        ).fetchall()
         conn.close()
         return [User(**dict(u)) for u in users]
-
-    def deleteByUsername(self, username):
+    
+    def findAdminByEntreprise(self, idEntreprise):
         conn = self._getDbConnection()
-        conn.execute("DELETE FROM Users WHERE username = ?", (username,))
+        row = conn.execute(
+            "SELECT * FROM Users WHERE role = 'admin' AND idEntreprise = ? LIMIT 1",
+            (idEntreprise,)
+        ).fetchone()
+        conn.close()
+        return User(**dict(row)) if row else None
+
+    def deleteByUsername(self, username, idEntreprise):
+        conn = self._getDbConnection()
+        conn.execute("DELETE FROM Users WHERE username = ? AND idEntreprise = ?", (username, idEntreprise))
+        conn.commit()
+        conn.close()
+        return True
+
+    def deleteByIdEntreprise(self, idEntreprise):
+        conn = self._getDbConnection()
+        conn.execute("DELETE FROM Users WHERE idEntreprise = ?", (idEntreprise,))
         conn.commit()
         conn.close()
         return True
