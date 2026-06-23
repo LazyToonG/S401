@@ -697,6 +697,9 @@
         }
 
         async function loadPlanning() {
+            // SÉCURITÉ : Ne pas rafraîchir si l'utilisateur est en train de modifier le planning !
+            if (isDirty) return; 
+
             try {
                 const [planningRes, playlistsRes, musiquesRes] = await Promise.all([
                     fetch('/planning/data?idEntreprise=1'),
@@ -711,6 +714,11 @@
                 const playlistById = new Map(playlists.map(p => [p.idPlaylist, p]));
                 const messageById = new Map(messages.map(m => [m.idMusique, m]));
 
+                // 1. ON VIDE LES CALENDRIERS AVANT DE LES REMPLIR (Pour éviter les doublons lors du rafraîchissement)
+                document.querySelectorAll('.scheduled-box').forEach(b => b.remove());
+                boxCounter = 0;
+
+                // 2. ON RE-CRÉE LES BOÎTES
                 for (const row of rows) {
                     if (row.idPlaylist !== null) {
                         const { dayId, time } = startTimeToDayAndTime(row.StartTime, 'tab1');
@@ -725,6 +733,9 @@
                 clearDirty();
             } catch (err) { console.error(err); }
         }
+
+        // --- LA LIGNE MAGIQUE : Appelle la fonction toutes les 5 secondes ---
+        setInterval(loadPlanning, 5000);
 
         // ==========================================
         // 2. ANCIEN MOTEUR D'UPLOAD DE MESSAGES (Intact)
