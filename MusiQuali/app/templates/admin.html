@@ -43,7 +43,6 @@
 
     <div class="tabs-container">
         <button class="tab-btn" data-target="raspberry">{{t.gestion_rasp}}</button>
-        <button class="tab-btn" data-target="terminal">{{t.terminal}}</button>
         <button class="tab-btn" data-target="users">{{t.gestion_user}}</button>
         <button class="tab-btn" data-target="requests">{{t.requetes}}{% if requetes|length>0 %} [{{requetes|length}}]{% endif %}</button>
     </div>
@@ -87,7 +86,7 @@
 
                 <div class="users-list" id="rasp-list-container">
                     
-                    <div class="user-list-item list-header-fixed" style="font-weight: bold; padding-bottom: 15px; border-bottom: 1px solid #eee;">
+                    <div class="user-list-item" style="font-weight: bold; padding-bottom: 15px; border-bottom: 1px solid #eee;">
                         <span class="col-checkbox"></span>
                         <span class="item-name col-nom">Nom</span>
                         <span class="item-name col-ip">Ip</span>

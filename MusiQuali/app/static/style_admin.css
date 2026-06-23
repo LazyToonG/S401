@@ -9,14 +9,30 @@
 .tab-btn:hover { background-color: #cc5f5f; }
 
 /* --- CONTENU --- */
-.content-area { padding: 0 40px 40px 40px; display: flex; flex:1; }
+.content-area { 
+    padding: 0 40px 40px 40px; 
+    display: flex; 
+    flex-direction: column;
+    flex: 1; 
+    height: calc(100vh - 170px); 
+    max-height: calc(100vh - 170px);
+    box-sizing: border-box; 
+}
 .tab-content { display: none; }
-.tab-content.active { display: flex; }
+.tab-content.active { display: flex; flex: 1; min-height: 0; }
+
 .full-box {
     background-color: #fff; border: 1px solid #651b1b; border-radius: 20px;
     min-height: 500px; width: 100%; position: relative; overflow: hidden;
 }
-.split-layout.active { display: flex; gap: 20px; flex: 1; min-height: 0;}
+
+.split-layout.active { 
+    display: flex; 
+    gap: 20px; 
+    flex: 1; 
+    min-height: 0; 
+    height: 100%; 
+}
 
 
 /* --- ONGLET REQUÊTES : COLONNE GAUCHE --- */
@@ -161,14 +177,16 @@
 .btn-refuse:hover { background-color: #f5ebeb; }
 
 
-/* --- ONGLET GESTION DES UTILISATEURS --- */
+/* --- ONGLET GESTION DES UTILISATEURS ET RASPBERRY --- */
 .admin-panel {
-    background-color: #fff; /* La couleur beige/grise de ta DA */
+    background-color: #fff;
     border-radius: 20px;
     padding: 30px;
     flex: 1;
     display: flex;
     flex-direction: column;
+    min-height: 0;
+    max-height: 100%;
 }
 
 .users-header { margin-bottom: 10px; }
@@ -220,10 +238,30 @@
 }
 .hidden { display: none !important; }
 
-/* Liste d'utilisateurs */
+/* Liste d'utilisateurs et Raspberry */
 .users-list {
-    flex: 1; overflow-y: auto;
-    display: flex; flex-direction: column; gap: 15px;
+    flex: 1; 
+    overflow-y: auto;
+    display: flex; 
+    flex-direction: column; 
+    gap: 15px;
+    padding-right: 25px;
+    min-height: 0;/
+}
+
+/* On ajoute une jolie scrollbar fine et rouge */
+.users-list::-webkit-scrollbar { width: 4px; }
+.users-list::-webkit-scrollbar-track { background: transparent; }
+.users-list::-webkit-scrollbar-thumb { background: #505050; border-radius: 10px; }
+
+/* La nouvelle classe magique pour figer l'en-tête */
+.list-header-fixed {
+    position: sticky;
+    top: 0;
+    background-color: #fff; /* Fond blanc obligatoire pour cacher le texte qui scrolle dessous */
+    z-index: 10; /* Assure que l'en-tête reste toujours au-dessus */
+    margin-top: -5px; /* Ajustement visuel */
+    padding-top: 5px;
 }
 .user-list-item { display: flex; align-items: center; padding: 5px 0; font-size: 16px; }
 .user-list-item .item-name, .user-role-text { width: 100px; color: #651b1b; } /* Aligne proprement les rôles */
