@@ -1,0 +1,8 @@
+# JSON (tous les fichiers .json)
+*.json
+
+# Fichiers audio
+*.mp3
+*.wav
+*.flac
+*.m4a
