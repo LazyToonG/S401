@@ -7,7 +7,7 @@
 </div>
 
 {% for u in users %}
-<div class="user-list-item">
+<div class="user-list-item" data-username="{{u.username | lower}}" data-role="{{u.role | lower}}" data-index="{{ loop.index }}">
     <input type="checkbox" class="custom-round-checkbox col-checkbox">
     <span class="item-name col-nom">{{u.username}}</span>
     <span class="user-role-text col-email" title="{{u.mail}}">{{u.mail}}</span>

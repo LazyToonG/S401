@@ -57,20 +57,19 @@
                         
                         <div class="search-bar admin-search">
                             <span class="search-icon"><img src="{{ url_for('static', filename='img/loupe.png') }}" alt="Recherche" class="recherche-img"></span>
-                            <input type="text" id="search-rasp" placeholder="{{t.recherche}}..." oninput="rechercheDynamique('raspberry')">
+                            <input type="text" id="search-rasp" placeholder="{{t.recherche}}..." oninput="filterAndSortRasp()">
                         </div>
                         
                         <div class="sort-container" style="display: flex; align-items: center; gap: 15px; position: relative;">
-                            {% if current_sort_rasp %}
-                            <a href="{{ url_for('admin_dashboard', _anchor='raspberry') }}" class="clear-filter" style="color: #CE5956; text-decoration: underline; font-size: 14px;">{{t.supp_filtres}}</a>
-                            {% endif %}
+                            <a href="javascript:void(0)" id="clear-sort-rasp" class="hidden" onclick="clearAdminSort('rasp')" style="color: #CE5956; text-decoration: underline; font-size: 14px;">{{t.supp_filtres}}</a>
+                            
                             <div style="position: relative;">
                                 <div class="sort-dropdown" onclick="toggleSortMenuRasp()" style="cursor: pointer; color: #651b1b; padding: 5px;">{{t.trier}} ▼</div>
                                 
                                 <div id="sort-menu-rasp" class="hidden" style="position: absolute; right: 0; top: 120%; background: white; border: 1px solid #b5abab; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); z-index: 100; min-width: 150px; overflow: hidden;">
-                                    <a href="{{ url_for('admin_dashboard', sort_rasp='asc', _anchor='raspberry') }}" style="display: block; padding: 10px 15px; color: #333; text-decoration: none; border-bottom: 1px solid #eee;">{{t.a_z}}</a>
-                                    <a href="{{ url_for('admin_dashboard', sort_rasp='desc', _anchor='raspberry') }}" style="display: block; padding: 10px 15px; color: #333; text-decoration: none; border-bottom: 1px solid #eee;">{{t.z_a}}</a>
-                                    <a href="{{ url_for('admin_dashboard', sort_rasp='ip', _anchor='raspberry') }}" style="display: block; padding: 10px 15px; color: #333; text-decoration: none;">{{t.ip}}</a>
+                                    <a href="javascript:void(0)" data-category="name" data-dir="1" onclick="applyAdminSort('rasp', 'name', 1)" style="display: block; padding: 10px 15px; color: #333; text-decoration: none; border-bottom: 1px solid #eee;">{{t.a_z}}</a>
+                                    <a href="javascript:void(0)" data-category="name" data-dir="-1" onclick="applyAdminSort('rasp', 'name', -1)" style="display: block; padding: 10px 15px; color: #333; text-decoration: none; border-bottom: 1px solid #eee;">{{t.z_a}}</a>
+                                    <a href="javascript:void(0)" data-category="ip" data-dir="1" onclick="applyAdminSort('rasp', 'ip', 1)" style="display: block; padding: 10px 15px; color: #333; text-decoration: none;">{{t.ip}}</a>
                                 </div>
                             </div>
                         </div>
@@ -95,7 +94,7 @@
                     </div>
 
                     {% for r in raspberry %}
-                    <div class="user-list-item">
+                    <div class="user-list-item" data-nom="{{ r.nomLecteur | lower }}" data-ip="{{ r.ip }}" data-index="{{ loop.index }}">
                         <input type="checkbox" class="custom-round-checkbox col-checkbox">
                         
                         <span class="item-name col-nom">{{ r.nomLecteur }}</span>
@@ -217,22 +216,19 @@
                         
                         <div class="search-bar admin-search">
                             <span class="search-icon"><img src="{{ url_for('static', filename='img/loupe.png') }}" alt="Recherche" class="recherche-img"></span>
-                            <input type="text" id="search-users" placeholder="{{t.recherche}}..." oninput="rechercheDynamique('users')">
+                            <input type="text" id="search-users" placeholder="{{t.recherche}}..." oninput="filterAndSortUsers()">
                         </div>
                         
                         <div class="sort-container" style="display: flex; align-items: center; gap: 15px; position: relative;">
-                            
-                            {% if current_sort %}
-                            <a href="{{ url_for('admin_dashboard', _anchor='users') }}" class="clear-filter" style="color: #CE5956; text-decoration: none; font-size: 14px;">{{t.supp_filtres}}</a>
-                            {% endif %}
+                            <a href="javascript:void(0)" id="clear-sort-users" class="hidden" onclick="clearAdminSort('users')" style="color: #CE5956; text-decoration: underline; font-size: 14px;">{{t.supp_filtres}}</a>
 
                             <div style="position: relative;">
                                 <div class="sort-dropdown" onclick="toggleSortMenu()" style="cursor: pointer; color: #651b1b; padding: 5px;">{{t.trier}} ▼</div>
                                 
-                                <div id="sort-menu" class="hidden" style="position: absolute; right: 0; top: 120%; background: white; border: 1px solid #b5abab; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); z-index: 100; min-width: 150px; overflow: hidden;">
-                                    <a href="{{ url_for('admin_dashboard', sort='asc', _anchor='users') }}" style="display: block; padding: 10px 15px; color: #333; text-decoration: none; border-bottom: 1px solid #eee;">{{t.a_z}}</a>
-                                    <a href="{{ url_for('admin_dashboard', sort='desc', _anchor='users') }}" style="display: block; padding: 10px 15px; color: #333; text-decoration: none; border-bottom: 1px solid #eee;">{{t.z_a}}</a>
-                                    <a href="{{ url_for('admin_dashboard', sort='role', _anchor='users') }}" style="display: block; padding: 10px 15px; color: #333; text-decoration: none;">{{t.tri_role}}</a>
+                                <div id="sort-menu-users" class="hidden" style="position: absolute; right: 0; top: 120%; background: white; border: 1px solid #b5abab; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); z-index: 100; min-width: 150px; overflow: hidden;">
+                                    <a href="javascript:void(0)" data-category="name" data-dir="1" onclick="applyAdminSort('users', 'name', 1)" style="display: block; padding: 10px 15px; color: #333; text-decoration: none; border-bottom: 1px solid #eee;">{{t.a_z}}</a>
+                                    <a href="javascript:void(0)" data-category="name" data-dir="-1" onclick="applyAdminSort('users', 'name', -1)" style="display: block; padding: 10px 15px; color: #333; text-decoration: none; border-bottom: 1px solid #eee;">{{t.z_a}}</a>
+                                    <a href="javascript:void(0)" data-category="role" data-dir="1" onclick="applyAdminSort('users', 'role', 1)" style="display: block; padding: 10px 15px; color: #333; text-decoration: none;">{{t.tri_role}}</a>
                                 </div>
                             </div>
                         </div>
@@ -553,31 +549,19 @@
             document.getElementById('delete-modal-overlay').classList.add('hidden');
         }
 
-        // --- GESTION DU MENU DÉROULANT DE TRI ---
+        // --- GESTION DES MENUS DÉROULANTS DE TRI ---
         function toggleSortMenu() {
-            document.getElementById('sort-menu').classList.toggle('hidden');
+            document.getElementById('sort-menu-users').classList.toggle('hidden');
         }
 
-        // Ferme le menu si on clique n'importe où ailleurs sur la page
-        window.addEventListener('click', function(e) {
-            if (!e.target.matches('.sort-dropdown')) {
-                var sortMenu = document.getElementById('sort-menu');
-                if (sortMenu && !sortMenu.classList.contains('hidden')) {
-                    sortMenu.classList.add('hidden');
-                }
-            }
-        });
-
-
-        // --- GESTION DU MENU DE TRI RASPBERRY ---
         function toggleSortMenuRasp() {
             document.getElementById('sort-menu-rasp').classList.toggle('hidden');
         }
 
-        // --- MISE À JOUR : Fermeture globale des menus ---
+        // Fermeture globale des menus si on clique ailleurs
         window.addEventListener('click', function(e) {
             if (!e.target.matches('.sort-dropdown')) {
-                var sortMenuUser = document.getElementById('sort-menu');
+                var sortMenuUser = document.getElementById('sort-menu-users');
                 var sortMenuRasp = document.getElementById('sort-menu-rasp');
                 
                 if (sortMenuUser && !sortMenuUser.classList.contains('hidden')) {
@@ -589,33 +573,133 @@
             }
         });
 
+        // =========================================================
+        // --- MOTEUR DE RECHERCHE ET DE TRI (SANS RAFRAICHISSEMENT)
+        // =========================================================
+        
+        let sortsUsers = [];
+        let sortsRasp = [];
 
-        // --- RECHERCHE DYNAMIQUE (AJAX) ---
-        function rechercheDynamique(type) {
-            let inputId, containerId, url;
+        function updateSortVisualsAdmin(type) {
+            const menuId = type === 'users' ? 'sort-menu-users' : 'sort-menu-rasp';
+            const activeSorts = type === 'users' ? sortsUsers : sortsRasp;
+            const menu = document.getElementById(menuId);
+            if (!menu) return;
 
-            // On configure les cibles selon l'onglet actif
+            menu.querySelectorAll('a').forEach(link => {
+                const cat = link.dataset.category;
+                const dir = parseInt(link.dataset.dir);
+                const isActive = activeSorts.some(s => s.category === cat && s.dir === dir);
+                
+                if (isActive) link.classList.add('active-sort');
+                else link.classList.remove('active-sort');
+            });
+        }
+
+        function applyAdminSort(type, category, direction) {
+            let activeSorts = type === 'users' ? sortsUsers : sortsRasp;
+            
+            // Remplace l'ancien tri
+            activeSorts = activeSorts.filter(s => s.category !== category);
+            activeSorts.unshift({ category: category, dir: direction });
+
             if (type === 'users') {
-                inputId = 'search-users';
-                containerId = 'users-list-container';
-                url = '/admin/api/search_users';
-            } 
-            else if (type === 'raspberry') {
-                inputId = 'search-rasp';
-                containerId = 'rasp-list-container';
-                url = '/admin/api/search_rasp';
+                sortsUsers = activeSorts;
+                document.getElementById('clear-sort-users').classList.remove('hidden');
+                document.getElementById('sort-menu-users').classList.add('hidden');
+                filterAndSortUsers();
+            } else {
+                sortsRasp = activeSorts;
+                document.getElementById('clear-sort-rasp').classList.remove('hidden');
+                document.getElementById('sort-menu-rasp').classList.add('hidden');
+                filterAndSortRasp();
             }
+            updateSortVisualsAdmin(type);
+        }
 
-            const query = document.getElementById(inputId).value;
+        function clearAdminSort(type) {
+            if (type === 'users') {
+                sortsUsers = [];
+                document.getElementById('clear-sort-users').classList.add('hidden');
+                filterAndSortUsers();
+            } else {
+                sortsRasp = [];
+                document.getElementById('clear-sort-rasp').classList.add('hidden');
+                filterAndSortRasp();
+            }
+            updateSortVisualsAdmin(type);
+        }
 
-            // Appel en arrière-plan à notre serveur Flask
-            fetch(`${url}?q=${encodeURIComponent(query)}`)
-            .then(response => response.text())
-            .then(html => {
-                // On remplace l'ancien tableau par le nouveau code HTML filtré
-                document.getElementById(containerId).innerHTML = html;
-            })
-            .catch(error => console.error("Erreur lors de la recherche dynamique :", error));
+        function filterAndSortUsers() {
+            const query = document.getElementById('search-users').value.toLowerCase();
+            const container = document.getElementById('users-list-container');
+            const header = container.querySelector('.list-header-fixed');
+            const boxes = Array.from(container.querySelectorAll('.user-list-item:not(.list-header-fixed)'));
+
+            // Filtre (Recherche)
+            boxes.forEach(b => {
+                const nom = b.dataset.username || '';
+                b.style.display = nom.includes(query) ? '' : 'none';
+            });
+
+            // Tri
+            const visible = boxes.filter(b => b.style.display !== 'none');
+            visible.sort((a, b) => {
+                for (let sort of sortsUsers) {
+                    if (sort.category === 'name') {
+                        const comp = a.dataset.username.localeCompare(b.dataset.username);
+                        if (comp !== 0) return comp * sort.dir;
+                    } else if (sort.category === 'role') {
+                        const comp = a.dataset.role.localeCompare(b.dataset.role);
+                        if (comp !== 0) return comp * sort.dir;
+                    }
+                }
+                return parseInt(a.dataset.index) - parseInt(b.dataset.index);
+            });
+
+            // Ré-injection propre (en gardant l'en-tête en premier)
+            container.innerHTML = '';
+            if (header) container.appendChild(header);
+            visible.forEach(b => container.appendChild(b));
+            boxes.filter(b => b.style.display === 'none').forEach(b => container.appendChild(b));
+        }
+
+        // Utilitaire pour transformer l'IP afin de la trier de manière logique
+        function ipToNum(ip) {
+            return ip.split('.').map(d => ('000' + d).slice(-3)).join('');
+        }
+
+        function filterAndSortRasp() {
+            const query = document.getElementById('search-rasp').value.toLowerCase();
+            const container = document.getElementById('rasp-list-container');
+            const header = container.querySelector('.list-header-fixed');
+            const boxes = Array.from(container.querySelectorAll('.user-list-item:not(.list-header-fixed)'));
+
+            boxes.forEach(b => {
+                const nom = b.dataset.nom || '';
+                b.style.display = nom.includes(query) ? '' : 'none';
+            });
+
+            const visible = boxes.filter(b => b.style.display !== 'none');
+            visible.sort((a, b) => {
+                for (let sort of sortsRasp) {
+                    if (sort.category === 'name') {
+                        const comp = a.dataset.nom.localeCompare(b.dataset.nom);
+                        if (comp !== 0) return comp * sort.dir;
+                    } else if (sort.category === 'ip') {
+                        const ipA = ipToNum(a.dataset.ip || '0.0.0.0');
+                        const ipB = ipToNum(b.dataset.ip || '0.0.0.0');
+                        const comp = ipA.localeCompare(ipB);
+                        if (comp !== 0) return comp * sort.dir;
+                    }
+                }
+                return parseInt(a.dataset.index) - parseInt(b.dataset.index);
+            });
+
+            container.innerHTML = '';
+            if (header) container.appendChild(header);
+            visible.forEach(b => container.appendChild(b));
+            boxes.filter(b => b.style.display === 'none').forEach(b => container.appendChild(b));
         }
 
         // --- GESTION DE L'AFFICHAGE DES REQUÊTES ---

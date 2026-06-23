@@ -157,28 +157,22 @@ def create_user():
     password = request.form.get("password")
     role = request.form.get("role")
     mail = request.form.get("email")
-    entreprise = session["idEntreprise"]
+    entreprise = session.get("idEntreprise", 1)
 
-    if not username or not password or not role:
+    if not username or not password or not role or not mail:
         flash("Tous les champs sont obligatoires", "error")
-        return redirect(url_for("admin_dashboard"))
-    searched_users = user_service.getUserByUsername(username, entreprise)
+        return redirect(url_for("admin_dashboard", _anchor="users"))
 
-    for users in searched_users:
-        if users!=None:
-            if users.username==username:
-                message=ts.message_langue("Nom d'utilisateur déjà existant","Username already exists")
-                flash(message, "error")
-                return redirect(url_for("admin_dashboard"))
-            elif users.mail==mail:
-                message=ts.message_langue("Email déjà existant","Email already exists")
-                flash(message, "error")
-                return redirect(url_for("admin_dashboard"))
-                
-    user_service.signin(username, password, role, mail, entreprise)
+    # On lance la création et on STOCK le résultat dans une variable
+    result = user_service.signin(username, password, role, mail, entreprise)
 
-    message=ts.message_langue("Utilisateur créé avec succès","User successfully created")
-    flash(message, "success")
+    if result:
+        message = ts.message_langue("Utilisateur créé avec succès", "User successfully created")
+        flash(message, "success")
+    else:
+        message = ts.message_langue("Erreur : Ce nom d'utilisateur ou cet e-mail existe déjà.", "Error: Username or email already exists.")
+        flash(message, "error")
+
     return redirect(url_for("admin_dashboard", _anchor="users"))
 
 #suppression utilisateur
