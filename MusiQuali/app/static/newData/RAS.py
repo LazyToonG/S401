@@ -1,15 +1,8 @@
 """
 lecteur.py — Lecteur audio dual-canal pour MusiQuali
 ======================================================
-Canal 0 (musique) : joue les playlists de MU.json à l'heure programmée,
-s'arrête à la fin, attend le prochain slot.
-Canal 1 (messages) : déclenche chaque message de MSG.json à l'heure pile,
-met le volume du canal musique à 0 le temps du message,
-puis le remonte.
- attendu  :
-    msiquali/MU.json
-    musiquali/MSG.json
-    musiquali/rasSound/les mp3         
+Canal 0 (musique) : joue les plages de MU.json à l'heure programmée (Format Plat).
+Canal 1 (messages) : déclenche chaque message de MSG.json à l'heure pile.
 """
 #allo
 import os
@@ -52,11 +45,12 @@ def day_name():
     """Retourne le nom du jour en anglais lowercase (ex: 'monday')."""
     return datetime.now().strftime("%A").lower()
 
-def today_slots(json_data):
-    """
-    Retourne:
-    {"time": "HH:MM", "musics": ["a.mp3", "b.mp3"]}
-    """
+def today_mu_slots(json_data):
+    """Retourne les créneaux musique triés pour aujourd'hui (Format: {'time': ..., 'music': ...})."""
+    return sorted(json_data.get(day_name(), []), key=lambda s: s["time"])
+
+def today_msg_slots(json_data):
+    """Retourne les créneaux messages triés pour aujourd'hui (Format: {'time': ..., 'musics': [...]})."""
     return sorted(json_data.get(day_name(), []), key=lambda s: s["time"])
 
 def load_json(path):
@@ -77,7 +71,7 @@ def slot_is_due(slot_time_str):
     slot_dt = slot_datetime(slot_time_str)
     now = datetime.now()
     delta = (now - slot_dt).total_seconds()
-    return 0 <= delta < 5  # dans la fenêtre d'une minute
+    return 0 <= delta < 5  # dans la fenêtre de 5 secondes
 
 # ------------------------------------------------------------------ Lecture
 
@@ -130,7 +124,7 @@ def main():
 
     log("=== Lecteur MusiQuali démarré ===")
 
-    # liqte des musiqes déja joués (évite les doublons)
+    # liste des musiques déja jouées (évite les doublons)
     triggered_mu  = set()   # "HH:MM"
     triggered_msg = set()   # "HH:MM"
     current_day   = day_name()
@@ -154,18 +148,19 @@ def main():
             time.sleep(10)
             continue
 
-        mu_slots  = today_slots(mu_data)
-        msg_slots = today_slots(msg_data)
+        mu_slots  = today_mu_slots(mu_data)
+        msg_slots = today_msg_slots(msg_data)
 
         # --- Vérifier les slots MUSIQUE dus ---
         for slot in mu_slots:
             if slot["time"] in triggered_mu:
                 continue
-            if slot_is_due(slot["time"]):#appel de fonction de verif avec décalage de 5 secondes
+            if slot_is_due(slot["time"]):
                 triggered_mu.add(slot["time"])
-                paths = [mp3_path(f) for f in slot["musics"]]
-                log(f">>> MU slot {slot['time']} : {slot['musics']}")
-                # Lance la playlist musique dans un thread pour ne pas bloquer la boucle
+                # ADAPTATION : Extraction de la clé unique "music" au lieu de "musics"
+                paths = [mp3_path(slot["music"])]
+                log(f">>> MU slot {slot['time']} : {slot['music']}")
+                # Lance la piste musique dans un thread pour ne pas bloquer la boucle
                 threading.Thread(
                     target=play_tracks_on_channel,
                     args=(channel_music, paths),
@@ -178,8 +173,7 @@ def main():
                 continue
             if slot_is_due(slot["time"]):
                 triggered_msg.add(slot["time"])
-                # Le message tourne dans son propre thread pour rester non-bloquant,
-                # mais il gère lui-même le volume de channel_music de façon synchrone
+                # Le format de MSG.json reste inchangé, la logique est conservée
                 threading.Thread(
                     target=message_worker,
                     args=(channel_message, channel_music, slot),
