@@ -59,10 +59,10 @@ class SettingsController:
             # 2. Mise à jour du nom d'utilisateur si modifié
             if nouveau_username and nouveau_username != ancien_username:
                 us.setUsername(ancien_username, nouveau_username)
-                # CRUCIAL : On met à jour la session avec le nouveau nom !
                 session['username'] = nouveau_username
-        
-        flash("Votre profil a été mis à jour avec succès !", "success")
+
+        msg_error = ts.message_langue("Votre profil a été mis à jour avec succès !", "Your profile has been successfully updated!") 
+        flash(msg_error, "success")
         return redirect(url_for('profile'))
     
     
@@ -80,18 +80,21 @@ class SettingsController:
         user_valid = us.login(username, ancien_mdp)
         
         if not user_valid:
-            flash("L'ancien mot de passe est incorrect.", "error")
+            msg_error = ts.message_langue("L'ancien mot de passe est incorrect.","The old password is incorrect.")        
+            flash(msg_error, "error")
             return redirect(url_for('profile'))
 
         # 2. On vérifie que le nouveau mot de passe a bien été confirmé sans faute de frappe
         if nouveau_mdp != conf_mdp:
-            flash("Les nouveaux mots de passe ne correspondent pas.", "error")
+            msg_error = ts.message_langue("Les nouveaux mots de passe ne correspondent pas.","The new passwords do not match.")        
+            flash(msg_error, "error")
             return redirect(url_for('profile'))
 
         # 3. Si tout est bon, on utilise la méthode setPassword (qui hache déjà le MDP grâce à notre précédente correction !)
         us.setPassword(username, nouveau_mdp)
-        
-        flash("Votre mot de passe a été modifié avec succès !", "success")
+
+        msg_error = ts.message_langue("Votre mot de passe a été modifié avec succès !","Your password has been successfully changed!")        
+        flash(msg_error, "success")
         return redirect(url_for('profile'))
 
 
@@ -115,8 +118,9 @@ class SettingsController:
             # --- SAUVEGARDE DE LA LANGUE ---
             if langue in ['fr', 'en']:
                 session['lang'] = langue  # On l'enregistre directement ici !
-            
-            flash("Vos préférences ont été enregistrées.", "success")
+
+            msg_error = ts.message_langue("Vos préférences ont été enregistrées.","Your preferences have been saved.")        
+            flash(msg_error, "success")
             return redirect(url_for('settings'))
 
         return render_template('settings.html', user=user, role=role, t=textes, current_lang=langue_choisie)
@@ -165,8 +169,9 @@ class SettingsController:
             entreprise=id_entreprise,
             nouveau_role=nouveau_role
         )
-        
-        flash("Votre requête a bien été envoyée à l'administrateur.", "success")
+
+        msg_error = ts.message_langue("Votre requête a bien été envoyée à l'administrateur.",'Your request has been successfully sent to the administrator.')        
+        flash(msg_error, "success")
         
         # Redirige vers la page d'accueil ou l'historique des requêtes
         return redirect(url_for('requete_form'))
