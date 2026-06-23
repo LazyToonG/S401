@@ -192,16 +192,17 @@
 
         <!-- MODAL LOGS UNIQUE -->
         <div id="logs-modal" class="modal-overlay hidden" onclick="if(event.target === this) closeLogsModal()">
-            <div class="modal-box" style="background-color: #fff; color: #000;">
-                <h3 id="logs-modal-title" style="color: #000;">Logs</h3>
+            <div class="modal-box admin-modal-box" style="max-width: 700px;">
+                <h3 id="logs-modal-title" class="modal-title">Logs</h3>
 
-                <div id="logs-list" class="logs-list" style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:12px;">
-                    <!-- liste des fichiers logs, remplie en JS -->
+                <div id="logs-list" class="logs-list" style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px;">
+                    </div>
+
+                <pre id="logs-content" class="logs-content" style="max-height: 400px; overflow: auto; background-color: #fdfafb; color: #333; padding: 15px; border: 1px solid #e3caca; border-radius: 10px; font-size: 13px; font-family: monospace; white-space: pre-wrap; line-height: 1.5;"></pre>
+
+                <div class="modal-actions-row" style="justify-content: center; margin-top: 20px;">
+                    <button type="button" class="btn-outline-red" onclick="closeLogsModal()">Fermer</button>
                 </div>
-
-                <pre id="logs-content" class="logs-content" style="max-height:300px; overflow:auto; background:#f5f5f5; color:#000; padding:10px; text-align:left;"></pre>
-
-                <button type="button" onclick="closeLogsModal()">Fermer</button>
             </div>
         </div>
 
@@ -488,9 +489,10 @@
                     data.files.forEach(filename => {
                         const btn = document.createElement('button');
                         btn.type = 'button';
-                        btn.style.display = 'block';
-                        btn.style.color = '#000';
-                        btn.style.background = '#eee';
+                        btn.style.cssText = 'background-color: #f5ebeb; color: #651b1b; border: 1px solid #e3caca; padding: 6px 15px; border-radius: 20px; cursor: pointer; font-family: inherit; font-size: 14px; transition: 0.2s ease;';
+                        btn.onmouseover = () => { btn.style.backgroundColor = '#e3caca'; };
+                        btn.onmouseout = () => { btn.style.backgroundColor = '#f5ebeb'; };
+                        
                         btn.innerText = filename;
                         btn.onclick = () => loadLogContent(nom, filename);
                         listDiv.appendChild(btn);

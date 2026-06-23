@@ -309,7 +309,7 @@ body.sombre .tab-pill.active, body.sombre .tab-btn.active {
     background-color: #a71e23 !important;
 }
 
-body.sombre .tab-pill:hover {
+body.sombre .tab-pill:hover, body.sombre .btn-action-red-log:hover {
     background-color: #651b1b;
 }
 
@@ -327,7 +327,7 @@ body.sombre .add-prog-btn, body.sombre .radio-item {
 }
 
 body.sombre .sort-dropdown, body.sombre .btn-modal-white, body.sombre .box-details-link, body.sombre .modal-title, 
-body.sombre .btn-outline-red, body.sombre .btn-refuse {
+body.sombre .btn-outline-red, body.sombre .btn-refuse, body.sombre .btn-action-red-log {
     color: #cc5f5f !important;
 }
 
