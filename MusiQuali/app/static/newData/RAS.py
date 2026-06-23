@@ -21,7 +21,7 @@ MSG_JSON    = os.path.join(BASE_DIR, "MSG.json")
 SOUND_DIR   = os.path.join(BASE_DIR, "rasSound")
 LOG_DIR     = os.path.join(BASE_DIR, "logs")
 
-# ------------------------------------------------------------------ Canaux pygame
+# ------------------------------------------------------------------ Configuration
 CHANNEL_MESSAGE = 1
 MUSIC_VOLUME = 1.0
 
@@ -42,12 +42,6 @@ def log(msg):
 def day_name():
     """Retourne le nom du jour en anglais lowercase (ex: 'monday')."""
     return datetime.now().strftime("%A").lower()
-
-def today_mu_slots(json_data):
-    return sorted(json_data.get(day_name(), []), key=lambda s: s["time"])
-
-def today_msg_slots(json_data):
-    return sorted(json_data.get(day_name(), []), key=lambda s: s["time"])
 
 def load_json(path):
     with open(path, "r", encoding="utf-8") as f:
@@ -88,8 +82,13 @@ def message_worker(channel_msg, slot):
     paths = [mp3_path(f) for f in slot["musics"]]
     log(f"--- MESSAGE slot {slot['time']} : {slot['musics']} ---")
     
+    # Évanouissement / Mute de la musique de fond
     pygame.mixer.music.set_volume(0.0)
+    
+    # Lecture séquentielle des messages
     play_message_tracks(channel_msg, paths)
+    
+    # Restauration du volume
     pygame.mixer.music.set_volume(MUSIC_VOLUME)
     log(f"--- MESSAGE termine, volume musique restauré ---")
 
@@ -104,63 +103,61 @@ def main():
     pygame.mixer.music.set_volume(MUSIC_VOLUME)
     channel_message.set_volume(MUSIC_VOLUME)
 
-    log("=== Lecteur MusiQuali démarré (Mode Hybride Music/Mixer) ===")
+    log("=== Lecteur MusiQuali démarré (Mode Dictionnaire Sécurisé) ===")
 
-    # On stocke directement la DERNIÈRE minute exécutée sous forme de chaîne "HH:MM"
-    last_triggered_minute_mu  = ""
-    last_triggered_minute_msg = ""
+    last_triggered_mu  = ""
+    last_triggered_msg = ""
     current_day   = day_name()
 
     while True:
-        # Récupération de l'heure système actuelle au format "HH:MM"
+        # Heure de référence pour ce cycle de boucle (Format unique ex: "16:19")
         now_str = datetime.now().strftime("%H:%M")
 
+        # Gestion du changement de jour
         if day_name() != current_day:
             log(f"=== Nouveau jour : {day_name()} ===")
-            last_triggered_minute_mu  = ""
-            last_triggered_minute_msg = ""
+            last_triggered_mu  = ""
+            last_triggered_msg = ""
             current_day = day_name()
 
+        # Lecture défensive des fichiers d'export
         try:
             mu_data  = load_json(MU_JSON)
             msg_data = load_json(MSG_JSON)
         except Exception as e:
             log(f"Erreur lecture JSON : {e}")
-            time.sleep(10)
+            time.sleep(5)
             continue
 
-        mu_slots  = today_mu_slots(mu_data)
-        msg_slots = today_msg_slots(msg_data)
+        # Récupération de la liste brute pour le jour courant
+        raw_mu_slots  = mu_data.get(current_day, [])
+        raw_msg_slots = msg_data.get(current_day, [])
 
-        # --- Vérifier les slots MUSIQUE dus ---
-        for slot in mu_slots:
-            slot_time = slot["time"]
+        # CONVERSION EN DICTIONNAIRE UNIQUE (Clé: "HH:MM" -> Valeur: l'objet slot)
+        # Cela écrase de fait tout doublon de structure présent dans le fichier JSON
+        mu_dict  = {slot["time"]: slot for slot in raw_mu_slots}
+        msg_dict = {slot["time"]: slot for slot in raw_msg_slots}
+
+        # --- Déclenchement de la MUSIQUE ---
+        if now_str in mu_dict and now_str != last_triggered_mu:
+            last_triggered_mu = now_str  # Verrouillage immédiat
+            slot = mu_dict[now_str]
+            path = mp3_path(slot["music"])
+            log(f">>> MU slot {now_str} : {slot['music']}")
+            play_bg_music(path)
+
+        # --- Déclenchement des MESSAGES ---
+        if now_str in msg_dict and now_str != last_triggered_msg:
+            last_triggered_msg = now_str  # Verrouillage immédiat
+            slot = msg_dict[now_str]
             
-            # 1. Est-ce que c'est la minute pile de l'horloge ?
-            # 2. Est-ce qu'on a déjà lancé une musique durant cette minute précise ?
-            if slot_time == now_str and now_str != last_triggered_minute_mu:
-                last_triggered_minute_mu = now_str  # On verrouille la minute IMMÉDIATEMENT
-                path = mp3_path(slot["music"])
-                log(f">>> MU slot {slot_time} : {slot['music']}")
-                play_bg_music(path)
-                break # On sort du for pour éviter qu'un doublon dans le JSON de la même minute ne se lance
+            threading.Thread(
+                target=message_worker,
+                args=(channel_message, slot),
+                daemon=True
+            ).start()
 
-        # --- Vérifier les slots MESSAGE dus ---
-        for slot in msg_slots:
-            slot_time = slot["time"]
-            
-            # Même logique de verrouillage par minute pour les messages
-            if slot_time == now_str and now_str != last_triggered_minute_msg:
-                last_triggered_minute_msg = now_str  # On verrouille la minute IMMÉDIATEMENT
-                
-                threading.Thread(
-                    target=message_worker,
-                    args=(channel_message, slot),
-                    daemon=True
-                ).start()
-                break # On sort pour ne pas traiter d'autres messages à la même minute
-
-        # Un sleep de 1 seconde suffit maintenant, car le verrou bloque sur la minute "HH:MM"
+        # Pause d'une seconde complète avant de réévaluer l'horloge système
         time.sleep(1)
 
 if __name__ == "__main__":
