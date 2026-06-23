@@ -1,13 +1,4 @@
 /* =========================
-   BACKGROUND GLOBAL
-========================= */
-body {
-    margin: 0;
-    font-family: Arial;
-    background: linear-gradient(#7a0000, #b00000);
-}
-
-/* =========================
    CONTAINER 2 CARTES
 ========================= */
 .page-container {

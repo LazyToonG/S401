@@ -260,20 +260,16 @@
             text-align: center;
         }
 
-        .btn-upload-red {
+        .btn-action-red {
             background-color: #CE5956;
-            color: white;
-            border: none;
-            padding: 14px 40px;
-            border-radius: 25px;
-            font-size: 16px;
+            color: #fff;
+            border: 1px solid #CE5956;
+            padding: 10px 25px;
+            border-radius: 20px;
+            font-size: 14px;
             cursor: pointer;
-            transition: 0.3s ease;
-            display: block;
-            margin: 0 auto; /* Pour le centrer parfaitement */
-            width: fit-content;
-            min-width: 250px;
-            text-align: center;
+            display: none; /* Caché par défaut */
+            transition: 0.2s;
         }
 
         .btn-upload-red:hover:not(:disabled) {
@@ -281,28 +277,6 @@
         }
 
         .btn-upload-red:disabled {
-            background-color: #e3caca;
-            cursor: not-allowed;
-        }
-
-        /* Bouton d'envoi rouge */
-        .btn-action-red {
-            background-color: #CE5956;
-            color: white;
-            border: none;
-            padding: 14px;
-            border-radius: 25px;
-            font-size: 16px;
-            cursor: pointer;
-            transition: 0.3s ease;
-            width: 100%;
-        }
-
-        .btn-action-red:hover:not(:disabled) {
-            background-color: #a71e23;
-        }
-
-        .btn-action-red:disabled {
             background-color: #e3caca;
             cursor: not-allowed;
         }

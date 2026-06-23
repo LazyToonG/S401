@@ -123,7 +123,7 @@ def envoieChangementPlanning(nom, ip):
     if not ip:
         return False
 
-    source = Path(app.static_folder) / "newData/"  # <-- chemin absolu
+    source = Path(app.static_folder) / "newData"  # <-- chemin absolu
 
     try:
         print(f"Source rsync : {source}")
@@ -166,14 +166,23 @@ def envoieChangementPlanning(nom, ip):
 
 last_sync = {}  # mémorise le dernier rsync par raspberry
 def recupLogs(idLecteur, nom, ip):
-    dest = Path(f"./app/static/raspLogs/{nom}/logs/")
+    dest = Path(app.static_folder) / f"raspLogs/{nom}/"  # <-- sans /logs/
     dest.mkdir(parents=True, exist_ok=True)
-    log = subprocess.run(["rsync", "-avz", "-e", "ssh", f"{nom}@{ip}:/home/{nom}/musiquali/logs/", str(dest)])
     
-    #met en base de données les fichiers récupérer
-    for file in dest.iterdir():
-        if file.is_file():
-            ls.add_log(idLecteur, file.name)
+    log = subprocess.run(
+        ["rsync", "-avz", "-e", "ssh", 
+         f"{nom}@{ip}:/home/{nom}/musiquali/logs/",  # source distante
+         str(dest)],                                   # destination locale
+        capture_output=True, text=True
+    )
+    
+    # Les fichiers arrivent dans dest/logs/
+    logs_dir = dest / "logs"
+    if logs_dir.exists():
+        for file in logs_dir.iterdir():
+            if file.is_file():
+                ls.add_log(idLecteur, file.name)
+    
     return log
 
 def pingRasp(ip):
