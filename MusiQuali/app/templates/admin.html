@@ -725,6 +725,67 @@
         // setInterval(() => {
         //     window.location.reload();
         // }, 20000); // toutes les 20 secondes
+
+        // --- RAFRAÎCHISSEMENT AUTO DES LECTEURS ---
+        async function refreshRaspList() {
+            const container = document.getElementById('rasp-list-container');
+            try {
+                const response = await fetch('/admin/api/rasp_status', {
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                });
+                const data = await response.json();
+
+                if (data.length === 0) {
+                    container.innerHTML = '<div style="padding: 20px; text-align: center; color: #666; font-style: italic;">Aucune Raspberry trouvée.</div>';
+                    return;
+                }
+
+                // Garde l'en-tête
+                const header = container.querySelector('.user-list-item:first-child');
+                container.innerHTML = '';
+                if (header) container.appendChild(header);
+
+                data.forEach((r, index) => {
+                    const etat = r.enLigne
+                        ? '🟢 En ligne'
+                        : `🔴 Hors ligne - ${r.dernierOk}`;
+
+                    const row = document.createElement('div');
+                    row.className = 'user-list-item';
+                    row.dataset.nom = r.nomLecteur.toLowerCase();
+                    row.dataset.ip = r.ip;
+                    row.dataset.index = index;
+                    row.innerHTML = `
+                        <input type="checkbox" class="custom-round-checkbox col-checkbox">
+                        <span class="item-name col-nom">${r.nomLecteur}</span>
+                        <span class="item-name col-ip">${r.ip}</span>
+                        <span class="user-role-text col-role">${etat}</span>
+                        <div class="item-actions" style="display:flex; align-items:center; gap:15px; width:120px; justify-content:flex-end;">
+                            <button class="btn-action-red-log" type="button" onclick="openLogsModal('${r.nomLecteur}')" style="margin:0; padding:5px 8px;">
+                                Voir logs
+                            </button>
+                            <form method="POST" action="/admin/action_rasp" style="margin:0; display:flex;">
+                                <input type="hidden" name="action" value="delete-rasp">
+                                <input type="hidden" name="raspberry-select" value="${r.idLecteur}">
+                                <button type="submit" style="background:none; border:none; cursor:pointer; padding:0; display:flex; align-items:center;">
+                                    <img src="/static/img/delete.png" alt="Delete" class="delete-img">
+                                </button>
+                            </form>
+                        </div>
+                    `;
+                    container.appendChild(row);
+                });
+
+                filterAndSortRasp();
+
+            } catch (err) {
+                console.error('Erreur refreshRaspList:', err);
+            }
+        }
+
+        // Rafraîchit toutes les 5 secondes
+        setInterval(refreshRaspList, 5000);
+        refreshRaspList(); 
     </script>
 </body>
 </html>
