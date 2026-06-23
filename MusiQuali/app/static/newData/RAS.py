@@ -106,8 +106,9 @@ def main():
 
     log("=== Lecteur MusiQuali démarré (Mode Hybride Music/Mixer) ===")
 
-    triggered_mu  = set()
-    triggered_msg = set()
+    # On stocke directement la DERNIÈRE minute exécutée sous forme de chaîne "HH:MM"
+    last_triggered_minute_mu  = ""
+    last_triggered_minute_msg = ""
     current_day   = day_name()
 
     while True:
@@ -116,8 +117,8 @@ def main():
 
         if day_name() != current_day:
             log(f"=== Nouveau jour : {day_name()} ===")
-            triggered_mu.clear()
-            triggered_msg.clear()
+            last_triggered_minute_mu  = ""
+            last_triggered_minute_msg = ""
             current_day = day_name()
 
         try:
@@ -134,27 +135,33 @@ def main():
         # --- Vérifier les slots MUSIQUE dus ---
         for slot in mu_slots:
             slot_time = slot["time"]
-            # Si le slot correspond à la minute pile et n'a pas encore été traité
-            if slot_time == now_str and slot_time not in triggered_mu:
-                triggered_mu.add(slot_time)
+            
+            # 1. Est-ce que c'est la minute pile de l'horloge ?
+            # 2. Est-ce qu'on a déjà lancé une musique durant cette minute précise ?
+            if slot_time == now_str and now_str != last_triggered_minute_mu:
+                last_triggered_minute_mu = now_str  # On verrouille la minute IMMÉDIATEMENT
                 path = mp3_path(slot["music"])
                 log(f">>> MU slot {slot_time} : {slot['music']}")
                 play_bg_music(path)
+                break # On sort du for pour éviter qu'un doublon dans le JSON de la même minute ne se lance
 
         # --- Vérifier les slots MESSAGE dus ---
         for slot in msg_slots:
             slot_time = slot["time"]
-            if slot_time == now_str and slot_time not in triggered_msg:
-                triggered_msg.add(slot_time)
+            
+            # Même logique de verrouillage par minute pour les messages
+            if slot_time == now_str and now_str != last_triggered_minute_msg:
+                last_triggered_minute_msg = now_str  # On verrouille la minute IMMÉDIATEMENT
                 
                 threading.Thread(
                     target=message_worker,
                     args=(channel_message, slot),
                     daemon=True
                 ).start()
+                break # On sort pour ne pas traiter d'autres messages à la même minute
 
-        # On dort 5 secondes pour laisser la minute s'écouler sans saturer le CPU
-        time.sleep(5)
+        # Un sleep de 1 seconde suffit maintenant, car le verrou bloque sur la minute "HH:MM"
+        time.sleep(1)
 
 if __name__ == "__main__":
     main()
