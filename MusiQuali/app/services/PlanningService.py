@@ -10,23 +10,11 @@ DAY_NAMES = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday",
 
 
 class PlanningService:
-    """
-    Couche service pour le planning (calendrier des commerciaux/playlists
-    et calendrier des messages).
-
-    Le front envoie l'état complet du calendrier au moment du Save :
-    une liste de "boxes", chacune avec soit idPlaylist soit idMSG (jamais les
-    deux), un StartTime (ISO 8601), et optionnellement idPlanning si la box
-    existe déjà en bd (auquel cas c'est un update, sinon une création).
-
-    Le service calcule le diff par rapport à ce qui est en bd : les lignes
-    absentes du payload sont supprimées, les nouvelles sont insérées, celles
-    avec idPlanning connu sont mises à jour.
-    """
+    
 
     def __init__(self):
         self.dao = PlanningDAO()
-        self.export_dir = os.path.join(app.static_folder, "rasData")
+        self.export_dir = os.path.join(app.static_folder, "newData")
         self.sound_dir = os.path.join(self.export_dir, "rasSound")
         self.source_music_dir = os.path.join(app.static_folder, "AllMusics")
 
@@ -138,7 +126,7 @@ class PlanningService:
         mu_data  = self._build_day_skeleton()
         needed_filenames = set()
 
-        # --- MSG.json : format inchangé ---
+        # --- MSG.json---
         for slot in message_slots:
             day      = self._day_name_from_start_time(slot["StartTime"])
             time_str = self._time_str_from_start_time(slot["StartTime"])
@@ -147,7 +135,7 @@ class PlanningService:
             msg_data[day].append({"time": time_str, "musics": [filename]})
             needed_filenames.add(filename)
 
-        # --- MU.json : liste plate avec heure calculée par accumulation des durées ---
+        # --- MU.json : liste plate avec heure calculée en additonnant les temps ---
         for slot in playlist_slots:
             day      = self._day_name_from_start_time(slot["StartTime"])
             # StartTime sert de point de départ ; on accumule les durées track par track
@@ -182,7 +170,7 @@ class PlanningService:
             shutil.rmtree(self.sound_dir)
         os.makedirs(self.sound_dir, exist_ok=True)
 
-        missing = []
+        missing = [] #gestion d'erreures
         for filename in needed_filenames:
             source_path = os.path.join(self.source_music_dir, filename)
             if os.path.exists(source_path):

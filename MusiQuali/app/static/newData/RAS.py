@@ -1,10 +1,10 @@
 """
 lecteur.py — Lecteur audio dual-canal pour MusiQuali
 ======================================================
-Canal 0 (musique) : joue les plages de MU.json à l'heure programmée (Format Plat).
+Canal Musique de fond (pygame.mixer.music) : gère MU.json (Format Plat).
 Canal 1 (messages) : déclenche chaque message de MSG.json à l'heure pile.
 """
-#allo
+#allo arthuuuuur
 import os
 import json
 import time
@@ -22,9 +22,7 @@ SOUND_DIR   = os.path.join(BASE_DIR, "rasSound")
 LOG_DIR     = os.path.join(BASE_DIR, "logs")
 
 # ------------------------------------------------------------------ Canaux pygame
-CHANNEL_MUSIC   = 0
 CHANNEL_MESSAGE = 1
-
 MUSIC_VOLUME = 1.0
 
 # ------------------------------------------------------------------ Logging
@@ -46,11 +44,9 @@ def day_name():
     return datetime.now().strftime("%A").lower()
 
 def today_mu_slots(json_data):
-    """Retourne les créneaux musique triés pour aujourd'hui (Format: {'time': ..., 'music': ...})."""
     return sorted(json_data.get(day_name(), []), key=lambda s: s["time"])
 
 def today_msg_slots(json_data):
-    """Retourne les créneaux messages triés pour aujourd'hui (Format: {'time': ..., 'musics': [...]})."""
     return sorted(json_data.get(day_name(), []), key=lambda s: s["time"])
 
 def load_json(path):
@@ -58,12 +54,10 @@ def load_json(path):
         return json.load(f)
 
 def slot_datetime(time_str):
-    """Construit un datetime pour aujourd'hui ."""
     h, m = map(int, time_str.split(":"))
     return datetime.now().replace(hour=h, minute=m, second=0, microsecond=0)
 
 def mp3_path(filename):
-    """Retourne le chemin complet d'un fichier mp3 (en ajoutant .mp3 si absent en cas de douille)."""
     fname = filename if filename.lower().endswith(".mp3") else f"{filename}.mp3"
     return os.path.join(SOUND_DIR, fname)
 
@@ -71,75 +65,82 @@ def slot_is_due(slot_time_str):
     slot_dt = slot_datetime(slot_time_str)
     now = datetime.now()
     delta = (now - slot_dt).total_seconds()
-    return 0 <= delta < 5  # dans la fenêtre de 5 secondes
+    return 0 <= delta < 5  # fenêtre de 5 secondes
 
-# ------------------------------------------------------------------ Lecture
+# ------------------------------------------------------------------ Lecture Musique
 
-def play_tracks_on_channel(channel, filepaths):
-    """
-    Joue une liste de fichiers mp3 séquentiellement sur un canal pygame donné.
-    Bloquant jusqu'à la fin de toute la séquence.
-    """
+def play_bg_music(filepath):
+    """Joue la musique sur le module dédié à la musique de fond."""
+    if not os.path.isfile(filepath):
+        log(f"MISSING {filepath}")
+        return
+    
+    try:
+        # charge et joue (remplace proprement le morceau en cours s'il y en a un)
+        pygame.mixer.music.load(filepath)
+        pygame.mixer.music.play()
+        log(f"played (BG) {os.path.basename(filepath)}")
+    except Exception as e:
+        log(f"Erreur lecture musique {filepath} : {e}")
+
+# ------------------------------------------------------------------ Lecture Messages
+
+def play_message_tracks(channel, filepaths):
+    """Joue les messages sur le canal d'effets (bloquant pour le thread message)."""
     for path in filepaths:
         if not os.path.isfile(path):
             log(f"MISSING {path}")
             continue
-
         sound = pygame.mixer.Sound(path)
         channel.play(sound)
-        log(f"played  {os.path.basename(path)}")
-
-        # Attendre la fin de cette piste
+        log(f"played MSG  {os.path.basename(path)}")
         while channel.get_busy():
             time.sleep(0.1)
 
-# ------------------------------------------------------------------ Canal message 
-
-def message_worker(channel_msg, channel_music, slot):
-    """
-    Joue un slot de message sur channel_msg.
-    Pendant ce temps, met le volume de channel_music à 0 puis le restaure.
-    """
+def message_worker(channel_msg, slot):
+    """Gère l'abaissement du volume de la musique de fond pendant le message."""
     paths = [mp3_path(f) for f in slot["musics"]]
 
     log(f"--- MESSAGE slot {slot['time']} : {slot['musics']} ---")
-    channel_music.set_volume(0.0)
+    
+    # Baisse le volume du module de musique globale
+    pygame.mixer.music.set_volume(0.0)
 
-    play_tracks_on_channel(channel_msg, paths)
+    # Joue le message de manière bloquante
+    play_message_tracks(channel_msg, paths)
 
-    channel_music.set_volume(MUSIC_VOLUME)
+    # Restaure le volume de la musique globale
+    pygame.mixer.music.set_volume(MUSIC_VOLUME)
     log(f"--- MESSAGE termine, volume musique restauré ---")
 
 # ------------------------------------------------------------------ main
 
 def main():
     pygame.mixer.init()
+    # On garde 2 canaux pour les effets/messages si besoin
     pygame.mixer.set_num_channels(2)
 
-    channel_music   = pygame.mixer.Channel(CHANNEL_MUSIC)
     channel_message = pygame.mixer.Channel(CHANNEL_MESSAGE)
-
-    channel_music.set_volume(MUSIC_VOLUME)
+    
+    # Initialisation des volumes
+    pygame.mixer.music.set_volume(MUSIC_VOLUME)
     channel_message.set_volume(MUSIC_VOLUME)
 
-    log("=== Lecteur MusiQuali démarré ===")
+    log("=== Lecteur MusiQuali démarré (Mode Hybride Music/Mixer) ===")
 
-    # liste des musiques déja jouées (évite les doublons)
-    triggered_mu  = set()   # "HH:MM"
-    triggered_msg = set()   # "HH:MM"
+    triggered_mu  = set()
+    triggered_msg = set()
     current_day   = day_name()
 
     while True:
         now = datetime.now()
 
-        # Reset a new day
         if day_name() != current_day:
             log(f"=== Nouveau jour : {day_name()} ===")
             triggered_mu.clear()
             triggered_msg.clear()
             current_day = day_name()
 
-        # Recharge les JSON à chaque cycle (prend en compte les updates du serveur)
         try:
             mu_data  = load_json(MU_JSON)
             msg_data = load_json(MSG_JSON)
@@ -157,15 +158,12 @@ def main():
                 continue
             if slot_is_due(slot["time"]):
                 triggered_mu.add(slot["time"])
-                # ADAPTATION : Extraction de la clé unique "music" au lieu de "musics"
-                paths = [mp3_path(slot["music"])]
+                path = mp3_path(slot["music"])
                 log(f">>> MU slot {slot['time']} : {slot['music']}")
-                # Lance la piste musique dans un thread pour ne pas bloquer la boucle
-                threading.Thread(
-                    target=play_tracks_on_channel,
-                    args=(channel_music, paths),
-                    daemon=True
-                ).start()
+                
+                # Pas besoin de créer un thread complexe, l'appel de charge de la musique 
+                # est quasi-instantané et non-bloquant avec pygame.mixer.music
+                play_bg_music(path)
 
         # --- Vérifier les slots MESSAGE dus ---
         for slot in msg_slots:
@@ -173,10 +171,11 @@ def main():
                 continue
             if slot_is_due(slot["time"]):
                 triggered_msg.add(slot["time"])
-                # Le format de MSG.json reste inchangé, la logique est conservée
+                
+                # Le message tourne dans son thread pour ne pas bloquer la détection temporelle
                 threading.Thread(
                     target=message_worker,
-                    args=(channel_message, channel_music, slot),
+                    args=(channel_message, slot),
                     daemon=True
                 ).start()
 
