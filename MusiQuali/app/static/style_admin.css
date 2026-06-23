@@ -435,3 +435,9 @@
     border-radius: 4px;
 }
 
+/* --- CLASSE POUR LE TRI ACTIF --- */
+.active-sort {
+    background-color: #f5ebeb !important;
+    font-weight: bold;
+    color: #a71e23 !important;
+}
