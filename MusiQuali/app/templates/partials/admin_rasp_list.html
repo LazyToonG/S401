@@ -1,8 +1,8 @@
 <div class="user-list-item" style="font-weight: bold; padding-bottom: 15px; border-bottom: 1px solid #eee;">
     <span class="col-checkbox"></span>
-    <span class="item-name col-nom">Nom</span>
+    <span class="item-name col-nom">{{t.nom}}</span>
     <span class="item-name col-ip">Ip</span>
-    <span class="user-role-text col-role">État</span>
+    <span class="user-role-text col-role">{{t.etat}}</span>
     <div class="item-actions" style="width: 120px;"></div>
 </div>
 
@@ -15,15 +15,15 @@
     
     <span class="user-role-text col-role">
         {% if etatPing.get(r.nomLecteur, False) %}
-            🟢 En ligne
+            🟢 {{t.en_ligne}}
         {% else %}
-            🔴 Hors ligne - {{ dernierOk.get(r.nomLecteur, "Jamais") }}
+            🔴 {{t.hors_ligne}} - {{ dernierOk.get(r.nomLecteur, "Jamais") }}
         {% endif %}
     </span>
     
     <div class="item-actions" style="display: flex; align-items: center; gap: 15px; width: 120px; justify-content: flex-end;">
         <button class="btn-action-red-log" type="button" onclick="openLogsModal('{{ r.nomLecteur }}')" style="margin: 0; padding: 5px 8px;">
-            Voir logs
+            {{t.voir_logs}}
         </button>
         
         <form method="POST" action="/admin/action_rasp" style="margin: 0; display: flex;">
@@ -37,6 +37,6 @@
 </div>
 {% else %}
 <div style="padding: 20px; text-align: center; color: #666; font-style: italic;">
-    Aucune Raspberry trouvée.
+    {{t.rien_rasp}}
 </div>
 {% endfor %}

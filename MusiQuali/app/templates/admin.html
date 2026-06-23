@@ -87,9 +87,9 @@
                     
                     <div class="user-list-item" style="font-weight: bold; padding-bottom: 15px; border-bottom: 1px solid #eee;">
                         <span class="col-checkbox"></span>
-                        <span class="item-name col-nom">Nom</span>
+                        <span class="item-name col-nom">{{t.nom}}</span>
                         <span class="item-name col-ip">Ip</span>
-                        <span class="user-role-text col-role">État</span>
+                        <span class="user-role-text col-role">{{t.etat}}</span>
                         <div class="item-actions" style="width: 120px;"></div>
                     </div>
 
@@ -102,15 +102,15 @@
                         
                         <span class="user-role-text col-role">
                             {% if etatPing.get(r.nomLecteur, False) %}
-                                🟢 En ligne
+                                🟢 {{t.en_ligne}}
                             {% else %}
-                                🔴 Hors ligne - {{ dernierOk.get(r.nomLecteur, "Jamais") }}
+                                🔴 {{t.hors_ligne}} - {{ dernierOk.get(r.nomLecteur, "Jamais") }}
                             {% endif %}
                         </span>
                         
                         <div class="item-actions" style="display: flex; align-items: center; gap: 15px; width: 120px; justify-content: flex-end;">
                             <button class="btn-action-red-log" type="button" onclick="openLogsModal('{{ r.nomLecteur }}')" style="margin: 0; padding: 5px 8px;">
-                                Voir logs
+                                {{t.voir_logs}}
                             </button>
                             
                             <form method="POST" action="/admin/action_rasp" style="margin: 0; display: flex;">
@@ -124,7 +124,7 @@
                     </div>
                     {% else %}
                     <div class="rien" style="padding: 20px; text-align: center; color: #666; font-style: italic;">
-                        Aucune Raspberry trouvée.
+                        {{t.rien_rasp}}
                     </div>
                     {% endfor %}
                 </div>
@@ -135,14 +135,14 @@
                     <div class="tooltip">
                     <img src="{{ url_for('static', filename='img/aide.png') }}" alt="aide" class="aide-img">
                     <span class="tooltip-text">
-                        <h3>Les étapes pour configurer votre Raspberry :</h3>
-                        <h3>Pour pouvoir connecter la Raspberry il y a 3 informations nécéssaire qui nécéssite de chercher directement dans la Raspberry :</h3>
+                        <h3>{{t.etape}}</h3>
+                        <h3>{{t.conn}}</h3>
                         <ul>
-                            <li><strong>Utilisateur :</strong> il faut taper la commande <code>whoami</code></li>
-                            <li><strong>IP :</strong> il faut taper la commande <code>ip a</code> et chercher à la ligne 
-                                <br><code>inet <strong>IPSETROUVEICI</strong> brd ADRESSERESEAU scope global dynamic noprefixroute wlp4s0</code>
-                                <br> ou la première valeur avec la commande <code>hostname -I</code></li>
-                            <li><strong>Mot de passe :</strong> Il est défini lors de la création du Raspberry</li>
+                            <li><strong>{{t.user}}:</strong> {{t.tape_com}} <code>whoami</code></li>
+                            <li><strong>IP:</strong> {{t.tape_com}} <code>ip a</code> {{t.cherche_ligne}} 
+                                <br><code>inet <strong>{{t.iptrouveici}}</strong> brd {{t.adressereseau}} scope global dynamic noprefixroute wlp4s0</code>
+                                <br> {{t.premier_val}} <code>hostname -I</code></li>
+                            <li><strong>{{t.password}}:</strong> {{t.creation_rasp}}</li>
                         </ul>
                     </span>
                 </div>
@@ -201,7 +201,7 @@
                 <pre id="logs-content" class="logs-content" style="max-height: 400px; overflow: auto; background-color: #fdfafb; color: #333; padding: 15px; border: 1px solid #e3caca; border-radius: 10px; font-size: 13px; font-family: monospace; white-space: pre-wrap; line-height: 1.5;"></pre>
 
                 <div class="modal-actions-row" style="justify-content: center; margin-top: 20px;">
-                    <button type="button" class="btn-outline-red" onclick="closeLogsModal()">Fermer</button>
+                    <button type="button" class="btn-outline-red" onclick="closeLogsModal()">{{t.fermer}}</button>
                 </div>
             </div>
         </div>
@@ -299,16 +299,16 @@
         <div id="requests" class="tab-content split-layout">
             
             <div class="requests-sidebar">
-                <h2 class="sidebar-title">Requêtes :</h2>
+                <h2 class="sidebar-title">{{t.requete}}:</h2>
                 <div class="requests-list">
                     {% for req_id, req in requetes.items() %}
                     <div class="request-item" onclick="showRequestDetails('{{ req_id }}', this)">
-                        <div class="req-row"><b>Sujet :</b> <span>{{ req.type | capitalize }}</span></div>
-                        <div class="req-row right"><b>De :</b> <span>{{ req.mail }}</span></div>
+                        <div class="req-row"><b>{{t.sujet}}:</b> <span>{{ req.type | capitalize }}</span></div>
+                        <div class="req-row right"><b>{{t.from}}:</b> <span>{{ req.mail }}</span></div>
                     </div>
                     {% else %}
                     <div class="rien" style="padding: 20px; text-align: center; color: #666; font-style: italic;">
-                        Aucune requête en attente.
+                        {{t.rien_req}}
                     </div>
                     {% endfor %}
                 </div>
@@ -316,21 +316,21 @@
 
             <div class="requests-details" id="req-placeholder">
                 <p class="rien" style="text-align: center; color: #666; margin-top: 50px; font-style: italic;">
-                    Sélectionnez une requête à gauche pour voir les détails.
+                    {{t.select_req}}
                 </p>
             </div>
 
             {% for req_id, req in requetes.items() %}
             <div class="requests-details hidden req-detail-box" id="req-detail-{{ req_id }}">
                 <div class="details-header">
-                    <p><b>Sujet :</b> {{ req.type | capitalize }}</p>
-                    <p><b>De :</b> {{ req.mail }} ({{ req.demandeur }})</p>
-                    <p><b>Rôle demandeur :</b> {{ req.role }} &nbsp;|&nbsp; <b>ID Entreprise :</b> {{ req.entreprise }}</p>
+                    <p><b>{{t.sujet}}:</b> {{ req.type | capitalize }}</p>
+                    <p><b>{{t.from}}:</b> {{ req.mail }} ({{ req.demandeur }})</p>
+                    <p><b>{{t.role_demande}}:</b> {{ req.role }} &nbsp;|&nbsp; <b>{{t.id_entreprise}}:</b> {{ req.entreprise }}</p>
                 </div>
                 
                 <div class="details-body">
                     {% if req.type|lower == 'changement de rôle' %}
-                        <p style="font-size: 16px;"><b>Le rôle demandé est :</b> <span style="color: #a71e23; font-weight: bold;">{{ req.nouveau_role | capitalize }}</span></p>
+                        <p style="font-size: 16px;"><b>{{t.role_demander}}:</b> <span style="color: #a71e23; font-weight: bold;">{{ req.nouveau_role | capitalize }}</span></p>
                     {% else %}
                         <p>{{ req.message }}</p>
                     {% endif %}
@@ -340,12 +340,12 @@
                     <form method="POST" action="/admin/action_requete" style="margin: 0;">
                         <input type="hidden" name="req_id" value="{{ req_id }}">
                         <input type="hidden" name="action" value="accept">
-                        <button type="submit" class="btn-accept">Accepter</button>
+                        <button type="submit" class="btn-accept">{{t.accepter}}</button>
                     </form>
                     <form method="POST" action="/admin/action_requete" style="margin: 0;">
                         <input type="hidden" name="req_id" value="{{ req_id }}">
                         <input type="hidden" name="action" value="refuse">
-                        <button type="submit" class="btn-refuse" onclick="return confirm('Voulez-vous vraiment refuser cette requête ?');">Refuser</button>
+                        <button type="submit" class="btn-refuse" onclick="return confirm('Voulez-vous vraiment refuser cette requête ?');">{{t.refuser}}</button>
                     </form>
                 </div>
             </div>
@@ -753,8 +753,8 @@
 
                 data.forEach((r, index) => {
                     const etat = r.enLigne
-                        ? '🟢 En ligne'
-                        : `🔴 Hors ligne - ${r.dernierOk}`;
+                        ? `🟢 ${t.en_ligne}`
+                        : `🔴 ${t.hors_ligne} - ${r.dernierOk}`;
 
                     const row = document.createElement('div');
                     row.className = 'user-list-item';
