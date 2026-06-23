@@ -15,22 +15,21 @@ class MarketingService:
         self.musicDAO = MusicDAO()
         self.relationDAO = RelationPlaylistMusicDAO() 
 
-    def get_marketing_data(self):
+    def get_marketing_data(self, idEntreprise):
         return {
-        "playlists": self.get_playlists_with_stats(),
-        "musiques": self.get_all_musics()
-            
+            "playlists": self.get_playlists_with_stats(idEntreprise),
+            "musiques": self.get_all_musics(idEntreprise)
         }
 
  # Playlistes       
 
-    def get_playlists(self):
-        return self.playlistDAO.get_all()
+    def get_playlists(self, idEntreprise):
+        return self.playlistDAO.get_all(idEntreprise)
 
-    def get_playlists_with_stats(self):
+    def get_playlists_with_stats(self, idEntreprise):
         """Retourne les playlists enrichies avec nb_musiques et duree_totale."""
-        playlists = self.playlistDAO.get_all()
-        all_musics = {m.idMusique: m for m in self.musicDAO.get_musiques()}
+        playlists = self.playlistDAO.get_all(idEntreprise)
+        all_musics = {m.idMusique: m for m in self.musicDAO.get_musiques(idEntreprise)}
         result = []
         for p in playlists:
             rows = self.relationDAO.get_musiques_by_playlist(p.idPlaylist)
@@ -75,8 +74,8 @@ class MarketingService:
 # Musiques
 
     
-    def get_all_musics(self):
-        return self.musicDAO.get_musiques()
+    def get_all_musics(self, idEntreprise):
+        return self.musicDAO.get_musiques(idEntreprise)
 
     def add_music(self, nomMusique, duree, idEntreprise):
         return self.musicDAO.create(nomMusique, duree, idEntreprise)

@@ -34,7 +34,12 @@ def reqrole(*role):
 
             current_role = session.get('role')
             if current_role not in role:
-                abort(403)
+                if current_role=="admin":
+                    return redirect(url_for('admin_dashboard'))
+                elif current_role=="commercial":
+                    return redirect(url_for('commercial_page'))
+                elif current_role=="marketing":
+                    return redirect(url_for('marketing'))
             return f(*args, **kwargs)
         return verifyRole
     return wrap
@@ -109,7 +114,9 @@ class LoginController:
                 elif user.role == "marketing":
                     return redirect(url_for("marketing"))
                 elif user.role == "commercial":
-                    return redirect(url_for("voir_planning"))
+                    return redirect(url_for("commercial_page"))
+                elif user.role == "modo":
+                    return redirect(url_for("entreprise_dashboard"))
                 else:
                     return redirect(url_for("index"))
             else:
@@ -136,7 +143,7 @@ class LoginController:
             email = request.form.get('email')
             
             # 1. On cherche si l'utilisateur existe avec cet e-mail
-            user = us.getUserByEmail(email)
+            user = us.getUserByEmail(email, idEntreprise=None)
             
             if user:
                 # 2. On crée le sérialiseur avec la clé secrète de l'application

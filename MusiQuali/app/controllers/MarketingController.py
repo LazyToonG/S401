@@ -12,12 +12,13 @@ ts = Traductionservice()
 
 
 @app.route("/marketing")
+@reqrole("admin","marketing")
 def marketing():
-    traductions=ts.tradMarketing()
-
-    langue_choisie=ts.getLangue()
+    traductions = ts.tradMarketing()
+    langue_choisie = ts.getLangue()
     textes = traductions[langue_choisie]
-    data = marketingService.get_marketing_data()
+    idEntreprise = session['idEntreprise']
+    data = marketingService.get_marketing_data(idEntreprise)
     return render_template(
         "marketing.html",
         playlists=data["playlists"],
@@ -45,10 +46,11 @@ def playlist_tracks(playlist_id):
 @app.route("/marketing/playlists", methods=["GET"])
 @reqrole('admin', 'marketing')
 def get_playlists_json():
+    idEntreprise = session['idEntreprise']
     """Retourne la liste des playlists en JSON (pour le calendrier des commerciaux)."""
-    data = marketingService.get_marketing_data()
+    data = marketingService.get_marketing_data(idEntreprise)
     return jsonify([
-        {"idPlaylist": p["idPlaylist"], "title": p["title"]}
+        {"idPlaylist": p["idPlaylist"], "title": p["title"], "duree_totale": p["duree_totale"]}
         for p in data["playlists"]
     ])
 
@@ -70,7 +72,6 @@ def delete_playlist(playlist_id):
         return '', 204
     return redirect(url_for("marketing"))
 
-
 @app.route("/marketing/musiques", methods=["GET"])
 @reqrole('admin', 'marketing')
 def get_musiques_json():
@@ -78,7 +79,8 @@ def get_musiques_json():
     Retourne la liste des musiques en JSON. Filtre optionnel via ?prefix=MSG_
     (utilisé par le calendrier des messages pour n'afficher que les MSG_*).
     """
-    data = marketingService.get_marketing_data()
+    idEntreprise = session['idEntreprise']
+    data = marketingService.get_marketing_data(idEntreprise)
     musiques = data["musiques"]
 
     prefix = request.args.get("prefix")

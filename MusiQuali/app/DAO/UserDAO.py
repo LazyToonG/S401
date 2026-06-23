@@ -42,6 +42,16 @@ class UserSqliteDAO():
         if not admin_exists:
             self.createUser("admin", "admin", "admin", "admin@musiquali.com", 5)
 
+        # Vérifier si un modo existe déjà
+        cursor.execute("""
+            SELECT 1 FROM Users WHERE username = 'modo' LIMIT 1;
+        """)
+        modo_exists = cursor.fetchone() is not None
+
+        # Créer admin uniquement s’il n’existe pas
+        if not modo_exists:
+            self.createUser("modo", "modo", "modo", "modo@musiquali.com", 5)
+
         conn.commit()
         conn.close()
 
@@ -70,11 +80,18 @@ class UserSqliteDAO():
         conn.close()
         return User(**dict(user)) if user else None
     
-    def getByEmail(self, mail, idEntreprise):
+    def getByEmail(self, mail, idEntreprise=None):
         conn = self._getDbConnection()
-        user = conn.execute(
-            "SELECT * FROM Users WHERE mail = ? AND idEntreprise = ?", (mail, idEntreprise)
-        ).fetchone()
+        if idEntreprise:
+            user = conn.execute(
+                "SELECT * FROM Users WHERE mail = ? AND idEntreprise = ?",
+                (mail, idEntreprise)
+            ).fetchone()
+        else:
+            user = conn.execute(
+                "SELECT * FROM Users WHERE mail = ?",
+                (mail,)
+            ).fetchone()
         conn.close()
         return User(**dict(user)) if user else None
 

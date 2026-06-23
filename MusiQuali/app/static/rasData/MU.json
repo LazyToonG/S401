@@ -2,7 +2,13 @@
   "monday": [
     {
       "time": "02:04",
-      "musics": []
+      "musics": [
+        "emotional-damage-meme(2).mp3",
+        "emotional-damage-meme(3).mp3",
+        "emotional-damage-meme(1).mp3",
+        "emotional-damage-meme(1).mp3",
+        "emotional-damage-meme(3).mp3"
+      ]
     },
     {
       "time": "06:00",
@@ -14,7 +20,18 @@
       ]
     }
   ],
-  "tuesday": [],
+  "tuesday": [
+    {
+      "time": "07:00",
+      "musics": [
+        "emotional-damage-meme(2).mp3",
+        "emotional-damage-meme(3).mp3",
+        "emotional-damage-meme(1).mp3",
+        "emotional-damage-meme(1).mp3",
+        "emotional-damage-meme(3).mp3"
+      ]
+    }
+  ],
   "wednesday": [
     {
       "time": "08:00",

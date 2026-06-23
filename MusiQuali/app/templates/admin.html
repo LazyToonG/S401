@@ -87,7 +87,7 @@
 
                 <div class="users-list" id="rasp-list-container">
                     
-                    <div class="user-list-item" style="font-weight: bold; padding-bottom: 15px; border-bottom: 1px solid #eee;">
+                    <div class="user-list-item list-header-fixed" style="font-weight: bold; padding-bottom: 15px; border-bottom: 1px solid #eee;">
                         <span class="col-checkbox"></span>
                         <span class="item-name col-nom">Nom</span>
                         <span class="item-name col-ip">Ip</span>
@@ -362,8 +362,7 @@
                 
                 <input type="hidden" id="original_username" name="original_username">
                 <input type="hidden" id="original_email" name="original_email">
-
-                <div class="input-group">
+                <input type="hidden" id="original_role" name="original_role"> <div class="input-group">
                     <label style="color: #651b1b;">{{t.name_user}}</label>
                     <input type="text" id="edit_username" name="edit_username" class="transparent-input">
                 </div>
@@ -371,6 +370,16 @@
                     <label style="color: #651b1b;">{{t.mail}}</label>
                     <input type="email" id="edit_email" name="edit_email" class="transparent-input">
                 </div>
+                
+                <div class="input-group">
+                    <label style="color: #651b1b;">{{t.role}}</label>
+                    <select id="edit_role" name="edit_role" class="transparent-input" style="width: 100%; padding: 12px; border: 1px solid #5d1b1b5a; border-radius: 6px; font-size: 14px; outline: none; background-color: transparent;">
+                        <option value="commercial">{{t.commercial}}</option>
+                        <option value="marketing">{{t.marketing}}</option>
+                        <option value="admin">{{t.admin}}</option>
+                    </select>
+                </div>
+
                 <div class="modal-actions-row">
                     <button type="submit" class="btn-action-red">{{t.enregistrer}}</button>
                     <button type="button" class="btn-outline-red" onclick="closeUserModal()">{{t.cancel}}</button>
@@ -512,12 +521,14 @@
         }
 
         // --- FONCTIONS MODALE (Modification Utilisateur) ---
-        function openUserModal(username, email) {
+        function openUserModal(username, email, role) {
             document.getElementById('original_username').value = username;
             document.getElementById('original_email').value = email;
+            document.getElementById('original_role').value = role;
             
             document.getElementById('edit_username').value = username;
             document.getElementById('edit_email').value = email;
+            document.getElementById('edit_role').value = role;
             
             document.getElementById('user-modal-overlay').classList.remove('hidden');
         }
@@ -632,6 +643,5 @@
         //     window.location.reload();
         // }, 20000); // toutes les 20 secondes
     </script>
-    <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 </html>
