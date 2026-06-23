@@ -73,6 +73,12 @@ def mp3_path(filename):
     fname = filename if filename.lower().endswith(".mp3") else f"{filename}.mp3"
     return os.path.join(SOUND_DIR, fname)
 
+def slot_is_due(slot_time_str):
+    slot_dt = slot_datetime(slot_time_str)
+    now = datetime.now()
+    delta = (now - slot_dt).total_seconds()
+    return 0 <= delta < 5  # dans la fenêtre d'une minute
+
 # ------------------------------------------------------------------ Lecture
 
 def play_tracks_on_channel(channel, filepaths):
@@ -155,7 +161,7 @@ def main():
         for slot in mu_slots:
             if slot["time"] in triggered_mu:
                 continue
-            if now == slot_datetime(slot["time"]):
+            if slot_is_due(slot["time"]):#appel de fonction de verif avec décalage de 5 secondes
                 triggered_mu.add(slot["time"])
                 paths = [mp3_path(f) for f in slot["musics"]]
                 log(f">>> MU slot {slot['time']} : {slot['musics']}")
@@ -170,7 +176,7 @@ def main():
         for slot in msg_slots:
             if slot["time"] in triggered_msg:
                 continue
-            if now == slot_datetime(slot["time"]):
+            if slot_is_due(slot["time"]):
                 triggered_msg.add(slot["time"])
                 # Le message tourne dans son propre thread pour rester non-bloquant,
                 # mais il gère lui-même le volume de channel_music de façon synchrone
