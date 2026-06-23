@@ -53,30 +53,18 @@ def load_json(path):
     with open(path, "r", encoding="utf-8") as f:
         return json.load(f)
 
-def slot_datetime(time_str):
-    h, m = map(int, time_str.split(":"))
-    return datetime.now().replace(hour=h, minute=m, second=0, microsecond=0)
-
 def mp3_path(filename):
     fname = filename if filename.lower().endswith(".mp3") else f"{filename}.mp3"
     return os.path.join(SOUND_DIR, fname)
 
-def slot_is_due(slot_time_str):
-    slot_dt = slot_datetime(slot_time_str)
-    now = datetime.now()
-    delta = (now - slot_dt).total_seconds()
-    return 0 <= delta < 5  # fenêtre de 5 secondes
-
 # ------------------------------------------------------------------ Lecture Musique
 
 def play_bg_music(filepath):
-    """Joue la musique sur le module dédié à la musique de fond."""
     if not os.path.isfile(filepath):
         log(f"MISSING {filepath}")
         return
     
     try:
-        # charge et joue (remplace proprement le morceau en cours s'il y en a un)
         pygame.mixer.music.load(filepath)
         pygame.mixer.music.play()
         log(f"played (BG) {os.path.basename(filepath)}")
@@ -86,7 +74,6 @@ def play_bg_music(filepath):
 # ------------------------------------------------------------------ Lecture Messages
 
 def play_message_tracks(channel, filepaths):
-    """Joue les messages sur le canal d'effets (bloquant pour le thread message)."""
     for path in filepaths:
         if not os.path.isfile(path):
             log(f"MISSING {path}")
@@ -98,18 +85,11 @@ def play_message_tracks(channel, filepaths):
             time.sleep(0.1)
 
 def message_worker(channel_msg, slot):
-    """Gère l'abaissement du volume de la musique de fond pendant le message."""
     paths = [mp3_path(f) for f in slot["musics"]]
-
     log(f"--- MESSAGE slot {slot['time']} : {slot['musics']} ---")
     
-    # Baisse le volume du module de musique globale
     pygame.mixer.music.set_volume(0.0)
-
-    # Joue le message de manière bloquante
     play_message_tracks(channel_msg, paths)
-
-    # Restaure le volume de la musique globale
     pygame.mixer.music.set_volume(MUSIC_VOLUME)
     log(f"--- MESSAGE termine, volume musique restauré ---")
 
@@ -117,12 +97,10 @@ def message_worker(channel_msg, slot):
 
 def main():
     pygame.mixer.init()
-    # On garde 2 canaux pour les effets/messages si besoin
     pygame.mixer.set_num_channels(2)
 
     channel_message = pygame.mixer.Channel(CHANNEL_MESSAGE)
     
-    # Initialisation des volumes
     pygame.mixer.music.set_volume(MUSIC_VOLUME)
     channel_message.set_volume(MUSIC_VOLUME)
 
@@ -133,7 +111,8 @@ def main():
     current_day   = day_name()
 
     while True:
-        now = datetime.now()
+        # Récupération de l'heure système actuelle au format "HH:MM"
+        now_str = datetime.now().strftime("%H:%M")
 
         if day_name() != current_day:
             log(f"=== Nouveau jour : {day_name()} ===")
@@ -154,32 +133,28 @@ def main():
 
         # --- Vérifier les slots MUSIQUE dus ---
         for slot in mu_slots:
-            if slot["time"] in triggered_mu:
-                continue
-            if slot_is_due(slot["time"]):
-                triggered_mu.add(slot["time"])
+            slot_time = slot["time"]
+            # Si le slot correspond à la minute pile et n'a pas encore été traité
+            if slot_time == now_str and slot_time not in triggered_mu:
+                triggered_mu.add(slot_time)
                 path = mp3_path(slot["music"])
-                log(f">>> MU slot {slot['time']} : {slot['music']}")
-                
-                # Pas besoin de créer un thread complexe, l'appel de charge de la musique 
-                # est quasi-instantané et non-bloquant avec pygame.mixer.music
+                log(f">>> MU slot {slot_time} : {slot['music']}")
                 play_bg_music(path)
 
         # --- Vérifier les slots MESSAGE dus ---
         for slot in msg_slots:
-            if slot["time"] in triggered_msg:
-                continue
-            if slot_is_due(slot["time"]):
-                triggered_msg.add(slot["time"])
+            slot_time = slot["time"]
+            if slot_time == now_str and slot_time not in triggered_msg:
+                triggered_msg.add(slot_time)
                 
-                # Le message tourne dans son thread pour ne pas bloquer la détection temporelle
                 threading.Thread(
                     target=message_worker,
                     args=(channel_message, slot),
                     daemon=True
                 ).start()
 
-        time.sleep(2)
+        # On dort 5 secondes pour laisser la minute s'écouler sans saturer le CPU
+        time.sleep(5)
 
 if __name__ == "__main__":
     main()
