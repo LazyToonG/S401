@@ -125,7 +125,8 @@ def envoieChangementPlanning(nom, ip):
 
     try:
         subprocess.run(
-            ["rsync", "-avz", "--delete", "-e", "ssh", "./app/static/rasdata/", f"{nom}@{ip}:/home/{nom}/musiquali/"],
+            # ["rsync", "-avz", "--delete", "-e", "ssh", "./app/static/rasdata/", f"{nom}@{ip}:/home/{nom}/musiquali/"],
+            ["rsync", "-avz", "--delete", "-e", "ssh", "./app/static/newData/", f"{nom}@{ip}:/home/{nom}/musiquali/"],
             check=True,
             capture_output=True,
             text=True,

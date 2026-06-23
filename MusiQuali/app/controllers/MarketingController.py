@@ -8,9 +8,6 @@ marketingService = MarketingService()
 
 ts = Traductionservice()
 
-
-
-
 @app.route("/marketing")
 @reqrole("admin","marketing")
 def marketing():
