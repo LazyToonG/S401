@@ -11,7 +11,7 @@ puis le remonte.
     musiquali/MSG.json
     musiquali/rasSound/les mp3         
 """
-
+#allo
 import os
 import json
 import time
