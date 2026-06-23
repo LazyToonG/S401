@@ -51,7 +51,8 @@ class SigninController:
 
                 # CAS 1 - succès création
                 if result:
-                    flash("Utilisateur créé avec succès !", "success")
+                    msg_error = ts.message_langue("Utilisateur créé avec succès !","User created successfully!") 
+                    flash(msg_error, "success")
                     return render_template("admin.html",
                         msg_error="user created",
                         t=textes,
@@ -69,7 +70,8 @@ class SigninController:
                     )
                 # CAS 1 - erreur création
                 else:
-                    flash("Erreur : Impossible de créer l'utilisateur.", "error")
+                    msg_error = ts.message_langue("Erreur : Impossible de créer l'utilisateur.","Error: Unable to create the user.") 
+                    flash(msg_error, "error")
                     return render_template("admin.html",
                         msg_error="creation error",
                         t=textes,
@@ -104,11 +106,11 @@ class SigninController:
                 )
 
                 # 3. Message de succès pour le visiteur
-                message = ts.message_langue(
+                msg_error = ts.message_langue(
                     "Votre demande d'inscription a bien été envoyée à l'administrateur.", 
                     "Your registration request has been sent."
                 )
-                flash(message, "success")
+                flash(msg_error, "success")
                 
                 return redirect(url_for("signin"))
                     

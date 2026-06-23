@@ -37,31 +37,38 @@ def addRaspberry():#manque trad pour les flash
             print(f"Vérification de l'IP : {ip}")
             ipaddress.IPv4Address(ip)
         except ipaddress.AddressValueError:
-            flash("IP invalide", "error")
+            message=ts.message_langue("IP invalide","Invalid IP address")
+            flash(message, "error")
             return redirect(url_for("admin_dashboard"))
         # subprocess.run(["scp", "-r", "./app/static/rasdata/*", f"{nom}@{ip}:/home/{nom}/musiquali/"])
         # print(f"sshpass -p {mdp} ssh-copy-id -o StrictHostKeyChecking=no {nom}@{ip}")
         subprocess.run(["sshpass", "-p", mdp, "ssh-copy-id", "-o", "StrictHostKeyChecking=no", f"{nom}@{ip}"], check=True, timeout=8, capture_output=True, text=True)
 
     except subprocess.TimeoutExpired:
-        flash("Délai dépassé : le Raspberry ne répond pas", "error")
+        message=ts.message_langue("Délai dépassé : le Raspberry ne répond pas","Timeout: the Raspberry is not responding")
+        flash(message, "error")
         return redirect(url_for("admin_dashboard"))
     
     except subprocess.CalledProcessError as e:
         error = (e.stderr or "").lower()
 
         if "permission denied" in error:
-            flash("Mot de passe SSH incorrect", "error")
+            message=ts.message_langue("Mot de passe SSH incorrect","Incorrect SSH password")
+            flash(message, "error")
         elif "connection refused" in error:
-            flash("Connexion refusée (SSH off ?)", "error")
+            message=ts.message_langue("Connexion refusée (SSH off ?)","Connection refused (SSH disabled?)")
+            flash(message, "error")
         elif "no route to host" in error:
-            flash("Raspberry inaccessible", "error")
+            message=ts.message_langue("Raspberry inaccessible","Raspberry is unreachable")
+            flash(message, "error")
         else:
-            flash("Erreur SSH inconnue", "error")
+            message=ts.message_langue("Erreur : SSH inconnue","Error: Unknown SSH")
+            flash(message, "error")
         return redirect(url_for("admin_dashboard")) 
 
     rs.ajoutR(nom, ip, session["idEntreprise"])#mettre mdp <----------------------
-    flash("Raspberry ajouté avec succès", "success")
+    message=ts.message_langue("Raspberry ajouté avec succès","Raspberry successfully added")
+    flash(message, "success")
     return redirect(url_for("admin_dashboard"))
 
 @app.route("/admin/action_rasp", methods=["POST"])
@@ -71,13 +78,15 @@ def action_rasp():
     rasp_id = request.form.get("raspberry-select")
 
     if rasp_id is None:
-        flash("Aucun Raspberry sélectionné", "error")
+        message=ts.message_langue("Aucun Raspberry sélectionné","No Raspberry selected")
+        flash(message, "error")
         return redirect(url_for("admin_dashboard"))
 
     rasp = rs.getRasp(rasp_id)
 
     if not rasp:
-        flash("Raspberry introuvable", "error")
+        message=ts.message_langue("Raspberry introuvable","Raspberry not found")
+        flash(message, "error")
         return redirect(url_for("admin_dashboard"))
 
     nom = rasp["nomLecteur"]
@@ -106,9 +115,11 @@ def action_rasp():
     #tmp
     elif button == "test":
         if envoieChangementPlanning(nom, ip):
-            flash("Envoi du planning OK", "success")
+            message=ts.message_langue("Envoi du planning OK","Schedule sent – OK")
+            flash(message, "success")
         else:
-            flash("Pas de Raspberry trouvé", "error")
+            message=ts.message_langue("Pas de Raspberry trouvé","No Raspberry found")
+            flash(message, "error")
 
         
     return redirect(url_for("admin_dashboard"))

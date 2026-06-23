@@ -184,7 +184,8 @@ def create_user():
     entreprise = session.get("idEntreprise", 1)
 
     if not username or not password or not role or not mail:
-        flash("Tous les champs sont obligatoires", "error")
+        msg_error = ts.message_langue("Tous les champs sont obligatoires","All fields are compulsory")
+        flash(msg_error, "error")
         return redirect(url_for("admin_dashboard", _anchor="users"))
 
     # On lance la création et on STOCK le résultat dans une variable
@@ -334,7 +335,8 @@ def action_requete():
     requetes = req_dao.lire_json()
     
     if req_id not in requetes:
-        flash("Cette requête n'existe plus.", "error")
+        msg_error = ts.message_langue("Cette requête n'existe plus.","This request no longer exists.")
+        flash(msg_error, "error")
         return redirect(url_for("admin_dashboard", _anchor="requests"))
         
     req = requetes[req_id]

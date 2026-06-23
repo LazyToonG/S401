@@ -37,7 +37,8 @@ def delete_entreprise(idEntreprise):
         us.deleteUserIdentreprise(idEntreprise)
         es.deleteEntreprise(idEntreprise)
 
-        flash("Entreprise supprimée avec succès", "success")
+        msg_error = ts.message_langue("Entreprise supprimée avec succès","Company successfully deleted")
+        flash(msg_error, "success")
 
     except Exception as e:
         print("DELETE ERROR:", e)   # 👈 IMPORTANT
@@ -56,7 +57,8 @@ def create_entreprise():
         if not idEntreprise:
             raise Exception("Création entreprise échouée")
 
-        flash("Entreprise créée avec succès", "success")
+        msg_error = ts.message_langue("Entreprise créée avec succès","Company succefully created")
+        flash(msg_error, "success")
 
         mail = f"{nomEntreprise}_{idEntreprise}@mail.com"
 
@@ -70,6 +72,7 @@ def create_entreprise():
 
     except Exception as e:
         print(e)
-        flash("Erreur lors de la création de l'entreprise", "error")
+        msg_error = ts.message_langue("Erreur lors de la création de l'entreprise","Error whilst setting up the business")
+        flash(msg_error, "error")
 
     return redirect(url_for("entreprise_dashboard"))

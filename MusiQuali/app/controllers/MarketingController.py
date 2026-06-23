@@ -117,7 +117,9 @@ def upload_music():
     if not files:
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
             return {"error": "Aucun fichier sélectionné"}, 400
-        flash("Aucun fichier sélectionné", "error")
+        
+        msg_error = ts.message_langue("Aucun fichier sélectionné","No files selected")        
+        flash(msg_error, "error")
         return redirect(url_for("marketing"))
 
     created = marketingService.save_music_files(files, session['idEntreprise'])
@@ -130,7 +132,8 @@ def upload_music():
             ]
         }
 
-    flash("Musique(s) ajoutée(s) avec succès", "success")
+    msg_error = ts.message_langue("Musique(s) ajoutée(s) avec succès","Track(s) successfully added")      
+    flash(msg_error, "success")
     return redirect(url_for("marketing"))
 
 
