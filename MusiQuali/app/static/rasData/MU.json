@@ -1,8 +1,13 @@
 {
   "monday": [
     {
+      "time": "02:04",
+      "musics": []
+    },
+    {
       "time": "06:00",
       "musics": [
+        "tf_nemesis.mp3",
         "fbi-open-up_dwLhIFf.mp3",
         "emotional-damage-meme.mp3",
         "spiderman-meme-song.mp3"
