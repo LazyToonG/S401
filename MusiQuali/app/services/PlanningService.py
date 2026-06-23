@@ -26,7 +26,7 @@ class PlanningService:
 
     def __init__(self):
         self.dao = PlanningDAO()
-        self.export_dir = os.path.join(app.static_folder, "rasData")
+        self.export_dir = os.path.join(app.static_folder, "newData")
         self.sound_dir = os.path.join(self.export_dir, "rasSound")
         self.source_music_dir = os.path.join(app.static_folder, "AllMusics")
 
@@ -110,10 +110,10 @@ class PlanningService:
     def export_planning(self, idEntreprise=1):
         """
         Génère MU.json (playlists), MSG.json (messages), et copie les mp3
-        référencés dans static/rasData/rasSound. Tout est régénéré à neuf
+        référencés dans static/newData/rasSound. Tout est régénéré à neuf
         à chaque appel (le dossier rasSound est vidé puis reconstruit).
 
-        Format de chaque fichier :
+        Format :
         {
             "monday": [ {"time": "13:30", "musics": ["a.mp3", "b.mp3"]}, ... ],
             "tuesday": [...],

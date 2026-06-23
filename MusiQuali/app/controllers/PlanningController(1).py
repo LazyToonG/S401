@@ -53,7 +53,7 @@ def save_planning():
     Reçoit l'état complet des deux calendriers et synchronise la bd
     (insert / update / delete par diff).
 
-    Payload JSON attendu:
+     JSON attendu:
     {
         "idEntreprise": 1,
         "boxes": [
