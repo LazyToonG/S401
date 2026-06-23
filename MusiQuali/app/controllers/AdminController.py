@@ -170,6 +170,10 @@ def create_user():
                 message=ts.message_langue("Nom d'utilisateur déjà existant","Username already exists")
                 flash(message, "error")
                 return redirect(url_for("admin_dashboard"))
+            elif users.mail==mail:
+                message=ts.message_langue("Email déjà existant","Email already exists")
+                flash(message, "error")
+                return redirect(url_for("admin_dashboard"))
                 
     user_service.signin(username, password, role, mail, entreprise)
 
@@ -186,14 +190,20 @@ def delete_user():
 
     decision=request.form.get("decision")
     if decision=="cancel" :
+        message=ts.message_langue("Suppression annulée","Deletion cancelled")
+        flash(message, "success")
         return redirect(url_for("admin_dashboard", _anchor="users"))
     
     username = request.form.get("username")
 
     if username==user:
+        message=ts.message_langue("Impossible de supprimer l'utilisateur actuellement connecté","Unable to delete the currently logged-in user")
+        flash(message, "error")
         return redirect(url_for("admin_dashboard", _anchor="users"))
     
     user_service.deleteUser(username, id_entreprise)
+    message=ts.message_langue("Utilisateur supprimé avec succès","User successfully deleted")
+    flash(message, "success")
 
     return redirect(url_for("admin_dashboard", _anchor="users"))
 
