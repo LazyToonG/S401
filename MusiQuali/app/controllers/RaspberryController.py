@@ -131,7 +131,7 @@ def envoieChangementPlanning(nom, ip):
         print(f"Contenu : {list(source.iterdir())}")
         subprocess.run(
             # ["rsync", "-avz", "--delete", "-e", "ssh", "./app/static/rasdata/", f"{nom}@{ip}:/home/{nom}/musiquali/"],
-            ["rsync", "-avz", "--delete", "-e", "ssh", str(source) + "/", f"{nom}@{ip}:/home/{nom}/musiquali/"],
+            ["rsync", "-avz", "--delete", "--exclude=logs/", "-e", "ssh", str(source) + "/", f"{nom}@{ip}:/home/{nom}/musiquali/"],
             check=True,
             capture_output=True,
             text=True,
