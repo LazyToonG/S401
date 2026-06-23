@@ -1,0 +1,2 @@
+[2026-06-23 11:59:46] Erreur lecture JSON : [Errno 2] No such file or directory: '/home/darragh/musiquali/rasData/MU.json'
+[2026-06-23 11:59:48] Erreur lecture JSON : [Errno 2] No such file or directory: '/home/darragh/musiquali/rasData/MU.json'
