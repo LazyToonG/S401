@@ -114,7 +114,6 @@
 
         /* --- LES BOÎTES PROGRAMMÉES --- */
         .scheduled-box {
-            overflow-x: none;
             background-color: #fff;
             border: 1px solid #d3c4c4;
             border-radius: 8px;
@@ -135,9 +134,6 @@
         .box-title {
             font-size: 14px;
             font-weight: normal;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
         }
 
         .box-details-link {
@@ -471,14 +467,14 @@
                 newBox.dataset.idPlaylist = item.idPlaylist;
                 newBox.innerHTML = `
                     <div class="box-header"><span><b>${time} - ${endTime}</b></span> <button class="delete-box-btn" onclick="deleteBox(this)">&times;</button></div>
-                    <div class="box-title" title="${item.title}">${item.title}</div>
+                    <div class="box-title">${item.title}</div>
                     <div class="box-details-link" onclick="openDetailsModal('${item.idPlaylist}', '${item.title.replace(/'/g, "\\'")}')">+ Détails</div>
                 `;
             } else {
                 newBox.dataset.idMusique = item.idMusique;
                 newBox.innerHTML = `
                     <div class="box-header"><span><b>${time} - ${endTime}</b></span> <button class="delete-box-btn" onclick="deleteBox(this)">&times;</button></div>
-                    <div class="box-title" title="${item.nomMusique}">${item.nomMusique}</div>
+                    <div class="box-title">${item.nomMusique}</div>
                 `;
             }
 
