@@ -311,6 +311,32 @@
             background: none;
             border: none;
         }
+
+        /* --- NOTIFICATION DE MISE À JOUR --- */
+        @keyframes slideInUpToast {
+            from { transform: translateY(100px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .update-toast {
+            position: fixed; bottom: 30px; right: 30px;
+            background-color: #a71e23; color: white;
+            padding: 15px 25px; border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            z-index: 9999; display: flex; align-items: center; gap: 20px;
+            animation: slideInUpToast 0.5s ease-out;
+            border: 1px solid #651b1b;
+        }
+        .update-toast button {
+            background-color: #fff; color: #651b1b; border: none;
+            padding: 8px 15px; border-radius: 20px; cursor: pointer;
+            font-weight: bold; font-family: inherit; transition: 0.2s;
+        }
+        .update-toast button:hover { background-color: #f5ebeb; }
+        .update-toast-close {
+            background: none !important; color: white !important; font-size: 24px !important;
+            padding: 0 !important; margin: 0 !important; cursor: pointer; opacity: 0.7;
+        }
+        .update-toast-close:hover { opacity: 1; }
     </style>
 </head>
 <body>
@@ -734,8 +760,78 @@
             } catch (err) { console.error(err); }
         }
 
-        // --- LA LIGNE MAGIQUE : Appelle la fonction toutes les 5 secondes ---
-        setInterval(loadPlanning, 5000);
+        // =========================================================
+        // --- SYSTÈME DE NOTIFICATION DE CHANGEMENT (PLANNING) ---
+        // =========================================================
+        
+        let currentPlanningSignature = "";
+        let planningUpdateCheckInterval;
+
+        // 1. Crée une "empreinte" textuelle des données de la Base de Données
+        async function fetchPlanningSignature() {
+            try {
+                const res = await fetch('/planning/data?idEntreprise=1', { headers: { 'X-Requested-With': 'XMLHttpRequest' }});
+                return await res.text(); 
+            } catch (e) {
+                return null;
+            }
+        }
+
+        // 2. Initialisation : On enregistre l'empreinte au chargement
+        fetchPlanningSignature().then(sig => {
+            if (sig) currentPlanningSignature = sig;
+        });
+
+        // 3. Boucle de vérification invisible (toutes les 10 secondes)
+        function startPlanningUpdatePolling() {
+            planningUpdateCheckInterval = setInterval(async () => {
+                // SÉCURITÉ : On ne dérange surtout pas l'utilisateur s'il est en train de modifier le planning !
+                if (isDirty) return;
+
+                const sig = await fetchPlanningSignature();
+                
+                // Si la signature a changé = un collègue a cliqué sur "Enregistrer" de son côté
+                if (sig && currentPlanningSignature && sig !== currentPlanningSignature) {
+                    showPlanningUpdateAlert();
+                    clearInterval(planningUpdateCheckInterval); 
+                }
+            }, 10000);
+        }
+
+        // 4. Affichage du pop-up
+        function showPlanningUpdateAlert() {
+            if (document.getElementById('update-toast')) return; 
+
+            const alertBox = document.createElement('div');
+            alertBox.id = 'update-toast';
+            alertBox.className = 'update-toast';
+            alertBox.innerHTML = `
+                <div>
+                    <div style="font-size: 16px; margin-bottom: 5px;">🔄 <b>Mise à jour disponible</b></div>
+                    <div style="font-size: 14px; opacity: 0.9;">Un autre utilisateur a modifié le planning.</div>
+                </div>
+                <button onclick="window.location.reload()">Rafraîchir la page</button>
+                <button class="update-toast-close" onclick="this.parentElement.remove(); startPlanningUpdatePolling();" title="Ignorer pour l'instant">&times;</button>
+            `;
+            document.body.appendChild(alertBox);
+        }
+
+        startPlanningUpdatePolling();
+
+        // 5. ASTUCE PRO : Ne pas s'auto-alerter !
+        // On intercepte TA fonction de sauvegarde pour dire au système de mettre à jour 
+        // sa mémoire sans afficher l'alerte rouge.
+        const originalSave = savePlanning;
+        savePlanning = async function() {
+            await originalSave(); // On exécute ta sauvegarde normale
+            
+            // Une seconde après, on met à jour la signature locale discrètement
+            setTimeout(async () => {
+                const sig = await fetchPlanningSignature();
+                if (sig) currentPlanningSignature = sig;
+            }, 1000);
+        };
+
 
         // ==========================================
         // 2. ANCIEN MOTEUR D'UPLOAD DE MESSAGES (Intact)
