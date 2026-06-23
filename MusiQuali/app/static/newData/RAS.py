@@ -4,7 +4,7 @@ lecteur.py — Lecteur audio dual-canal pour MusiQuali
 Canal Musique de fond (pygame.mixer.music) : gère MU.json (Format Plat).
 Canal 1 (messages) : déclenche chaque message de MSG.json à l'heure pile.
 """
-#allo
+#allo arthuuuuur
 import os
 import json
 import time
