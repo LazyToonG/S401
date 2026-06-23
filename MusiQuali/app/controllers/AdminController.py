@@ -29,8 +29,8 @@ def get_requetes_entreprise():
     }
 
 def envoyer_email_decision(destinataire, pseudo, type_requete, accepte=True):
-    expediteur = "akihito.mishima2@gmail.com"
-    mot_de_passe = "bpnlamgunnehrxxz"
+    expediteur = "musiquali.info@gmail.com"
+    mot_de_passe = "ezxyhhkqvhvmqmug"
 
     msg = MIMEMultipart()
     msg['From'] = expediteur
