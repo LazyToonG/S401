@@ -32,7 +32,7 @@ LOG_DIR     = os.path.join(BASE_DIR, "logs")
 CHANNEL_MUSIC   = 0
 CHANNEL_MESSAGE = 1
 
-MUSIC_VOLUME = 1.0  # volume normal du canal musique (0.0 → 1.0)
+MUSIC_VOLUME = 1.0
 
 # ------------------------------------------------------------------ Logging
 
@@ -124,7 +124,7 @@ def main():
 
     log("=== Lecteur MusiQuali démarré ===")
 
-    # Garde une trace des slots déjà déclenchés (évite les doublons dans la même journée)
+    # Garde une trace des slots déjà déclenchés (évite les doublons)
     triggered_mu  = set()   # "HH:MM"
     triggered_msg = set()   # "HH:MM"
     current_day   = day_name()
