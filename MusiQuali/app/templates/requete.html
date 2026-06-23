@@ -27,19 +27,24 @@
                             <span class="radio-btn">Changement de rôle</span>
                         </label>
                         <label class="radio-label">
-                            <input type="radio" name="request_type" value="Modification de l'e-mail">
-                            <span class="radio-btn">Modification de l'e-mail</span>
-                        </label>
-                        <label class="radio-label">
                             <input type="radio" name="request_type" value="Autre">
                             <span class="radio-btn">Autre</span>
                         </label>
                     </div>
                 </div>
                 
-                <div class="input-group">
+                <div class="input-group" id="champ-description">
                     <label class="group-label" for="description">Description</label>
                     <textarea id="description" name="description" rows="4" required></textarea>
+                </div>
+
+                <div class="input-group" id="champ-nouveau-role" style="display: none;">
+                    <label class="group-label" for="nouveau_role">Choisissez le nouveau rôle demandé :</label>
+                    <select id="nouveau_role" name="nouveau_role" style="width: 100%; padding: 12px; border: 1px solid #b5abab; border-radius: 8px; font-size: 14px; font-family: inherit; outline: none; background-color: transparent;">
+                        <option value="commercial">Commercial</option>
+                        <option value="marketing">Marketing</option>
+                        <option value="admin">Administrateur</option>
+                    </select>
                 </div>
                 
                 <button type="submit" class="submit-btn-requete">Envoyer</button>
@@ -50,22 +55,26 @@
     </main>
 
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const profileBtn = document.getElementById('userProfileBtn');
-            const profileMenu = document.getElementById('profileMenu');
+        // --- GESTION DE L'AFFICHAGE CONDITIONNEL DES CHAMPS ---
+        const radios = document.querySelectorAll('input[name="request_type"]');
+        const champDesc = document.getElementById('champ-description');
+        const descTextarea = document.getElementById('description');
+        const champRole = document.getElementById('champ-nouveau-role');
 
-            if (profileBtn && profileMenu) {
-                profileBtn.addEventListener('click', (event) => {
-                    profileMenu.classList.toggle('show');
-                    event.stopPropagation(); 
-                });
-
-                document.addEventListener('click', (event) => {
-                    if (!profileBtn.contains(event.target)) {
-                        profileMenu.classList.remove('show');
-                    }
-                });
-            }
+        radios.forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                if (e.target.value === 'Changement de rôle') {
+                    // On affiche le menu des rôles et on cache la description
+                    champDesc.style.display = 'none';
+                    descTextarea.removeAttribute('required'); // Indispensable pour que le formulaire puisse s'envoyer !
+                    champRole.style.display = 'block';
+                } else {
+                    // On remet l'affichage classique
+                    champDesc.style.display = 'block';
+                    descTextarea.setAttribute('required', 'required');
+                    champRole.style.display = 'none';
+                }
+            });
         });
     </script>
 </body>

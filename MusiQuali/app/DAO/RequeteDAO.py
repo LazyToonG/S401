@@ -20,7 +20,7 @@ class RequeteDAO:
         with open(self.filepath, 'w', encoding='utf-8') as f:
             json.dump(data, f, indent=4, ensure_ascii=False)
 
-    def ajouter_requete(self, demandeur, mail, type_req, message, role=None, entreprise=None, mdp=None):
+    def ajouter_requete(self, demandeur, mail, type_req, message, role=None, entreprise=None, mdp=None, nouveau_role=None):
         data = self.lire_json()
         
         # Générer un nouvel ID (le plus grand ID existant + 1)
@@ -37,7 +37,8 @@ class RequeteDAO:
             "entreprise": entreprise,
             "mdp": mdp,
             "message": message,
-            "statut": "en_attente"
+            "statut": "en_attente",
+            "nouveau_role": nouveau_role
         }
         
         self.ecrire_json(data)

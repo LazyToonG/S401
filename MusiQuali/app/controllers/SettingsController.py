@@ -144,6 +144,7 @@ class SettingsController:
         # 1. On récupère les infos du formulaire
         type_req = request.form.get('request_type')
         description = request.form.get('description')
+        nouveau_role = request.form.get("nouveau_role")
         
         # 2. On récupère les infos de l'utilisateur connecté depuis la session
         demandeur = session.get('username')
@@ -161,7 +162,8 @@ class SettingsController:
             type_req=type_req,
             message=description,
             role=role,
-            entreprise=id_entreprise
+            entreprise=id_entreprise,
+            nouveau_role=nouveau_role
         )
         
         flash("Votre requête a bien été envoyée à l'administrateur.", "success")
