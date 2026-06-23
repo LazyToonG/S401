@@ -732,6 +732,33 @@
         //     window.location.reload();
         // }, 20000); // toutes les 20 secondes
 
+        // --- RAFRAÎCHISSEMENT AUTO DES UTILISATEURS ---
+        async function refreshUsersListAJAX() {
+            // SÉCURITÉ : Ne pas rafraîchir si une case est cochée (l'admin prépare une suppression)
+            const anyChecked = Array.from(document.querySelectorAll('#users .custom-round-checkbox')).some(c => c.checked);
+            if (anyChecked) return;
+
+            // On garde le texte de recherche actuel en mémoire
+            const query = document.getElementById('search-users').value;
+            
+            try {
+                const res = await fetch(`/admin/api/search_users?q=${encodeURIComponent(query)}`);
+                const html = await res.text();
+                
+                // On remplace le tableau en direct
+                document.getElementById('users-list-container').innerHTML = html;
+                
+                // On réapplique tes règles de tri (A->Z, etc.) sur la nouvelle liste !
+                filterAndSortUsers(); 
+                
+            } catch (err) {
+                console.error('Erreur refreshUsers:', err);
+            }
+        }
+
+        // Lance le rafraîchissement toutes les 5 secondes
+        setInterval(refreshUsersListAJAX, 5000);
+
         // --- RAFRAÎCHISSEMENT AUTO DES LECTEURS ---
         async function refreshRaspList() {
             const container = document.getElementById('rasp-list-container');

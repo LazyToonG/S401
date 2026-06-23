@@ -8,7 +8,31 @@
     <link href="{{ url_for('static', filename='style_marketing.css') }}" rel="stylesheet">
     <link href="{{ url_for('static', filename='message_alert.css') }}" rel="stylesheet">
     <style>
-        /* Style commun pour les musiques ET les playlists */
+        /* --- NOTIFICATION DE MISE À JOUR --- */
+        @keyframes slideInUpToast {
+            from { transform: translateY(100px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .update-toast {
+            position: fixed; bottom: 30px; right: 30px;
+            background-color: #a71e23; color: white;
+            padding: 15px 25px; border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            z-index: 9999; display: flex; align-items: center; gap: 20px;
+            animation: slideInUpToast 0.5s ease-out;
+            border: 1px solid #651b1b;
+        }
+        .update-toast button {
+            background-color: #fff; color: #651b1b; border: none;
+            padding: 8px 15px; border-radius: 20px; cursor: pointer;
+            font-weight: bold; font-family: inherit; transition: 0.2s;
+        }
+        .update-toast button:hover { background-color: #f5ebeb; }
+        .update-toast-close {
+            background: none !important; color: white !important; font-size: 24px !important;
+            padding: 0 !important; margin: 0 !important; cursor: pointer; opacity: 0.7;
+        }
+        .update-toast-close:hover { opacity: 1; }
         
     </style>
 </head>
@@ -945,6 +969,89 @@
                 });
             }
         });
+
+
+        // =========================================================
+        // --- SYSTÈME DE NOTIFICATION DE CHANGEMENT ---
+        // =========================================================
+        
+        let currentDataSignature = "";
+        let updateCheckInterval;
+
+        // 1. Crée une "empreinte" textuelle des données actuelles du serveur
+        async function fetchMarketingSignature() {
+            try {
+                const [plRes, muRes] = await Promise.all([
+                    fetch('/marketing/playlists', { headers: { 'X-Requested-With': 'XMLHttpRequest' }}),
+                    fetch('/marketing/musiques', { headers: { 'X-Requested-With': 'XMLHttpRequest' }})
+                ]);
+                const pl = await plRes.text();
+                const mu = await muRes.text();
+                return pl + mu; // La combinaison des textes sert de signature unique
+            } catch (e) {
+                return null;
+            }
+        }
+
+        // 2. Initialisation : On enregistre la signature locale au chargement
+        fetchMarketingSignature().then(sig => {
+            if (sig) currentDataSignature = sig;
+        });
+
+        // 3. Boucle de vérification invisible (toutes les 10 secondes)
+        function startUpdatePolling() {
+            updateCheckInterval = setInterval(async () => {
+                const sig = await fetchMarketingSignature();
+                
+                // Si la signature est différente de celle en mémoire = quelqu'un a modifié la BDD !
+                if (sig && currentDataSignature && sig !== currentDataSignature) {
+                    showUpdateAlert();
+                    clearInterval(updateCheckInterval); // On arrête de vérifier une fois l'alerte affichée
+                }
+            }, 10000);
+        }
+
+        startUpdatePolling();
+
+        // 4. Affichage du pop-up non intrusif
+        function showUpdateAlert() {
+            if (document.getElementById('update-toast')) return; // Évite les doublons
+
+            const alertBox = document.createElement('div');
+            alertBox.id = 'update-toast';
+            alertBox.className = 'update-toast';
+            alertBox.innerHTML = `
+                <div>
+                    <div style="font-size: 16px; margin-bottom: 5px;">🔄 <b>Mise à jour disponible</b></div>
+                    <div style="font-size: 14px; opacity: 0.9;">Un autre utilisateur a modifié les données.</div>
+                </div>
+                <button onclick="window.location.reload()">Rafraîchir la page</button>
+                <button class="update-toast-close" onclick="this.parentElement.remove(); startUpdatePolling();" title="Ignorer pour l'instant">&times;</button>
+            `;
+            document.body.appendChild(alertBox);
+        }
+
+        // 5. ASTUCE PRO : Éviter de s'auto-alerter !
+        // On intercepte nos propres modifications AJAX pour dire au système de mettre à jour 
+        // sa signature locale sans afficher l'alerte.
+        const originalFetch = window.fetch;
+        window.fetch = async function(...args) {
+            const response = await originalFetch.apply(this, args);
+            
+            const url = typeof args[0] === 'string' ? args[0] : args[0].url;
+            const method = (args[1] && args[1].method) ? args[1].method.toUpperCase() : 'GET';
+
+            // Si c'est NOUS qui avons envoyé une modification (POST/DELETE)
+            if (method !== 'GET' && (url.includes('/marketing/') || url.includes('/upload'))) {
+                // On met à jour notre signature avec un petit délai pour laisser le serveur enregistrer
+                setTimeout(async () => {
+                    const sig = await fetchMarketingSignature();
+                    if (sig) currentDataSignature = sig;
+                }, 800);
+            }
+            
+            return response;
+        };
     </script>
 </body>
 </html>

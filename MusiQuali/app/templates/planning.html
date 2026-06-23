@@ -419,6 +419,7 @@
     </div>
 
     <script>
+        const ENTREPRISE_ID = parseInt("{{ session['idEntreprise'] }}");
         // ==========================================
         // 1. NOUVEAU MOTEUR DE CALENDRIER ET PLANNING
         // ==========================================
@@ -678,6 +679,7 @@
             const payloadBoxes = boxes.map(({ _box, ...rest }) => rest);
 
             try {
+                // 1. On effectue d'abord la sauvegarde en Base de Données
                 const res = await fetch('/planning/save', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -687,8 +689,33 @@
                 if (res.ok) {
                     const saved = await res.json();
                     saved.forEach((row, i) => { if (boxes[i]._box) boxes[i]._box.dataset.idPlanning = row.idPlanning; });
-                    saveStatus.textContent = 'Sauvegardé ✓';
-                    setTimeout(() => saveStatus.textContent = '', 2000);
+                    
+                    // Changement de message visuel pour l'utilisateur
+                    saveStatus.textContent = 'Génération des fichiers de configuration...';
+                    console.log("Sauvegarde BDD OK. Attente de 5 secondes pour l'écriture physique des fichiers JSON...");
+                    
+                    // 2. On attend ICI 5 secondes complètes pour laisser le serveur écrire les JSON
+                    setTimeout(async () => {
+                        saveStatus.textContent = 'Déploiement vers les Raspberry...';
+                        console.log("Fin des 5 secondes de sécurité. Déclenchement du rsync !");
+                        
+                        try {
+                            // 3. C'est seulement APRÈS l'attente qu'on demande l'envoi forcé
+                            const forceRes = await fetch('/admin/api/force_send_planning', { method: 'POST' });
+                            if (forceRes.ok) {
+                                saveStatus.textContent = 'Déploiement réussi ! ✓';
+                            } else {
+                                saveStatus.textContent = 'Erreur lors du déploiement.';
+                            }
+                        } catch (err) {
+                            saveStatus.textContent = 'Erreur réseau transfert.';
+                            console.error(err);
+                        }
+                        
+                        // Efface le statut au bout de 3 secondes après la fin de l'opération
+                        setTimeout(() => saveStatus.textContent = '', 3000);
+                    }, 5000); // 5000 ms de sécurité
+
                     clearDirty(); 
                 } else {
                     saveStatus.textContent = 'Erreur lors de la sauvegarde.';
@@ -699,7 +726,7 @@
         async function loadPlanning() {
             try {
                 const [planningRes, playlistsRes, musiquesRes] = await Promise.all([
-                    fetch('/planning/data?idEntreprise=1'),
+                    fetch(`/planning/data?idEntreprise=${ENTREPRISE_ID}`),
                     fetch('/marketing/playlists'),
                     fetch('/marketing/musiques?prefix=MSG_')
                 ]);
