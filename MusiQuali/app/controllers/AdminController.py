@@ -156,6 +156,22 @@ def api_read_log(nom, filename):
         return jsonify({"error": "Fichier introuvable"}), 404
     return jsonify({"nom": nom, "filename": filename, "content": content})
 
+@app.route("/admin/api/rasp_status", methods=["GET"])
+@reqrole('admin')
+def api_rasp_status():
+    """Retourne en JSON l'état des lecteurs de l'entreprise (pour le rafraîchissement AJAX)."""
+    raspberry = rs.montreToutRasp(session["idEntreprise"])
+    return jsonify([
+        {
+            "idLecteur": r.idLecteur,
+            "nomLecteur": r.nomLecteur,
+            "ip": r.ip,
+            "enLigne": etatPing.get(r.nomLecteur, False),
+            "dernierOk": dernierOk.get(r.nomLecteur, "Jamais")
+        }
+        for r in raspberry
+    ])
+
 # Création utilisateur
 
 @app.route("/admin/create", methods=["POST", "GET"])
