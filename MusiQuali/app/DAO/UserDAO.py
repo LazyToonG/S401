@@ -32,23 +32,23 @@ class UserSqliteDAO():
             );
         """)
 
-        # Vérifier si un admin existe déjà
+        # 1. Vérifier si un admin existe déjà
         cursor.execute("""
-            SELECT 1 FROM Users WHERE username = 'admin' LIMIT 1;
+            SELECT 1 FROM Users WHERE role = 'admin' LIMIT 1;
         """)
         admin_exists = cursor.fetchone() is not None
 
-        # Créer admin uniquement s’il n’existe pas
+        # Créer admin uniquement s’il n’existe pas (Corrigé : "admin" au lieu de "modo")
         if not admin_exists:
-            self.createUser("admin", "admin", "admin", "admin@musiquali.com", 5)
+            self.createUser("admin", "admin", "admin", "admin@musiquali.com", 100)
 
-        # Vérifier si un modo existe déjà
+        # 2. Vérifier si un modo existe déjà
         cursor.execute("""
-            SELECT 1 FROM Users WHERE username = 'modo' LIMIT 1;
+            SELECT 1 FROM Users WHERE role = 'modo' LIMIT 1;
         """)
         modo_exists = cursor.fetchone() is not None
 
-        # Créer admin uniquement s’il n’existe pas
+        # Créer modérateur uniquement s’il n’existe pas (Corrigé : le commentaire)
         if not modo_exists:
             self.createUser("modo", "modo", "modo", "modo@musiquali.com", 100)
 
