@@ -54,8 +54,8 @@ from email.mime.multipart import MIMEMultipart
 
 def envoyer_email_reset(destinataire, lien_reset):
     # Renseigne ici ton adresse d'envoi (ex: une adresse Gmail de test)
-    expediteur = "akihito.mishima2@gmail.com"
-    mot_de_passe = "bpnlamgunnehrxxz"
+    expediteur = "musiquali.info@gmail.com"
+    mot_de_passe = "ezxyhhkqvhvmqmug"
 
     msg = MIMEMultipart()
     msg['From'] = expediteur
