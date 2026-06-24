@@ -10,7 +10,7 @@ if [ -f "$CERT" ] && [ -f "$KEY" ]; then
     exit 0
 fi
 
-echo "⚙️ Génération certificat SSL..."
+echo ">> Génération certificat SSL..."
 
 openssl req -x509 -newkey rsa:2048 \
   -keyout "$KEY" \

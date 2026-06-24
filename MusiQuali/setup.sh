@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "🚀 Setup MusiQuali"
+echo ">>Setup MusiQuali<<"
 
 # venv
 if [ ! -d "venv" ]; then
